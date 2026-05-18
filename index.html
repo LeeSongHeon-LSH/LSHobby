@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Español</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f4f0e8;
+      --surface: #ffffff;
+      --card: #fdfbf7;
+      --border: #ddd4c4;
+      --border-soft: #ede7da;
+      --text: #1c1610;
+      --muted: #7a6c5a;
+      --dim: #bdb0a0;
+      --gold: #8a6218;
+      --gold-mid: #a87828;
+      --gold-glow: rgba(138, 98, 24, 0.08);
+      --rust: #922e18;
+      --sage: #2a5e3a;
+      --err-bg: rgba(146, 46, 24, 0.07);
+      --ok-bg: rgba(42, 94, 58, 0.07);
+      --shadow-sm: 0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    body {
+      font-family: 'Fira Code', monospace;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(200, 160, 70, 0.07) 0%, transparent 100%),
+        radial-gradient(ellipse 45% 60% at 85% 80%, rgba(160, 120, 60, 0.05) 0%, transparent 100%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    /* ─── Fixed chrome ─────────────────── */
+    .back-btn {
+      position: fixed;
+      top: 22px; left: 22px;
+      background: none; border: none;
+      color: var(--dim);
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 7px;
+      transition: color 0.2s;
+      padding: 6px;
+    }
+    .back-btn:hover { color: var(--muted); }
+    .back-btn.hidden { visibility: hidden; pointer-events: none; }
+
+    .settings-btn {
+      position: fixed;
+      top: 22px; right: 22px;
+      width: 36px; height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+      cursor: pointer;
+      display: grid; place-items: center;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    .settings-btn:hover {
+      border-color: var(--gold-mid);
+      color: var(--gold);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ─── Views ────────────────────────── */
+    .app { width: 400px; max-width: 92vw; }
+
+    .view { display: none; animation: rise 0.28s ease both; }
+    .view.active { display: block; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── HOME ─────────────────────────── */
+    .home-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 68px;
+      font-weight: 300;
+      font-style: italic;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      text-align: center;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .home-title em { color: var(--gold); font-style: normal; }
+
+    .home-sub {
+      text-align: center;
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+    }
+
+    .rule {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin-bottom: 40px;
+    }
+
+    .home-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .main-btn {
+      padding: 30px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 14px;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.22s, transform 0.2s, box-shadow 0.22s;
+      position: relative; overflow: hidden;
+    }
+    .main-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gold-glow);
+      opacity: 0; transition: opacity 0.22s;
+    }
+    .main-btn:hover {
+      border-color: var(--gold-mid);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .main-btn:hover::after { opacity: 1; }
+
+    .btn-glyph { font-size: 22px; line-height: 1; }
+    .main-btn.primary .btn-glyph { color: var(--gold); }
+    .main-btn.secondary .btn-glyph { color: var(--dim); }
+
+    .home-stats {
+      text-align: center;
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+    }
+    .home-stats b { color: var(--muted); font-weight: 400; }
+    .home-stats .dot { margin: 0 9px; }
+
+    /* ─── QUIZ ─────────────────────────── */
+    .quiz-prompt {
+      text-align: center;
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .word-card {
+      border: 1px solid var(--border-soft);
+      background: var(--surface);
+      padding: 52px 28px 40px;
+      text-align: center;
+      margin-bottom: 24px;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    }
+    .word-card::before, .word-card::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      border-color: var(--gold-mid);
+      border-style: solid;
+      opacity: 0.35;
+    }
+    .word-card::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
+    .word-card::after  { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+
+    .word-card.state-ok  { border-color: var(--sage); background: var(--ok-bg); }
+    .word-card.state-err { border-color: var(--rust); background: var(--err-bg); }
+
+    .quiz-word {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 54px;
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.1;
+      color: var(--text);
+    }
+    .quiz-word-kr {
+      font-style: normal;
+      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      font-size: 38px;
+      font-weight: 300;
+    }
+
+    .word-meta {
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+      margin-top: 10px;
+    }
+    .word-meta b { color: var(--muted); font-weight: 400; }
+
+    /* direction badge */
+    .quiz-dir {
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 20px;
+    }
+
+    /* gender badge */
+    .gender-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--bg);
+    }
+
+    /* answer input row */
+    .answer-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .answer-input {
+      flex: 1;
+      padding: 13px 15px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+      font-size: 15px;
+      outline: none;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .answer-input:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
+    .answer-input:disabled { opacity: 0.6; }
+
+    .submit-btn {
+      padding: 13px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.18s, color 0.18s;
+      flex-shrink: 0;
+    }
+    .submit-btn:hover:not(:disabled) { border-color: var(--gold-mid); color: var(--text); }
+    .submit-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .quiz-fb {
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      min-height: 18px;
+    }
+    .quiz-fb.ok  { color: var(--sage); }
+    .quiz-fb.err { color: var(--rust); }
+
+    /* correct answer reveal */
+    .correct-reveal {
+      display: none;
+      margin-top: 10px;
+      padding: 12px 16px;
+      background: var(--err-bg);
+      border: 1px solid var(--rust);
+      border-radius: 3px;
+      font-size: 13px;
+      color: var(--text);
+      animation: rise 0.2s ease both;
+    }
+    .correct-reveal.show { display: block; }
+    .correct-reveal .reveal-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--rust);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .correct-reveal .reveal-word {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-style: italic;
+    }
+
+    .next-btn {
+      width: 100%; margin-top: 14px; padding: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, color 0.2s;
+      display: none;
+    }
+    .next-btn.show { display: block; animation: rise 0.25s ease both; }
+    .next-btn:hover { border-color: var(--gold-mid); color: var(--text); }
+
+    .empty-quiz {
+      text-align: center;
+      padding: 64px 0;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      line-height: 2.2;
+    }
+
+    /* ─── ADD WORD ──────────────────────── */
+    .form-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 300;
+      font-style: italic;
+      text-align: center;
+      margin-bottom: 36px;
+      color: var(--text);
+    }
+
+    .field { margin-bottom: 22px; }
+
+    .field-label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 9px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .field-label .optional {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      font-style: italic;
+      text-transform: none;
+    }
+
+    .word-input {
+      width: 100%;
+      padding: 13px 15px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-style: italic;
+      outline: none;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .word-input::placeholder { color: var(--dim); font-style: italic; }
+    .word-input:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
+
+    .meaning-input {
+      width: 100%;
+      padding: 11px 15px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+      font-size: 15px;
+      outline: none;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .meaning-input::placeholder { color: var(--dim); }
+    .meaning-input:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
+
+    .shortcut-hint {
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.06em;
+      text-align: right;
+    }
+    .shortcut-hint kbd {
+      display: inline-block;
+      padding: 1px 5px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .gender-pick {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .g-opt {
+      padding: 13px 6px;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+    }
+    .g-opt:hover { border-color: var(--gold-mid); color: var(--text); }
+    .g-opt.on {
+      border-color: var(--gold-mid);
+      color: var(--gold);
+      background: var(--gold-glow);
+    }
+
+    /* subtle none-hint below gender buttons */
+    .none-hint {
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+      text-align: center;
+      min-height: 16px;
+      transition: opacity 0.2s;
+    }
+
+    .add-btn {
+      width: 100%; margin-top: 26px; padding: 15px;
+      background: var(--surface);
+      border: 1px solid var(--gold-mid);
+      color: var(--gold);
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .add-btn:hover:not(:disabled) {
+      background: var(--gold-glow);
+      box-shadow: var(--shadow-md);
+    }
+    .add-btn:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
+
+    .add-msg {
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      min-height: 18px;
+      margin-top: 12px;
+    }
+
+    /* ─── SETTINGS DRAWER ───────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.22);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 50;
+      backdrop-filter: blur(2px);
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .drawer {
+      position: fixed;
+      top: 0; right: 0;
+      width: 264px; max-width: 82vw;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+      padding: 28px 24px;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 51;
+    }
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 44px;
+    }
+
+    .drawer-title {
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .close-btn {
+      background: none; border: none;
+      color: var(--dim); cursor: pointer;
+      font-size: 20px; line-height: 1;
+      transition: color 0.18s; padding: 2px 4px;
+    }
+    .close-btn:hover { color: var(--text); }
+
+    .drawer-section-label {
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 14px;
+    }
+
+    .lang-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .lang-btn {
+      padding: 11px 13px;
+      background: none;
+      border: 1px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      text-align: left;
+      display: flex; align-items: center; gap: 11px;
+      border-radius: 3px;
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+    }
+    .lang-btn:hover { border-color: var(--border); color: var(--text); background: var(--card); }
+    .lang-btn.on {
+      border-color: var(--gold-mid);
+      color: var(--gold);
+      background: var(--gold-glow);
+    }
+
+    .lang-pip {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0;
+      transition: background 0.18s;
+    }
+    .lang-btn.on .lang-pip { background: var(--gold); }
+  </style>
+</head>
+<body>
+
+  <button class="back-btn hidden" id="backBtn" onclick="goHome()">
+    ← <span id="lBack">뒤로</span>
+  </button>
+  <button class="settings-btn" onclick="toggleDrawer()">
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.15">
+      <circle cx="7.5" cy="7.5" r="2.2"/>
+      <path d="M7.5 1v1.8M7.5 12.2V14M1 7.5h1.8M12.2 7.5H14M2.9 2.9l1.27 1.27M10.83 10.83l1.27 1.27M2.9 12.1l1.27-1.27M10.83 4.17l1.27-1.27"/>
+    </svg>
+  </button>
+
+  <div class="app">
+
+    <!-- ── HOME ── -->
+    <div class="view active" id="vHome">
+      <h1 class="home-title">E<em>s</em>pañol</h1>
+      <p class="home-sub" id="lSub">단어를 정복하라</p>
+      <div class="rule"></div>
+      <div class="home-actions">
+        <button class="main-btn primary" onclick="startQuiz()">
+          <span class="btn-glyph">◈</span>
+          <span id="lQuiz">퀴즈</span>
+        </button>
+        <button class="main-btn secondary" onclick="go('addWord')">
+          <span class="btn-glyph">＋</span>
+          <span id="lAdd">단어 추가</span>
+        </button>
+      </div>
+      <div class="home-stats" id="homeStats"></div>
+    </div>
+
+    <!-- ── QUIZ ── -->
+    <div class="view" id="vQuiz">
+      <div id="quizBody"></div>
+    </div>
+
+    <!-- ── ADD WORD ── -->
+    <div class="view" id="vAddWord">
+      <h2 class="form-heading" id="lFormTitle">단어 추가</h2>
+      <div class="field">
+        <label class="field-label" id="lWordLabel">단어</label>
+        <input class="word-input" id="wordInput" type="text"
+               placeholder="palabra..." autocomplete="off" spellcheck="false">
+        <p class="shortcut-hint">
+          <kbd>alt</kbd>+<kbd>n</kbd> → ñ &ensp;
+          <kbd>alt</kbd>+<kbd>/</kbd> → ¿ &ensp;
+          <kbd>alt</kbd>+<kbd>1</kbd> → ¡
+        </p>
+      </div>
+      <div class="field">
+        <label class="field-label" id="lMeaningLabel">뜻</label>
+        <input class="meaning-input" id="meaningInput" type="text"
+               placeholder="한국어 뜻..." autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="field-label">
+          <span id="lGenderLabel">성별</span>
+          <span class="optional" id="lOptional">(선택)</span>
+        </label>
+        <div class="gender-pick">
+          <button class="g-opt" id="gm" onclick="pickGender('m')"><span id="lM">남성</span></button>
+          <button class="g-opt" id="gf" onclick="pickGender('f')"><span id="lF">여성</span></button>
+          <button class="g-opt" id="gn" onclick="pickGender('n')"><span id="lN">양성</span></button>
+        </div>
+        <p class="none-hint" id="noneHint"></p>
+      </div>
+      <button class="add-btn" id="addBtn" onclick="addWord()" disabled>
+        <span id="lAddBtn">추가하기</span>
+      </button>
+      <p class="add-msg" id="addMsg"></p>
+    </div>
+
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-head">
+      <span class="drawer-title" id="lSettings">설정</span>
+      <button class="close-btn" onclick="toggleDrawer()">×</button>
+    </div>
+    <p class="drawer-section-label" id="lLangSection">언어</p>
+    <div class="lang-list">
+      <button class="lang-btn" id="btn-ko" onclick="setLang('ko')">
+        <span class="lang-pip"></span>한국어
+      </button>
+      <button class="lang-btn" id="btn-es" onclick="setLang('es')">
+        <span class="lang-pip"></span>Español
+      </button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">
+        <span class="lang-pip"></span>English
+      </button>
+    </div>
+  </div>
+
+<script>
+// ── i18n ──────────────────────────────────────────────
+const T = {
+  ko: {
+    sub: '단어를 정복하라',
+    quiz: '퀴즈', add: '단어 추가',
+    settings: '설정', langSec: '언어',
+    m: '남성', f: '여성', n: '양성',
+    formTitle: '단어 추가', wordLabel: '단어', meaningLabel: '뜻', genderLabel: '성별',
+    optional: '(선택)',
+    noneHint: '선택하지 않으면 성 없음으로 저장됩니다',
+    placeholder: 'palabra...', meaningPlaceholder: '한국어 뜻...',
+    addBtn: '추가하기', added: '추가됨!', duplicate: '이미 있는 단어입니다',
+    back: '뒤로',
+    noWords: '단어장이 비어 있습니다\n단어를 먼저 추가해 주세요',
+    words: '단어', accuracy: '정답률',
+    tested: '출제', correctN: '정답',
+    dirSK: '스페인어 → 한국어', dirKS: '한국어 → 스페인어',
+    answerSK: '한국어 뜻 입력...', answerKS: 'español...',
+    correct: '정답!', wrong: '오답',
+    correctAnswer: '정답',
+    next: '다음 →',
+  },
+  es: {
+    sub: 'Conquista el vocabulario',
+    quiz: 'Jugar', add: 'Añadir',
+    settings: 'Ajustes', langSec: 'Idioma',
+    m: 'Masc.', f: 'Fem.', n: 'Neutro',
+    formTitle: 'Nueva palabra', wordLabel: 'Palabra', meaningLabel: 'Significado', genderLabel: 'Género',
+    optional: '(opcional)',
+    noneHint: 'Sin selección → sin género (verbos, etc.)',
+    placeholder: 'palabra...', meaningPlaceholder: 'significado en coreano...',
+    addBtn: 'Añadir', added: '¡Añadida!', duplicate: 'Ya existe esta palabra',
+    back: 'Volver',
+    noWords: 'El vocabulario está vacío\nAñade palabras primero',
+    words: 'palabras', accuracy: 'aciertos',
+    tested: 'visto', correctN: 'correcto',
+    dirSK: 'Español → Coreano', dirKS: 'Coreano → Español',
+    answerSK: 'significado en coreano...', answerKS: 'español...',
+    correct: '¡Correcto!', wrong: 'Incorrecto',
+    correctAnswer: 'Respuesta',
+    next: 'Siguiente →',
+  },
+  en: {
+    sub: 'Conquer the vocabulary',
+    quiz: 'Quiz', add: 'Add Word',
+    settings: 'Settings', langSec: 'Language',
+    m: 'Masc.', f: 'Fem.', n: 'Neutral',
+    formTitle: 'Add Word', wordLabel: 'Word', meaningLabel: 'Meaning', genderLabel: 'Gender',
+    optional: '(optional)',
+    noneHint: 'No selection → saved as genderless (verbs, etc.)',
+    placeholder: 'palabra...', meaningPlaceholder: 'Korean meaning...',
+    addBtn: 'Add', added: 'Added!', duplicate: 'Word already exists',
+    back: 'Back',
+    noWords: 'Your word bank is empty\nAdd some words first',
+    words: 'words', accuracy: 'accuracy',
+    tested: 'tested', correctN: 'correct',
+    dirSK: 'Spanish → Korean', dirKS: 'Korean → Spanish',
+    answerSK: 'Korean meaning...', answerKS: 'español...',
+    correct: 'Correct!', wrong: 'Wrong',
+    correctAnswer: 'Answer',
+    next: 'Next →',
+  },
+};
+
+// ── State ─────────────────────────────────────────────
+let lang = localStorage.getItem('lang') || 'ko';
+let selGender = null;
+let qWord = null;
+let qAnswered = false;
+
+// ── API helper ────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (!res.ok) throw await res.json();
+  return res.json();
+}
+
+// ── Helpers ───────────────────────────────────────────
+const t = k => T[lang][k];
+
+// ── View routing ──────────────────────────────────────
+function go(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('v' + view[0].toUpperCase() + view.slice(1)).classList.add('active');
+  document.getElementById('backBtn').classList.toggle('hidden', view === 'home');
+  renderTexts();
+}
+
+async function goHome() { await updateStats(); go('home'); }
+
+// ── Settings drawer ───────────────────────────────────
+function toggleDrawer() {
+  document.getElementById('drawer').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b =>
+    b.classList.toggle('on', b.id === 'btn-' + l)
+  );
+  renderTexts();
+}
+
+// ── Render all text ───────────────────────────────────
+function renderTexts() {
+  document.getElementById('lBack').textContent = t('back');
+  document.getElementById('lSub').textContent = t('sub');
+  document.getElementById('lQuiz').textContent = t('quiz');
+  document.getElementById('lAdd').textContent = t('add');
+  document.getElementById('lSettings').textContent = t('settings');
+  document.getElementById('lLangSection').textContent = t('langSec');
+  document.getElementById('lFormTitle').textContent = t('formTitle');
+  document.getElementById('lWordLabel').textContent = t('wordLabel');
+  document.getElementById('lMeaningLabel').textContent = t('meaningLabel');
+  document.getElementById('lGenderLabel').textContent = t('genderLabel');
+  document.getElementById('lOptional').textContent = t('optional');
+  document.getElementById('wordInput').placeholder = t('placeholder');
+  document.getElementById('meaningInput').placeholder = t('meaningPlaceholder');
+  document.getElementById('lAddBtn').textContent = t('addBtn');
+  document.getElementById('lM').textContent = t('m');
+  document.getElementById('lF').textContent = t('f');
+  document.getElementById('lN').textContent = t('n');
+  updateNoneHint();
+}
+
+async function updateStats() {
+  const el = document.getElementById('homeStats');
+  try {
+    const words = await api('GET', '/api/words');
+    if (!words.length) { el.innerHTML = ''; return; }
+    const tot = words.reduce((a, w) => a + w.test_count, 0);
+    const cor = words.reduce((a, w) => a + w.correct_count, 0);
+    const acc = tot === 0 ? null : Math.round(cor / tot * 100);
+    el.innerHTML = `<b>${words.length}</b> ${t('words')}`
+      + (acc !== null ? `<span class="dot">·</span><b>${acc}%</b> ${t('accuracy')}` : '');
+  } catch (e) {
+    el.innerHTML = '';
+  }
+}
+
+function updateNoneHint() {
+  const hint = document.getElementById('noneHint');
+  if (!hint) return;
+  hint.textContent = selGender ? '' : t('noneHint');
+}
+
+// ── Quiz ──────────────────────────────────────────────
+let qDir = 'sk'; // 'sk' = 스페인어→한국어, 'ks' = 한국어→스페인어
+
+async function startQuiz() {
+  go('quiz');
+  qAnswered = false;
+  qWord = null;
+  document.getElementById('quizBody').innerHTML = '';
+  qDir = Math.random() < 0.5 ? 'sk' : 'ks';
+  try {
+    qWord = await api('GET', '/api/quiz/pick');
+  } catch (e) {
+    qWord = null;
+  }
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const el = document.getElementById('quizBody');
+
+  if (!qWord) {
+    el.innerHTML = `<div class="empty-quiz">${t('noWords').replace('\n', '<br>')}</div>`;
+    return;
+  }
+
+  const isSK = qDir === 'sk';
+  const displayWord = isSK ? qWord.word : qWord.meaning;
+  const dirLabel = isSK ? t('dirSK') : t('dirKS');
+  const placeholder = isSK ? t('answerSK') : t('answerKS');
+  const genderLabel = qWord.gender !== 'none' ? t(qWord.gender) : '';
+  const isSpanishDisplay = isSK;
+
+  const meta = qWord.test_count > 0
+    ? `<b>${qWord.test_count}</b> ${t('tested')} · <b>${qWord.correct_count}</b> ${t('correctN')}`
+    : '—';
+
+  el.innerHTML = `
+    <div class="word-card" id="qCard">
+      <div class="quiz-dir">${dirLabel}</div>
+      <div class="quiz-word${isSpanishDisplay ? '' : ' quiz-word-kr'}">${displayWord}</div>
+      ${genderLabel ? `<div class="gender-badge">${genderLabel}</div>` : ''}
+      <div class="word-meta">${meta}</div>
+    </div>
+    <div class="answer-row">
+      <input class="answer-input" id="answerInput" type="text"
+             placeholder="${placeholder}" autocomplete="off" spellcheck="false">
+      <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">→</button>
+    </div>
+    <div class="quiz-fb" id="qFb"></div>
+    <div class="correct-reveal" id="correctReveal">
+      <span class="reveal-label">${t('correctAnswer')}</span>
+      <span class="reveal-word" id="revealWord"></span>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="startQuiz()">${t('next')}</button>
+  `;
+
+  const input = document.getElementById('answerInput');
+  input.focus();
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkAnswer();
+  });
+}
+
+async function checkAnswer() {
+  if (qAnswered || !qWord) return;
+  const input = document.getElementById('answerInput');
+  const userAnswer = input.value.trim();
+  if (!userAnswer) return;
+
+  qAnswered = true;
+  const correctAnswer = qDir === 'sk' ? qWord.meaning : qWord.word;
+  const ok = userAnswer.toLowerCase() === correctAnswer.trim().toLowerCase();
+
+  input.disabled = true;
+
+  try {
+    await api('POST', '/api/quiz/answer', { word: qWord.word, correct: ok });
+  } catch (e) {}
+
+  document.getElementById('qCard').classList.add(ok ? 'state-ok' : 'state-err');
+
+  const fb = document.getElementById('qFb');
+  fb.textContent = ok ? t('correct') : t('wrong');
+  fb.className = 'quiz-fb ' + (ok ? 'ok' : 'err');
+
+  if (!ok) {
+    document.getElementById('revealWord').textContent = correctAnswer;
+    document.getElementById('correctReveal').classList.add('show');
+  }
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+// ── Add Word ──────────────────────────────────────────
+function pickGender(g) {
+  if (selGender === g) {
+    selGender = null;
+    document.getElementById('g' + g).classList.remove('on');
+  } else {
+    selGender = g;
+    ['m', 'f', 'n'].forEach(x =>
+      document.getElementById('g' + x).classList.toggle('on', x === g)
+    );
+  }
+  updateNoneHint();
+  checkReady();
+}
+
+function checkReady() {
+  const word = document.getElementById('wordInput').value.trim();
+  const meaning = document.getElementById('meaningInput').value.trim();
+  document.getElementById('addBtn').disabled = !(word && meaning);
+}
+
+document.getElementById('wordInput').addEventListener('input', checkReady);
+document.getElementById('wordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('meaningInput').focus();
+});
+document.getElementById('meaningInput').addEventListener('input', checkReady);
+document.getElementById('meaningInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('addBtn').click();
+});
+
+const SHORTCUTS = { n: 'ñ', '/': '¿', '1': '¡' };
+const SHORTCUT_TARGETS = ['wordInput', 'answerInput'];
+
+document.addEventListener('keydown', e => {
+  if (!e.altKey) return;
+  const char = SHORTCUTS[e.key.toLowerCase()];
+  if (!char) return;
+  const input = SHORTCUT_TARGETS.map(id => document.getElementById(id))
+                                .find(el => el && document.activeElement === el);
+  if (!input) return;
+  e.preventDefault();
+  const s = input.selectionStart;
+  input.value = input.value.slice(0, s) + char + input.value.slice(input.selectionEnd);
+  input.setSelectionRange(s + 1, s + 1);
+  if (input.id === 'wordInput') checkReady();
+});
+
+async function addWord() {
+  const word = document.getElementById('wordInput').value.trim().toLowerCase();
+  if (!word) return;
+
+  const gender = selGender ?? 'none';
+  const meaning = document.getElementById('meaningInput').value.trim();
+  const msg = document.getElementById('addMsg');
+
+  try {
+    await api('POST', '/api/words', { word, gender, meaning });
+
+    document.getElementById('wordInput').value = '';
+    document.getElementById('meaningInput').value = '';
+    selGender = null;
+    ['m', 'f', 'n'].forEach(x => document.getElementById('g' + x).classList.remove('on'));
+    document.getElementById('addBtn').disabled = true;
+    updateNoneHint();
+
+    msg.style.color = 'var(--sage)';
+    msg.textContent = t('added');
+    setTimeout(() => { msg.textContent = ''; }, 2000);
+  } catch (err) {
+    msg.style.color = 'var(--rust)';
+    msg.textContent = err.detail === 'duplicate' ? t('duplicate') : (err.detail || t('duplicate'));
+    setTimeout(() => { msg.textContent = ''; }, 2000);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────
+setLang(lang);
+updateStats();
+updateNoneHint();
+</script>
+</body>
+</html>
