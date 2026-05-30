@@ -414,12 +414,109 @@
     .meaning-input::placeholder { color: var(--dim); }
     .meaning-input:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
 
+    .wordlist-btn {
+      width: 100%; margin-top: 10px; padding: 13px;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .wordlist-btn:hover { border-color: var(--gold-mid); color: var(--text); }
+
+    .wl-search {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+      font-size: 13px;
+      outline: none;
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      margin-bottom: 12px;
+    }
+    .wl-search::placeholder { color: var(--dim); }
+    .wl-search:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
+
+    .wl-count {
+      text-align: center;
+      font-size: 11px; color: var(--dim);
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+    }
+    .wl-body { max-height: 62vh; overflow-y: auto; }
+    .wl-item {
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+      padding: 13px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 8px;
+    }
+    .wl-word {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-style: italic; font-weight: 300;
+      color: var(--text);
+    }
+    .wl-meaning { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .wl-left { flex: 1; min-width: 0; }
+    .wl-right { flex-shrink: 0; text-align: right; }
+    .wl-stat { font-size: 10px; color: var(--dim); letter-spacing: 0.08em; }
+    .wl-actions { display: flex; gap: 4px; margin-top: 6px; justify-content: flex-end; }
+    .wl-action-btn {
+      background: none; border: 1px solid transparent;
+      color: var(--dim); cursor: pointer;
+      font-size: 12px; padding: 3px 8px; border-radius: 3px;
+      font-family: 'Fira Code', monospace; letter-spacing: 0.06em;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .wl-action-btn:hover { border-color: var(--border); color: var(--muted); }
+    .wl-action-btn.danger:hover { border-color: var(--rust); color: var(--rust); }
+    .wl-action-btn.save { border-color: var(--gold-mid); color: var(--gold); }
+    .wl-action-btn.save:hover { background: var(--gold-glow); }
+
+    .wl-edit-row { display: flex; gap: 6px; align-items: center; margin-bottom: 7px; }
+    .wl-edit-word {
+      flex: 1; padding: 6px 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); border-radius: 3px; outline: none;
+      font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic;
+      transition: border-color 0.2s;
+    }
+    .wl-edit-word:focus { border-color: var(--gold-mid); }
+    .wl-edit-meaning {
+      width: 100%; padding: 6px 10px; margin-bottom: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); border-radius: 3px; outline: none;
+      font-family: 'Fira Code', 'Malgun Gothic', sans-serif; font-size: 13px;
+      transition: border-color 0.2s; box-sizing: border-box;
+    }
+    .wl-edit-meaning:focus { border-color: var(--gold-mid); }
+    .wl-edit-genders { display: flex; gap: 4px; flex-shrink: 0; }
+    .wl-g-btn {
+      padding: 4px 7px; background: none;
+      border: 1px solid var(--border-soft); color: var(--muted);
+      cursor: pointer; font-family: 'Fira Code', monospace; font-size: 10px;
+      border-radius: 3px; transition: border-color 0.15s, color 0.15s;
+    }
+    .wl-g-btn:hover { border-color: var(--gold-mid); color: var(--text); }
+    .wl-g-btn.on { border-color: var(--gold-mid); color: var(--gold); background: var(--gold-glow); }
+
     .shortcut-hint {
       margin-top: 6px;
       font-size: 10px;
       color: var(--dim);
       letter-spacing: 0.06em;
-      text-align: right;
     }
     .shortcut-hint kbd {
       display: inline-block;
@@ -614,12 +711,23 @@
           <span id="lAdd">단어 추가</span>
         </button>
       </div>
+      <button class="wordlist-btn" onclick="startWordList()">
+        <span id="lWordList">단어장</span>
+      </button>
       <div class="home-stats" id="homeStats"></div>
     </div>
 
     <!-- ── QUIZ ── -->
     <div class="view" id="vQuiz">
       <div id="quizBody"></div>
+    </div>
+
+    <!-- ── WORD LIST ── -->
+    <div class="view" id="vWordList">
+      <h2 class="form-heading" id="lWordListTitle">단어장</h2>
+      <input class="wl-search" id="wlSearch" type="text" autocomplete="off" spellcheck="false">
+      <p class="wl-count" id="wlCount"></p>
+      <div class="wl-body" id="wlBody"></div>
     </div>
 
     <!-- ── ADD WORD ── -->
@@ -630,6 +738,7 @@
         <input class="word-input" id="wordInput" type="text"
                placeholder="palabra..." autocomplete="off" spellcheck="false">
         <p class="shortcut-hint">
+          <kbd>alt</kbd>+모음 → á é í ó ú &ensp;
           <kbd>alt</kbd>+<kbd>n</kbd> → ñ &ensp;
           <kbd>alt</kbd>+<kbd>/</kbd> → ¿ &ensp;
           <kbd>alt</kbd>+<kbd>1</kbd> → ¡
@@ -703,6 +812,8 @@ const T = {
     correct: '정답!', wrong: '오답',
     correctAnswer: '정답',
     next: '다음 →',
+    wordList: '단어장', save: '저장', cancel: '취소',
+    searchPlaceholder: '단어 또는 뜻 검색...',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -723,6 +834,8 @@ const T = {
     correct: '¡Correcto!', wrong: 'Incorrecto',
     correctAnswer: 'Respuesta',
     next: 'Siguiente →',
+    wordList: 'Vocabulario', save: 'Guardar', cancel: 'Cancelar',
+    searchPlaceholder: 'Buscar palabra o significado...',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -743,6 +856,8 @@ const T = {
     correct: 'Correct!', wrong: 'Wrong',
     correctAnswer: 'Answer',
     next: 'Next →',
+    wordList: 'Word List', save: 'Save', cancel: 'Cancel',
+    searchPlaceholder: 'Search word or meaning...',
   },
 };
 
@@ -808,6 +923,11 @@ function renderTexts() {
   document.getElementById('lM').textContent = t('m');
   document.getElementById('lF').textContent = t('f');
   document.getElementById('lN').textContent = t('n');
+  document.getElementById('lWordList').textContent = t('wordList');
+  const wlTitle = document.getElementById('lWordListTitle');
+  if (wlTitle) wlTitle.textContent = t('wordList');
+  const wlSearch = document.getElementById('wlSearch');
+  if (wlSearch) wlSearch.placeholder = t('searchPlaceholder');
   updateNoneHint();
 }
 
@@ -893,6 +1013,132 @@ function renderQuiz() {
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') checkAnswer();
   });
+  addAccentShortcut(input);
+}
+
+let wlCache = {};
+
+function wlItemHTML(w) {
+  const g = w.gender !== 'none'
+    ? ` <span class="gender-badge" style="font-size:9px;padding:2px 7px">${t(w.gender)}</span>`
+    : '';
+  const stat = w.test_count > 0
+    ? `${w.test_count} ${t('tested')} · ${w.correct_count} ${t('correctN')}`
+    : '—';
+  return `
+    <div class="wl-left">
+      <div class="wl-word">${w.word}${g}</div>
+      <div class="wl-meaning">${w.meaning}</div>
+    </div>
+    <div class="wl-right">
+      <div class="wl-stat">${stat}</div>
+      <div class="wl-actions">
+        <button class="wl-action-btn" type="button" onclick="startEditWord(this)">✎</button>
+        <button class="wl-action-btn danger" type="button" onclick="deleteWord(this)">×</button>
+      </div>
+    </div>`;
+}
+
+function startEditWord(btn) {
+  const item = btn.closest('.wl-item');
+  const w = wlCache[item.dataset.word];
+  const gBtns = ['m','f','n','none'].map(g =>
+    `<button class="wl-g-btn${w.gender === g ? ' on' : ''}" type="button" data-g="${g}"
+      onclick="this.closest('.wl-edit-genders').querySelectorAll('.wl-g-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')">
+      ${g === 'none' ? '—' : t(g)}</button>`
+  ).join('');
+  item.innerHTML = `
+    <div style="width:100%">
+      <div class="wl-edit-row">
+        <input class="wl-edit-word" value="${w.word}" autocomplete="off" spellcheck="false">
+        <div class="wl-edit-genders">${gBtns}</div>
+      </div>
+      <input class="wl-edit-meaning" value="${w.meaning}" autocomplete="off">
+      <div style="display:flex;gap:6px;justify-content:flex-end">
+        <button class="wl-action-btn" type="button" onclick="cancelEdit(this)">${t('cancel')}</button>
+        <button class="wl-action-btn save" type="button" onclick="saveEdit(this)">${t('save')}</button>
+      </div>
+    </div>`;
+}
+
+function cancelEdit(btn) {
+  const item = btn.closest('.wl-item');
+  item.innerHTML = wlItemHTML(wlCache[item.dataset.word]);
+}
+
+async function saveEdit(btn) {
+  const item = btn.closest('.wl-item');
+  const originalWord = item.dataset.word;
+  const newWord = item.querySelector('.wl-edit-word').value.trim().toLowerCase();
+  const meaning = item.querySelector('.wl-edit-meaning').value.trim();
+  const gEl = item.querySelector('.wl-g-btn.on');
+  const gender = gEl ? gEl.dataset.g : 'none';
+  if (!newWord || !meaning) return;
+  try {
+    await api('PUT', `/api/words/${encodeURIComponent(originalWord)}`, { word: newWord, gender, meaning });
+    const updated = { ...wlCache[originalWord], word: newWord, gender, meaning };
+    delete wlCache[originalWord];
+    wlCache[newWord] = updated;
+    item.dataset.word = newWord;
+    item.innerHTML = wlItemHTML(updated);
+  } catch (e) {
+    btn.textContent = '!';
+    setTimeout(() => { btn.textContent = t('save'); }, 1500);
+  }
+}
+
+async function deleteWord(btn) {
+  const item = btn.closest('.wl-item');
+  const word = item.dataset.word;
+  try {
+    await api('DELETE', `/api/words/${encodeURIComponent(word)}`);
+    delete wlCache[word];
+    item.remove();
+    document.getElementById('wlCount').textContent =
+      `${Object.keys(wlCache).length} ${t('words')}`;
+  } catch (e) {}
+}
+
+function filterWordList() {
+  const q = document.getElementById('wlSearch').value.trim().toLowerCase();
+  let shown = 0;
+  const total = Object.keys(wlCache).length;
+  document.querySelectorAll('#wlBody .wl-item').forEach(item => {
+    const w = wlCache[item.dataset.word];
+    const match = !q || w.word.includes(q) || w.meaning.toLowerCase().includes(q);
+    item.style.display = match ? '' : 'none';
+    if (match) shown++;
+  });
+  const countEl = document.getElementById('wlCount');
+  countEl.textContent = q
+    ? `${shown} / ${total} ${t('words')}`
+    : `${total} ${t('words')}`;
+}
+
+async function startWordList() {
+  go('wordList');
+  const body = document.getElementById('wlBody');
+  const countEl = document.getElementById('wlCount');
+  const searchEl = document.getElementById('wlSearch');
+  searchEl.value = '';
+  searchEl.oninput = filterWordList;
+  wlCache = {};
+  try {
+    const words = await api('GET', '/api/words');
+    words.forEach(w => { wlCache[w.word] = w; });
+    countEl.textContent = `${words.length} ${t('words')}`;
+    if (!words.length) {
+      body.innerHTML = `<div class="empty-quiz">${t('noWords').replace('\n', '<br>')}</div>`;
+      return;
+    }
+    body.innerHTML = words.map(w =>
+      `<div class="wl-item" data-word="${w.word}">${wlItemHTML(w)}</div>`
+    ).join('');
+    searchEl.focus();
+  } catch (e) {
+    body.innerHTML = '';
+    countEl.textContent = '';
+  }
 }
 
 async function checkAnswer() {
@@ -903,7 +1149,7 @@ async function checkAnswer() {
 
   qAnswered = true;
   const correctAnswer = qDir === 'sk' ? qWord.meaning : qWord.word;
-  const ok = userAnswer.toLowerCase() === correctAnswer.trim().toLowerCase();
+  const ok = correctAnswer.split(',').map(s => s.trim().toLowerCase()).includes(userAnswer.toLowerCase());
 
   input.disabled = true;
 
@@ -955,22 +1201,21 @@ document.getElementById('meaningInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('addBtn').click();
 });
 
-const SHORTCUTS = { n: 'ñ', '/': '¿', '1': '¡' };
-const SHORTCUT_TARGETS = ['wordInput', 'answerInput'];
+const SHORTCUTS = { KeyA: 'á', KeyE: 'é', KeyI: 'í', KeyO: 'ó', KeyU: 'ú', KeyN: 'ñ', Slash: '¿', Digit1: '¡' };
+const SHORTCUTS_UPPER = { KeyA: 'Á', KeyE: 'É', KeyI: 'Í', KeyO: 'Ó', KeyU: 'Ú', KeyN: 'Ñ' };
 
-document.addEventListener('keydown', e => {
-  if (!e.altKey) return;
-  const char = SHORTCUTS[e.key.toLowerCase()];
-  if (!char) return;
-  const input = SHORTCUT_TARGETS.map(id => document.getElementById(id))
-                                .find(el => el && document.activeElement === el);
-  if (!input) return;
-  e.preventDefault();
-  const s = input.selectionStart;
-  input.value = input.value.slice(0, s) + char + input.value.slice(input.selectionEnd);
-  input.setSelectionRange(s + 1, s + 1);
-  if (input.id === 'wordInput') checkReady();
-});
+function addAccentShortcut(input) {
+  input.addEventListener('keydown', e => {
+    if (!e.altKey) return;
+    const char = (e.shiftKey && SHORTCUTS_UPPER[e.code]) || SHORTCUTS[e.code];
+    if (!char) return;
+    e.preventDefault();
+    const s = input.selectionStart;
+    input.value = input.value.slice(0, s) + char + input.value.slice(input.selectionEnd);
+    input.setSelectionRange(s + 1, s + 1);
+    if (input.id === 'wordInput') checkReady();
+  });
+}
 
 async function addWord() {
   const word = document.getElementById('wordInput').value.trim().toLowerCase();
@@ -1004,6 +1249,7 @@ async function addWord() {
 setLang(lang);
 updateStats();
 updateNoneHint();
+addAccentShortcut(document.getElementById('wordInput'));
 </script>
 </body>
 </html>

@@ -56,6 +56,21 @@ async def add_word(body: WordIn):
     return {"ok": True}
 
 
+@app.put("/api/words/{word}")
+async def update_word(word: str, body: WordIn):
+    try:
+        gender = Gender(body.gender)
+    except ValueError:
+        raise HTTPException(422, detail=f"invalid_gender: {body.gender}")
+    try:
+        db.update_word(word, body.word, gender, body.meaning)
+    except ValueError as e:
+        raise HTTPException(422, detail=str(e))
+    except sqlite3.IntegrityError:
+        raise HTTPException(409, detail="duplicate")
+    return {"ok": True}
+
+
 @app.delete("/api/words/{word}")
 async def delete_word(word: str):
     db.delete_word(word)

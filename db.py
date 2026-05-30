@@ -68,6 +68,16 @@ def record_attempt(word: str, correct: bool):
         )
 
 
+def update_word(old_word: str, new_word: str, gender: Gender, meaning: str):
+    if not meaning.strip():
+        raise ValueError("meaning must not be empty")
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE words SET word = ?, gender = ?, meaning = ? WHERE word = ?",
+            (new_word.strip().lower(), gender.value, meaning.strip(), old_word.strip().lower()),
+        )
+
+
 def delete_word(word: str):
     with get_connection() as conn:
         conn.execute(
