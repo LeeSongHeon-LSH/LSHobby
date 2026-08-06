@@ -44,6 +44,11 @@ Spanish-Practice/
     └── test_quiz.py
 ```
 
+## 서버 운영 / 재설치
+
+상시 실행(systemd), CI/CD, Tailscale 외부 접속, 컴퓨터 초기화 후 복구 절차는
+**[SETUP.md](SETUP.md)** 참고.
+
 ## 실행 방법
 
 ### 요구 사항
