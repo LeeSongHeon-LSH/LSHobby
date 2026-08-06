@@ -1017,19 +1017,56 @@ async function api(method, path, body) {
 const t = k => T[lang][k];
 
 // ── View routing ──────────────────────────────────────
-function go(view) {
+// 브라우저/핸드폰 뒤로가기와 연동: 화면 전환과 시트·서랍 열림을 히스토리에 기록
+let curView = 'home';
+
+function show(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('v' + view[0].toUpperCase() + view.slice(1)).classList.add('active');
   document.getElementById('backBtn').classList.toggle('hidden', view === 'home');
+  curView = view;
   renderTexts();
 }
 
-async function goHome() { await updateStats(); go('home'); }
+function go(view) {
+  if (view !== curView) history.pushState({ view }, '');
+  show(view);
+}
+
+function goHome() { history.back(); }
+
+function loadView(view) {
+  if (view === 'quiz') { show('quiz'); loadQuiz(); }
+  else if (view === 'wordList') { show('wordList'); loadWordListBody(); }
+  else if (view === 'home') { updateStats(); show('home'); }
+  else show(view);
+}
+
+window.addEventListener('popstate', e => {
+  const st = e.state || { view: 'home' };
+  const overlayWasOpen = document.getElementById('editSheet').classList.contains('open')
+    || document.getElementById('drawer').classList.contains('open');
+  doCloseSheet();
+  doCloseDrawer();
+  // 시트/서랍만 닫는 뒤로가기면 화면은 그대로 유지 (검색어·스크롤 보존)
+  if (overlayWasOpen && st.view === curView && !st.sheet && !st.drawer) return;
+  loadView(st.view || 'home');
+});
 
 // ── Settings drawer ───────────────────────────────────
 function toggleDrawer() {
-  document.getElementById('drawer').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('open');
+  if (document.getElementById('drawer').classList.contains('open')) {
+    history.back();
+    return;
+  }
+  history.pushState({ view: curView, drawer: true }, '');
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function doCloseDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
 }
 
 function setLang(l) {
@@ -1104,8 +1141,12 @@ function updateNoneHint() {
 // ── Quiz ──────────────────────────────────────────────
 let qDir = 'sk'; // 'sk' = 스페인어→한국어, 'ks' = 한국어→스페인어
 
-async function startQuiz() {
+function startQuiz() {
   go('quiz');
+  loadQuiz();
+}
+
+async function loadQuiz() {
   qAnswered = false;
   qWord = null;
   document.getElementById('quizBody').innerHTML = '';
@@ -1203,15 +1244,21 @@ function openEditSheet(word) {
   pickEditGender(w.gender);
   resetDeleteBtn();
   document.getElementById('editMsg').textContent = '';
+  history.pushState({ view: curView, sheet: true }, '');
   document.getElementById('editSheet').classList.add('open');
   document.getElementById('sheetOverlay').classList.add('open');
 }
 
-function closeEditSheet() {
+function doCloseSheet() {
   editTarget = null;
   clearTimeout(deleteTimer);
   document.getElementById('editSheet').classList.remove('open');
   document.getElementById('sheetOverlay').classList.remove('open');
+}
+
+// 히스토리를 한 칸 되감아 닫음 → popstate에서 doCloseSheet 실행
+function closeEditSheet() {
+  if (document.getElementById('editSheet').classList.contains('open')) history.back();
 }
 
 function pickEditGender(g) {
@@ -1299,8 +1346,12 @@ function filterWordList() {
     : `${total} ${t('words')}`;
 }
 
-async function startWordList() {
+function startWordList() {
   go('wordList');
+  loadWordListBody();
+}
+
+async function loadWordListBody() {
   const body = document.getElementById('wlBody');
   const countEl = document.getElementById('wlCount');
   const searchEl = document.getElementById('wlSearch');
@@ -1434,6 +1485,13 @@ async function addWord() {
 setLang(lang);
 updateStats();
 updateNoneHint();
+
+// 새로고침 시 브라우저가 보존한 히스토리 상태로 화면 복원
+if (history.state && history.state.view && history.state.view !== 'home') {
+  loadView(history.state.view);
+} else {
+  history.replaceState({ view: 'home' }, '');
+}
 addAccentShortcut(document.getElementById('wordInput'));
 addAccentShortcut(document.getElementById('editWord'));
 
