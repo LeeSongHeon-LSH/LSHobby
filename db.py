@@ -24,9 +24,17 @@ def init_db():
                 gender TEXT NOT NULL CHECK(gender IN ('m', 'f', 'n', 'none')),
                 meaning TEXT NOT NULL CHECK(length(meaning) > 0),
                 test_count INTEGER NOT NULL DEFAULT 0,
-                correct_count INTEGER NOT NULL DEFAULT 0
+                correct_count INTEGER NOT NULL DEFAULT 0,
+                box INTEGER NOT NULL DEFAULT 0,
+                due_at TEXT
             )
         """)
+        # 기존 DB 마이그레이션: SRS 컬럼이 없으면 추가
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(words)")}
+        if "box" not in cols:
+            conn.execute("ALTER TABLE words ADD COLUMN box INTEGER NOT NULL DEFAULT 0")
+        if "due_at" not in cols:
+            conn.execute("ALTER TABLE words ADD COLUMN due_at TEXT")
 
 
 def add_word(word: str, gender: Gender, meaning: str):
@@ -65,6 +73,14 @@ def record_attempt(word: str, correct: bool):
             WHERE word = ?
             """,
             (1 if correct else 0, word.strip().lower()),
+        )
+
+
+def set_srs(word: str, box: int, due_at: str | None):
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE words SET box = ?, due_at = ? WHERE word = ?",
+            (box, due_at, word.strip().lower()),
         )
 
 

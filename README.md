@@ -13,6 +13,9 @@
 - 스페인어 → 한국어 / 한국어 → 스페인어 방향을 매 문제마다 랜덤 선택
 - 카드에 단어와 성별 표시, 텍스트 입력으로 정답 비교
 - 정답률이 낮은 단어에 가중치를 부여해 더 자주 출제 (Laplace smoothing)
+- 간격 반복(SRS, Leitner 박스): 정답 시 복습 간격이 1 → 2 → 4 → 8 → 16일로 늘어나고,
+  오답 시 즉시 복습 대상으로 리셋. 복습 예정 단어를 우선 출제하며,
+  복습할 단어가 없으면 자유 연습 모드로 전환
 
 ### UI
 - 브라우저에서 실행되는 단일 HTML 파일 (`index.html`)
@@ -21,6 +24,8 @@
   - `Alt + N` → ñ
   - `Alt + /` → ¿
   - `Alt + 1` → ¡
+- PWA 지원: https 또는 localhost 접속 시 휴대폰/데스크톱 홈 화면에 앱으로 설치 가능
+- 홈 화면에 오늘 복습할 단어 수 표시
 
 ## 프로젝트 구조
 
@@ -28,8 +33,9 @@
 Spanish-Practice/
 ├── main.py        # FastAPI 서버
 ├── db.py          # SQLite 데이터베이스 모듈
-├── quiz.py        # 퀴즈 로직 (가중치 랜덤 출제)
+├── quiz.py        # 퀴즈 로직 (가중치 랜덤 출제 + SRS)
 ├── index.html     # 웹 UI
+├── static/        # PWA 리소스 (manifest, 서비스워커, 아이콘)
 ├── requirements.txt
 ├── spanish.db     # SQLite DB 파일 (자동 생성)
 └── tests/

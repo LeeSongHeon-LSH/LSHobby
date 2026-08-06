@@ -2,6 +2,7 @@ import sqlite3
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import db
@@ -30,9 +31,18 @@ async def startup():
 
 
 # ── Static ─────────────────────────────────────────────
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
 @app.get("/")
 async def index():
     return FileResponse("index.html")
+
+
+@app.get("/sw.js")
+async def service_worker():
+    # 서비스워커는 루트 scope를 가지려면 루트 경로에서 제공되어야 함
+    return FileResponse("static/sw.js", media_type="application/javascript")
 
 
 # ── Words ──────────────────────────────────────────────

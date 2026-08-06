@@ -1,0 +1,7 @@
+[Unit]
+Description=Spanish Practice auto-deploy (pull from GitHub, test, restart)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/lshcontroller/projects/Spanish-Practice
+ExecStart=/home/lshcontroller/projects/Spanish-Practice/deploy.sh

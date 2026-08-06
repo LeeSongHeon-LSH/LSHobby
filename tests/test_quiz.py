@@ -120,3 +120,65 @@ class TestSubmitAnswer:
         word = db.get_word("hablar")
         assert word["test_count"] == 1
         assert word["correct_count"] == 1
+
+
+class TestSRS:
+    def test_new_word_is_due(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        assert quiz._is_due(db.get_word("casa"))
+
+    def test_correct_promotes_box_and_schedules_future_review(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        quiz.submit_answer("casa", correct=True)
+        word = db.get_word("casa")
+        assert word["box"] == 1
+        assert not quiz._is_due(word)
+
+    def test_wrong_resets_box_and_makes_due(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        quiz.submit_answer("casa", correct=True)
+        quiz.submit_answer("casa", correct=False)
+        word = db.get_word("casa")
+        assert word["box"] == 0
+        assert quiz._is_due(word)
+
+    def test_box_caps_at_max(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        for _ in range(10):
+            quiz.submit_answer("casa", correct=True)
+        assert db.get_word("casa")["box"] == quiz.MAX_BOX
+
+    def test_intervals_grow_with_box(self):
+        from datetime import datetime
+
+        db.add_word("casa", Gender.FEMININE, "집")
+        dues = []
+        for _ in range(3):
+            quiz.submit_answer("casa", correct=True)
+            dues.append(datetime.fromisoformat(db.get_word("casa")["due_at"]))
+        assert dues[0] < dues[1] < dues[2]
+
+    def test_due_words_picked_before_scheduled_ones(self):
+        db.add_word("scheduled", Gender.MASCULINE, "예정된")
+        db.add_word("due", Gender.FEMININE, "복습")
+        quiz.submit_answer("scheduled", correct=True)  # 미래로 예약됨
+        for _ in range(30):
+            assert quiz.pick_word()["word"] == "due"
+
+    def test_pick_marks_due_flag(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        assert quiz.pick_word()["due"] is True
+
+    def test_no_due_words_falls_back_to_practice(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        quiz.submit_answer("casa", correct=True)
+        picked = quiz.pick_word()
+        assert picked["word"] == "casa"
+        assert picked["due"] is False
+
+    def test_due_count(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        db.add_word("libro", Gender.MASCULINE, "책")
+        assert quiz.due_count() == 2
+        quiz.submit_answer("casa", correct=True)
+        assert quiz.due_count() == 1

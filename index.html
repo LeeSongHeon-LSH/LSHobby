@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Español</title>
+  <meta name="theme-color" content="#f4f0e8">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
@@ -168,6 +171,19 @@
     }
     .home-stats b { color: var(--muted); font-weight: 400; }
     .home-stats .dot { margin: 0 9px; }
+    .home-stats .due-badge { color: var(--gold); }
+    .home-stats .due-badge b { color: var(--gold); }
+
+    .practice-note {
+      text-align: center;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--sage);
+      background: var(--ok-bg);
+      border-radius: 6px;
+      padding: 7px 12px;
+      margin-bottom: 14px;
+    }
 
     /* ─── QUIZ ─────────────────────────── */
     .quiz-prompt {
@@ -814,6 +830,7 @@ const T = {
     next: '다음 →',
     wordList: '단어장', save: '저장', cancel: '취소',
     searchPlaceholder: '단어 또는 뜻 검색...',
+    due: '복습', reviewDone: '오늘 복습 완료! 자유 연습 모드',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -836,6 +853,7 @@ const T = {
     next: 'Siguiente →',
     wordList: 'Vocabulario', save: 'Guardar', cancel: 'Cancelar',
     searchPlaceholder: 'Buscar palabra o significado...',
+    due: 'repaso', reviewDone: '¡Repaso terminado! Práctica libre',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -858,6 +876,7 @@ const T = {
     next: 'Next →',
     wordList: 'Word List', save: 'Save', cancel: 'Cancel',
     searchPlaceholder: 'Search word or meaning...',
+    due: 'to review', reviewDone: 'All reviews done! Free practice',
   },
 };
 
@@ -939,8 +958,10 @@ async function updateStats() {
     const tot = words.reduce((a, w) => a + w.test_count, 0);
     const cor = words.reduce((a, w) => a + w.correct_count, 0);
     const acc = tot === 0 ? null : Math.round(cor / tot * 100);
+    const dueN = words.filter(w => !w.due_at || new Date(w.due_at) <= Date.now()).length;
     el.innerHTML = `<b>${words.length}</b> ${t('words')}`
-      + (acc !== null ? `<span class="dot">·</span><b>${acc}%</b> ${t('accuracy')}` : '');
+      + (acc !== null ? `<span class="dot">·</span><b>${acc}%</b> ${t('accuracy')}` : '')
+      + (dueN > 0 ? `<span class="dot">·</span><span class="due-badge"><b>${dueN}</b> ${t('due')}</span>` : '');
   } catch (e) {
     el.innerHTML = '';
   }
@@ -989,6 +1010,7 @@ function renderQuiz() {
     : '—';
 
   el.innerHTML = `
+    ${qWord.due === false ? `<div class="practice-note">${t('reviewDone')}</div>` : ''}
     <div class="word-card" id="qCard">
       <div class="quiz-dir">${dirLabel}</div>
       <div class="quiz-word${isSpanishDisplay ? '' : ' quiz-word-kr'}">${displayWord}</div>
@@ -1250,6 +1272,12 @@ setLang(lang);
 updateStats();
 updateNoneHint();
 addAccentShortcut(document.getElementById('wordInput'));
+
+// ── PWA ───────────────────────────────────────────────
+// 서비스워커는 보안 컨텍스트(https 또는 localhost)에서만 등록 가능
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>
