@@ -1,7 +1,9 @@
+import csv
+import io
 import sqlite3
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -107,3 +109,21 @@ async def answer(body: AnswerIn):
 @app.get("/api/stats")
 async def get_stats():
     return stats.get_stats()
+
+
+# ── Export ─────────────────────────────────────────────
+EXPORT_COLUMNS = ["word", "gender", "meaning", "test_count", "correct_count", "box", "due_at"]
+
+
+@app.get("/api/export.csv")
+async def export_csv():
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(EXPORT_COLUMNS)
+    for w in db.get_all_words():
+        writer.writerow([w[c] for c in EXPORT_COLUMNS])
+    return PlainTextResponse(
+        buf.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="spanish-words.csv"'},
+    )

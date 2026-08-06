@@ -908,6 +908,7 @@
       transition: border-color 0.18s, color 0.18s, background 0.18s;
     }
     .lang-btn:hover { border-color: var(--border); color: var(--text); background: var(--card); }
+    a.lang-btn { text-decoration: none; }
     .lang-btn.on {
       border-color: var(--gold-mid);
       color: var(--gold);
@@ -1117,6 +1118,10 @@
         <span class="lang-pip"></span>English
       </button>
     </div>
+    <p class="drawer-section-label" id="lDataSection" style="margin-top:36px">데이터</p>
+    <a class="lang-btn" href="/api/export.csv" download>
+      <span class="lang-pip"></span><span id="lExport">CSV 내보내기</span>
+    </a>
   </div>
 
   <!-- ── EDIT SHEET ── -->
@@ -1183,6 +1188,7 @@ const T = {
     streakLabel: '연속 학습일', todayLabel: '오늘 학습', accLabel: '전체 정답률',
     dailyTitle: '최근 14일 학습량', boxTitle: '학습 단계 분포',
     boxHint: '0 = 새 단어 · 5 = 완성', streakHome: '{n}일 연속',
+    dataSec: '데이터', export: 'CSV 내보내기',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -1216,6 +1222,7 @@ const T = {
     streakLabel: 'Días seguidos', todayLabel: 'Hoy', accLabel: 'Aciertos',
     dailyTitle: 'Últimos 14 días', boxTitle: 'Etapas Leitner',
     boxHint: '0 = nueva · 5 = dominada', streakHome: '{n} días seguidos',
+    dataSec: 'Datos', export: 'Exportar CSV',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1249,6 +1256,7 @@ const T = {
     streakLabel: 'Day streak', todayLabel: 'Today', accLabel: 'Accuracy',
     dailyTitle: 'Last 14 days', boxTitle: 'Leitner stages',
     boxHint: '0 = new · 5 = mastered', streakHome: '{n}-day streak',
+    dataSec: 'Data', export: 'Export CSV',
   },
 };
 
@@ -1361,6 +1369,8 @@ function renderTexts() {
   document.getElementById('lDaily').textContent = t('dailyTitle');
   document.getElementById('lBoxes').textContent = t('boxTitle');
   document.getElementById('lBoxHint').textContent = t('boxHint');
+  document.getElementById('lDataSection').textContent = t('dataSec');
+  document.getElementById('lExport').textContent = t('export');
   const wlTitle = document.getElementById('lWordListTitle');
   if (wlTitle) wlTitle.textContent = t('wordList');
   const wlSearch = document.getElementById('wlSearch');

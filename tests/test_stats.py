@@ -69,3 +69,18 @@ class TestGetStats:
         # casa는 정답으로 box 1 승급, libro는 box 0
         assert s["boxes"]["0"] == 1
         assert s["boxes"]["1"] == 1
+
+
+class TestExportCsv:
+    def test_export_contains_words(self):
+        from fastapi.testclient import TestClient
+        import main
+
+        db.add_word("casa", Gender.FEMININE, "집")
+        client = TestClient(main.app)
+        res = client.get("/api/export.csv")
+        assert res.status_code == 200
+        assert res.headers["content-disposition"].startswith("attachment")
+        lines = res.text.strip().splitlines()
+        assert lines[0] == "word,gender,meaning,test_count,correct_count,box,due_at"
+        assert lines[1].startswith("casa,f,집,0,0,0")
