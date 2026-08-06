@@ -96,7 +96,7 @@
     /* ─── HOME ─────────────────────────── */
     .home-title {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 68px;
+      font-size: clamp(48px, 14vw, 68px);
       font-weight: 300;
       font-style: italic;
       letter-spacing: 0.04em;
@@ -222,16 +222,17 @@
 
     .quiz-word {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 54px;
+      font-size: clamp(34px, 10vw, 54px);
       font-weight: 300;
       font-style: italic;
       line-height: 1.1;
       color: var(--text);
+      overflow-wrap: break-word;
     }
     .quiz-word-kr {
       font-style: normal;
       font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-      font-size: 38px;
+      font-size: clamp(26px, 8vw, 38px);
       font-weight: 300;
     }
 
@@ -370,7 +371,7 @@
     /* ─── ADD WORD ──────────────────────── */
     .form-heading {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 34px;
+      font-size: clamp(26px, 7vw, 34px);
       font-weight: 300;
       font-style: italic;
       text-align: center;
@@ -472,13 +473,17 @@
     .wl-body { max-height: 62vh; overflow-y: auto; }
     .wl-item {
       display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
-      padding: 13px 16px;
+      padding: 14px 16px;
       background: var(--surface);
       border: 1px solid var(--border-soft);
       border-radius: 3px;
       box-shadow: var(--shadow-sm);
       margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
+    .wl-item:hover { border-color: var(--gold-mid); box-shadow: var(--shadow-md); }
+    .wl-item:active { background: var(--card); }
     .wl-word {
       font-family: 'Cormorant Garamond', serif;
       font-size: 22px; font-style: italic; font-weight: 300;
@@ -488,45 +493,77 @@
     .wl-left { flex: 1; min-width: 0; }
     .wl-right { flex-shrink: 0; text-align: right; }
     .wl-stat { font-size: 10px; color: var(--dim); letter-spacing: 0.08em; }
-    .wl-actions { display: flex; gap: 4px; margin-top: 6px; justify-content: flex-end; }
-    .wl-action-btn {
-      background: none; border: 1px solid transparent;
-      color: var(--dim); cursor: pointer;
-      font-size: 12px; padding: 3px 8px; border-radius: 3px;
-      font-family: 'Fira Code', monospace; letter-spacing: 0.06em;
-      transition: border-color 0.15s, color 0.15s;
+    .wl-edit-glyph {
+      display: block; margin-top: 8px;
+      font-size: 12px; color: var(--dim);
     }
-    .wl-action-btn:hover { border-color: var(--border); color: var(--muted); }
-    .wl-action-btn.danger:hover { border-color: var(--rust); color: var(--rust); }
-    .wl-action-btn.save { border-color: var(--gold-mid); color: var(--gold); }
-    .wl-action-btn.save:hover { background: var(--gold-glow); }
+    .wl-item:hover .wl-edit-glyph { color: var(--gold); }
 
-    .wl-edit-row { display: flex; gap: 6px; align-items: center; margin-bottom: 7px; }
-    .wl-edit-word {
-      flex: 1; padding: 6px 10px;
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text); border-radius: 3px; outline: none;
-      font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic;
-      transition: border-color 0.2s;
+    /* ─── EDIT SHEET ────────────────────── */
+    .sheet {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-radius: 14px 14px 0 0;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.14);
+      padding: 24px 22px calc(env(safe-area-inset-bottom, 0px) + 24px);
+      max-height: 88dvh;
+      overflow-y: auto;
+      transform: translateY(105%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 61;
     }
-    .wl-edit-word:focus { border-color: var(--gold-mid); }
-    .wl-edit-meaning {
-      width: 100%; padding: 6px 10px; margin-bottom: 8px;
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text); border-radius: 3px; outline: none;
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif; font-size: 13px;
-      transition: border-color 0.2s; box-sizing: border-box;
+    .sheet.open { transform: translateY(0); }
+
+    @media (min-width: 601px) {
+      .sheet {
+        left: 50%; right: auto; bottom: auto; top: 50%;
+        width: 400px; max-height: 86vh;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-shadow: var(--shadow-md);
+        transform: translate(-50%, -47%);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.22s, transform 0.22s;
+      }
+      .sheet.open {
+        transform: translate(-50%, -50%);
+        opacity: 1; pointer-events: all;
+      }
     }
-    .wl-edit-meaning:focus { border-color: var(--gold-mid); }
-    .wl-edit-genders { display: flex; gap: 4px; flex-shrink: 0; }
-    .wl-g-btn {
-      padding: 4px 7px; background: none;
-      border: 1px solid var(--border-soft); color: var(--muted);
-      cursor: pointer; font-family: 'Fira Code', monospace; font-size: 10px;
-      border-radius: 3px; transition: border-color 0.15s, color 0.15s;
+
+    .sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 26px;
     }
-    .wl-g-btn:hover { border-color: var(--gold-mid); color: var(--text); }
-    .wl-g-btn.on { border-color: var(--gold-mid); color: var(--gold); background: var(--gold-glow); }
+
+    #sheetOverlay { z-index: 60; }
+
+    .gender-pick.four { grid-template-columns: repeat(4, 1fr); }
+
+    .delete-btn {
+      width: 100%; margin-top: 10px; padding: 13px;
+      background: none;
+      border: 1px solid transparent;
+      color: var(--rust);
+      opacity: 0.7;
+      cursor: pointer;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+    }
+    .delete-btn:hover { opacity: 1; }
+    .delete-btn.armed {
+      border-color: var(--rust);
+      background: var(--err-bg);
+      opacity: 1;
+    }
 
     .shortcut-hint {
       margin-top: 6px;
@@ -720,23 +757,27 @@
       .back-btn { top: calc(env(safe-area-inset-top, 0px) + 14px); left: 10px; }
       .settings-btn { top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px; }
 
-      .home-title { font-size: 52px; }
       .home-sub { margin-bottom: 36px; }
       .rule { margin-bottom: 30px; }
 
       .word-card { padding: 40px 20px 32px; }
-      .quiz-word { font-size: 42px; overflow-wrap: break-word; }
-      .quiz-word-kr { font-size: 30px; }
 
-      .form-heading { font-size: 28px; margin-bottom: 28px; }
+      .form-heading { margin-bottom: 28px; }
 
       /* iOS는 16px 미만 입력창 포커스 시 화면을 강제 확대함 */
-      .answer-input, .meaning-input, .wl-search, .wl-edit-meaning { font-size: 16px; }
+      .answer-input, .meaning-input, .wl-search { font-size: 16px; }
 
       /* 내부 스크롤 대신 페이지 스크롤 사용 */
       .wl-body { max-height: none; }
 
       .drawer { height: 100dvh; padding-top: calc(env(safe-area-inset-top, 0px) + 28px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -848,6 +889,35 @@
     </div>
   </div>
 
+  <!-- ── EDIT SHEET ── -->
+  <div class="overlay" id="sheetOverlay" onclick="closeEditSheet()"></div>
+  <div class="sheet" id="editSheet">
+    <div class="sheet-head">
+      <span class="drawer-title" id="lEditTitle">단어 수정</span>
+      <button class="close-btn" onclick="closeEditSheet()">×</button>
+    </div>
+    <div class="field">
+      <label class="field-label" id="lEditWordLabel">단어</label>
+      <input class="word-input" id="editWord" type="text" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label class="field-label" id="lEditMeaningLabel">뜻</label>
+      <input class="meaning-input" id="editMeaning" type="text" autocomplete="off">
+    </div>
+    <div class="field">
+      <label class="field-label" id="lEditGenderLabel">성별</label>
+      <div class="gender-pick four">
+        <button class="g-opt" id="eg-m" onclick="pickEditGender('m')"><span id="lEgM">남성</span></button>
+        <button class="g-opt" id="eg-f" onclick="pickEditGender('f')"><span id="lEgF">여성</span></button>
+        <button class="g-opt" id="eg-n" onclick="pickEditGender('n')"><span id="lEgN">양성</span></button>
+        <button class="g-opt" id="eg-none" onclick="pickEditGender('none')"><span id="lEgNone">없음</span></button>
+      </div>
+    </div>
+    <button class="add-btn" id="editSave" onclick="saveEditSheet()">저장</button>
+    <button class="delete-btn" id="editDelete" onclick="deleteFromSheet()">삭제</button>
+    <p class="add-msg" id="editMsg"></p>
+  </div>
+
 <script>
 // ── i18n ──────────────────────────────────────────────
 const T = {
@@ -870,9 +940,11 @@ const T = {
     correct: '정답!', wrong: '오답',
     correctAnswer: '정답',
     next: '다음 →',
-    wordList: '단어장', save: '저장', cancel: '취소',
+    wordList: '단어장', save: '저장',
     searchPlaceholder: '단어 또는 뜻 검색...',
     due: '복습', reviewDone: '오늘 복습 완료! 자유 연습 모드',
+    editTitle: '단어 수정', gNone: '없음',
+    delete: '삭제', confirmDelete: '한 번 더 누르면 삭제',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -893,9 +965,11 @@ const T = {
     correct: '¡Correcto!', wrong: 'Incorrecto',
     correctAnswer: 'Respuesta',
     next: 'Siguiente →',
-    wordList: 'Vocabulario', save: 'Guardar', cancel: 'Cancelar',
+    wordList: 'Vocabulario', save: 'Guardar',
     searchPlaceholder: 'Buscar palabra o significado...',
     due: 'repaso', reviewDone: '¡Repaso terminado! Práctica libre',
+    editTitle: 'Editar palabra', gNone: 'Ninguno',
+    delete: 'Eliminar', confirmDelete: 'Toca otra vez',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -916,9 +990,11 @@ const T = {
     correct: 'Correct!', wrong: 'Wrong',
     correctAnswer: 'Answer',
     next: 'Next →',
-    wordList: 'Word List', save: 'Save', cancel: 'Cancel',
+    wordList: 'Word List', save: 'Save',
     searchPlaceholder: 'Search word or meaning...',
     due: 'to review', reviewDone: 'All reviews done! Free practice',
+    editTitle: 'Edit word', gNone: 'None',
+    delete: 'Delete', confirmDelete: 'Tap again to delete',
   },
 };
 
@@ -989,6 +1065,16 @@ function renderTexts() {
   if (wlTitle) wlTitle.textContent = t('wordList');
   const wlSearch = document.getElementById('wlSearch');
   if (wlSearch) wlSearch.placeholder = t('searchPlaceholder');
+  document.getElementById('lEditTitle').textContent = t('editTitle');
+  document.getElementById('lEditWordLabel').textContent = t('wordLabel');
+  document.getElementById('lEditMeaningLabel').textContent = t('meaningLabel');
+  document.getElementById('lEditGenderLabel').textContent = t('genderLabel');
+  document.getElementById('lEgM').textContent = t('m');
+  document.getElementById('lEgF').textContent = t('f');
+  document.getElementById('lEgN').textContent = t('n');
+  document.getElementById('lEgNone').textContent = t('gNone');
+  document.getElementById('editSave').textContent = t('save');
+  resetDeleteBtn();
   updateNoneHint();
 }
 
@@ -1075,7 +1161,10 @@ function renderQuiz() {
   const input = document.getElementById('answerInput');
   input.focus();
   input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') checkAnswer();
+    if (e.key === 'Enter') {
+      e.stopPropagation(); // 같은 Enter가 문서 레벨의 '다음 문제' 핸들러까지 올라가지 않게
+      checkAnswer();
+    }
   });
   addAccentShortcut(input);
 }
@@ -1096,71 +1185,102 @@ function wlItemHTML(w) {
     </div>
     <div class="wl-right">
       <div class="wl-stat">${stat}</div>
-      <div class="wl-actions">
-        <button class="wl-action-btn" type="button" onclick="startEditWord(this)">✎</button>
-        <button class="wl-action-btn danger" type="button" onclick="deleteWord(this)">×</button>
-      </div>
+      <span class="wl-edit-glyph">✎</span>
     </div>`;
 }
 
-function startEditWord(btn) {
-  const item = btn.closest('.wl-item');
-  const w = wlCache[item.dataset.word];
-  const gBtns = ['m','f','n','none'].map(g =>
-    `<button class="wl-g-btn${w.gender === g ? ' on' : ''}" type="button" data-g="${g}"
-      onclick="this.closest('.wl-edit-genders').querySelectorAll('.wl-g-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')">
-      ${g === 'none' ? '—' : t(g)}</button>`
-  ).join('');
-  item.innerHTML = `
-    <div style="width:100%">
-      <div class="wl-edit-row">
-        <input class="wl-edit-word" value="${w.word}" autocomplete="off" spellcheck="false">
-        <div class="wl-edit-genders">${gBtns}</div>
-      </div>
-      <input class="wl-edit-meaning" value="${w.meaning}" autocomplete="off">
-      <div style="display:flex;gap:6px;justify-content:flex-end">
-        <button class="wl-action-btn" type="button" onclick="cancelEdit(this)">${t('cancel')}</button>
-        <button class="wl-action-btn save" type="button" onclick="saveEdit(this)">${t('save')}</button>
-      </div>
-    </div>`;
+// ── Edit sheet ────────────────────────────────────────
+let editTarget = null;
+let editGender = 'none';
+let deleteTimer = null;
+
+function openEditSheet(word) {
+  const w = wlCache[word];
+  if (!w) return;
+  editTarget = word;
+  document.getElementById('editWord').value = w.word;
+  document.getElementById('editMeaning').value = w.meaning;
+  pickEditGender(w.gender);
+  resetDeleteBtn();
+  document.getElementById('editMsg').textContent = '';
+  document.getElementById('editSheet').classList.add('open');
+  document.getElementById('sheetOverlay').classList.add('open');
 }
 
-function cancelEdit(btn) {
-  const item = btn.closest('.wl-item');
-  item.innerHTML = wlItemHTML(wlCache[item.dataset.word]);
+function closeEditSheet() {
+  editTarget = null;
+  clearTimeout(deleteTimer);
+  document.getElementById('editSheet').classList.remove('open');
+  document.getElementById('sheetOverlay').classList.remove('open');
 }
 
-async function saveEdit(btn) {
-  const item = btn.closest('.wl-item');
-  const originalWord = item.dataset.word;
-  const newWord = item.querySelector('.wl-edit-word').value.trim().toLowerCase();
-  const meaning = item.querySelector('.wl-edit-meaning').value.trim();
-  const gEl = item.querySelector('.wl-g-btn.on');
-  const gender = gEl ? gEl.dataset.g : 'none';
+function pickEditGender(g) {
+  editGender = g;
+  ['m', 'f', 'n', 'none'].forEach(x =>
+    document.getElementById('eg-' + x).classList.toggle('on', x === g)
+  );
+}
+
+function findWlItem(word) {
+  return [...document.querySelectorAll('#wlBody .wl-item')]
+    .find(item => item.dataset.word === word);
+}
+
+async function saveEditSheet() {
+  if (!editTarget) return;
+  const newWord = document.getElementById('editWord').value.trim().toLowerCase();
+  const meaning = document.getElementById('editMeaning').value.trim();
+  const msg = document.getElementById('editMsg');
   if (!newWord || !meaning) return;
   try {
-    await api('PUT', `/api/words/${encodeURIComponent(originalWord)}`, { word: newWord, gender, meaning });
-    const updated = { ...wlCache[originalWord], word: newWord, gender, meaning };
-    delete wlCache[originalWord];
+    await api('PUT', `/api/words/${encodeURIComponent(editTarget)}`, { word: newWord, gender: editGender, meaning });
+    const updated = { ...wlCache[editTarget], word: newWord, gender: editGender, meaning };
+    const item = findWlItem(editTarget);
+    delete wlCache[editTarget];
     wlCache[newWord] = updated;
-    item.dataset.word = newWord;
-    item.innerHTML = wlItemHTML(updated);
-  } catch (e) {
-    btn.textContent = '!';
-    setTimeout(() => { btn.textContent = t('save'); }, 1500);
+    if (item) {
+      item.dataset.word = newWord;
+      item.innerHTML = wlItemHTML(updated);
+    }
+    closeEditSheet();
+  } catch (err) {
+    msg.style.color = 'var(--rust)';
+    msg.textContent = err.detail === 'duplicate' ? t('duplicate') : (err.detail || '!');
+    setTimeout(() => { msg.textContent = ''; }, 2000);
   }
 }
 
-async function deleteWord(btn) {
-  const item = btn.closest('.wl-item');
-  const word = item.dataset.word;
+function resetDeleteBtn() {
+  const b = document.getElementById('editDelete');
+  b.classList.remove('armed');
+  b.textContent = t('delete');
+}
+
+async function deleteFromSheet() {
+  if (!editTarget) return;
+  const b = document.getElementById('editDelete');
+  if (!b.classList.contains('armed')) {
+    b.classList.add('armed');
+    b.textContent = t('confirmDelete');
+    clearTimeout(deleteTimer);
+    deleteTimer = setTimeout(resetDeleteBtn, 3000);
+    return;
+  }
+  clearTimeout(deleteTimer);
   try {
-    await api('DELETE', `/api/words/${encodeURIComponent(word)}`);
-    delete wlCache[word];
-    item.remove();
-    document.getElementById('wlCount').textContent =
-      `${Object.keys(wlCache).length} ${t('words')}`;
-  } catch (e) {}
+    await api('DELETE', `/api/words/${encodeURIComponent(editTarget)}`);
+    const item = findWlItem(editTarget);
+    delete wlCache[editTarget];
+    if (item) item.remove();
+    closeEditSheet();
+    if (!Object.keys(wlCache).length) {
+      document.getElementById('wlBody').innerHTML =
+        `<div class="empty-quiz">${t('noWords').replace('\n', '<br>')}</div>`;
+    }
+    filterWordList();
+  } catch (e) {
+    resetDeleteBtn();
+  }
 }
 
 function filterWordList() {
@@ -1196,9 +1316,10 @@ async function startWordList() {
       return;
     }
     body.innerHTML = words.map(w =>
-      `<div class="wl-item" data-word="${w.word}">${wlItemHTML(w)}</div>`
+      `<div class="wl-item" data-word="${w.word}" onclick="openEditSheet(this.dataset.word)">${wlItemHTML(w)}</div>`
     ).join('');
-    searchEl.focus();
+    // 터치 기기에서는 자동 포커스 시 키보드가 바로 올라와 목록을 가림
+    if (matchMedia('(hover: hover)').matches) searchEl.focus();
   } catch (e) {
     body.innerHTML = '';
     countEl.textContent = '';
@@ -1314,6 +1435,28 @@ setLang(lang);
 updateStats();
 updateNoneHint();
 addAccentShortcut(document.getElementById('wordInput'));
+addAccentShortcut(document.getElementById('editWord'));
+
+document.getElementById('editWord').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('editMeaning').focus();
+});
+document.getElementById('editMeaning').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveEditSheet();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('editSheet').classList.contains('open')) closeEditSheet();
+    else if (document.getElementById('drawer').classList.contains('open')) toggleDrawer();
+    return;
+  }
+  // 정답 확인 후 Enter → 다음 문제
+  if (e.key === 'Enter' && qAnswered
+      && document.getElementById('vQuiz').classList.contains('active')
+      && !document.getElementById('editSheet').classList.contains('open')) {
+    startQuiz();
+  }
+});
 
 // ── PWA ───────────────────────────────────────────────
 // 서비스워커는 보안 컨텍스트(https 또는 localhost)에서만 등록 가능
