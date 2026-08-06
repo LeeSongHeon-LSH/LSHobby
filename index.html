@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Español</title>
   <meta name="theme-color" content="#f4f0e8">
   <link rel="manifest" href="/static/manifest.webmanifest">
@@ -696,6 +696,48 @@
       transition: background 0.18s;
     }
     .lang-btn.on .lang-pip { background: var(--gold); }
+
+    /* ─── MOBILE ───────────────────────── */
+    /* 터치 기기: alt 단축키 안내 숨김 */
+    @media (hover: none) {
+      .shortcut-hint { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-y: auto;
+        min-height: 100dvh;
+        padding: calc(env(safe-area-inset-top, 0px) + 72px)
+                 16px
+                 calc(env(safe-area-inset-bottom, 0px) + 32px);
+      }
+      /* margin auto: 내용이 짧으면 세로 중앙, 길면 자연스럽게 스크롤 */
+      .app { margin: auto; width: 100%; max-width: 400px; }
+
+      .back-btn { top: calc(env(safe-area-inset-top, 0px) + 14px); left: 10px; }
+      .settings-btn { top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px; }
+
+      .home-title { font-size: 52px; }
+      .home-sub { margin-bottom: 36px; }
+      .rule { margin-bottom: 30px; }
+
+      .word-card { padding: 40px 20px 32px; }
+      .quiz-word { font-size: 42px; overflow-wrap: break-word; }
+      .quiz-word-kr { font-size: 30px; }
+
+      .form-heading { font-size: 28px; margin-bottom: 28px; }
+
+      /* iOS는 16px 미만 입력창 포커스 시 화면을 강제 확대함 */
+      .answer-input, .meaning-input, .wl-search, .wl-edit-meaning { font-size: 16px; }
+
+      /* 내부 스크롤 대신 페이지 스크롤 사용 */
+      .wl-body { max-height: none; }
+
+      .drawer { height: 100dvh; padding-top: calc(env(safe-area-inset-top, 0px) + 28px); }
+    }
   </style>
 </head>
 <body>
