@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 from enum import Enum
 
 DB_PATH = "spanish.db"
@@ -35,6 +36,15 @@ def init_db():
             conn.execute("ALTER TABLE words ADD COLUMN box INTEGER NOT NULL DEFAULT 0")
         if "due_at" not in cols:
             conn.execute("ALTER TABLE words ADD COLUMN due_at TEXT")
+        # 학습 이력 (통계·스트릭용)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS attempts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                word TEXT NOT NULL,
+                correct INTEGER NOT NULL,
+                ts TEXT NOT NULL
+            )
+        """)
 
 
 def add_word(word: str, gender: Gender, meaning: str):
@@ -74,6 +84,33 @@ def record_attempt(word: str, correct: bool):
             """,
             (1 if correct else 0, word.strip().lower()),
         )
+        # 로컬 시각으로 저장해 substr(ts,1,10)이 로컬 날짜가 되게 함
+        conn.execute(
+            "INSERT INTO attempts (word, correct, ts) VALUES (?, ?, ?)",
+            (word.strip().lower(), 1 if correct else 0, datetime.now().astimezone().isoformat()),
+        )
+
+
+def get_daily_attempts(days: int) -> dict:
+    """최근 N일의 일별 출제/정답 수. {날짜: {total, correct}}"""
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT substr(ts, 1, 10) AS d, COUNT(*), SUM(correct)
+            FROM attempts GROUP BY d ORDER BY d DESC LIMIT ?
+            """,
+            (days,),
+        ).fetchall()
+    return {r[0]: {"total": r[1], "correct": r[2]} for r in rows}
+
+
+def get_attempt_dates() -> list[str]:
+    """학습한 날짜 목록 (최신순, 중복 제거)."""
+    with get_connection() as conn:
+        rows = conn.execute(
+            "SELECT DISTINCT substr(ts, 1, 10) FROM attempts ORDER BY 1 DESC"
+        ).fetchall()
+    return [r[0] for r in rows]
 
 
 def set_srs(word: str, box: int, due_at: str | None):

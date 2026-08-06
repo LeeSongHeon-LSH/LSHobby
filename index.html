@@ -445,6 +445,116 @@
     .g-opt.right { border-color: var(--sage); color: var(--sage); background: var(--ok-bg); }
     .g-opt.wrong { border-color: var(--rust); color: var(--rust); background: var(--err-bg); }
 
+    /* ─── STATS ─────────────────────────── */
+    .home-secondary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-tiles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-tile {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      padding: 16px 6px 13px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 300;
+      line-height: 1.05;
+      color: var(--gold);
+    }
+    .stat-num small { font-size: 17px; color: var(--muted); }
+    .stat-label {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-top: 7px;
+    }
+
+    .chart-block {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 3px;
+      box-shadow: var(--shadow-sm);
+      padding: 18px 16px 14px;
+      margin-bottom: 14px;
+    }
+    .chart-title {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 104px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .bar-col {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .bar-fill {
+      width: 100%;
+      background: var(--gold-mid);
+      opacity: 0.55;
+      border-radius: 3px 3px 0 0;
+      transition: height 0.4s ease;
+    }
+    .bar-col.today .bar-fill { background: var(--gold); opacity: 1; }
+    .bar-val { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+    .bar-x-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.06em;
+      margin-top: 6px;
+    }
+
+    .box-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .box-stage { width: 14px; text-align: center; font-size: 11px; color: var(--muted); }
+    .box-track {
+      flex: 1;
+      height: 10px;
+      background: var(--bg);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .box-fill {
+      height: 100%;
+      background: var(--gold-mid);
+      border-radius: 5px;
+      transition: width 0.4s ease;
+    }
+    .box-count { width: 28px; text-align: right; font-size: 11px; color: var(--muted); }
+    .box-hint {
+      font-size: 9px;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+      text-align: center;
+      margin-top: 12px;
+    }
+
     /* ─── ADD WORD ──────────────────────── */
     .form-heading {
       font-family: 'Cormorant Garamond', serif;
@@ -896,10 +1006,15 @@
           <span id="lAdd">단어 추가</span>
         </button>
       </div>
-      <button class="wordlist-btn" onclick="startWordList()">
-        <span id="lWordList">단어장</span>
-      </button>
-      <div class="home-stats" id="homeStats"></div>
+      <div class="home-secondary">
+        <button class="wordlist-btn" onclick="startWordList()">
+          <span id="lWordList">단어장</span>
+        </button>
+        <button class="wordlist-btn" onclick="startStats()">
+          <span id="lStats">통계</span>
+        </button>
+      </div>
+      <div class="home-stats" id="homeStats" style="margin-top:16px"></div>
     </div>
 
     <!-- ── QUIZ ── -->
@@ -913,6 +1028,35 @@
       <input class="wl-search" id="wlSearch" type="text" autocomplete="off" spellcheck="false">
       <p class="wl-count" id="wlCount"></p>
       <div class="wl-body" id="wlBody"></div>
+    </div>
+
+    <!-- ── STATS ── -->
+    <div class="view" id="vStats">
+      <h2 class="form-heading" id="lStatsTitle">학습 통계</h2>
+      <div class="stat-tiles">
+        <div class="stat-tile">
+          <div class="stat-num" id="stStreak">0</div>
+          <div class="stat-label" id="lStreak">연속 학습일</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-num" id="stToday">0</div>
+          <div class="stat-label" id="lToday">오늘 학습</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-num" id="stAcc">—</div>
+          <div class="stat-label" id="lAcc">전체 정답률</div>
+        </div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title" id="lDaily">최근 14일 학습량</div>
+        <div class="bars" id="dailyBars"></div>
+        <div class="bar-x-row" id="dailyXRow"></div>
+      </div>
+      <div class="chart-block">
+        <div class="chart-title" id="lBoxes">학습 단계 분포</div>
+        <div id="boxRows"></div>
+        <div class="box-hint" id="lBoxHint">0 = 새 단어 · 5 = 완성</div>
+      </div>
     </div>
 
     <!-- ── ADD WORD ── -->
@@ -1035,6 +1179,10 @@ const T = {
     alsoTitle: '이런 뜻도 있어요',
     dirListen: '듣고 받아쓰기', listenHint: '눌러서 듣기',
     dirGender: '관사 고르기',
+    statsBtn: '통계', statsTitle: '학습 통계',
+    streakLabel: '연속 학습일', todayLabel: '오늘 학습', accLabel: '전체 정답률',
+    dailyTitle: '최근 14일 학습량', boxTitle: '학습 단계 분포',
+    boxHint: '0 = 새 단어 · 5 = 완성', streakHome: '{n}일 연속',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -1064,6 +1212,10 @@ const T = {
     alsoTitle: 'También significa',
     dirListen: 'Dictado', listenHint: 'Toca para escuchar',
     dirGender: '¿El o la?',
+    statsBtn: 'Estadísticas', statsTitle: 'Estadísticas',
+    streakLabel: 'Días seguidos', todayLabel: 'Hoy', accLabel: 'Aciertos',
+    dailyTitle: 'Últimos 14 días', boxTitle: 'Etapas Leitner',
+    boxHint: '0 = nueva · 5 = dominada', streakHome: '{n} días seguidos',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1093,6 +1245,10 @@ const T = {
     alsoTitle: 'Also means',
     dirListen: 'Dictation', listenHint: 'Tap to listen',
     dirGender: 'El or la?',
+    statsBtn: 'Stats', statsTitle: 'Statistics',
+    streakLabel: 'Day streak', todayLabel: 'Today', accLabel: 'Accuracy',
+    dailyTitle: 'Last 14 days', boxTitle: 'Leitner stages',
+    boxHint: '0 = new · 5 = mastered', streakHome: '{n}-day streak',
   },
 };
 
@@ -1136,6 +1292,7 @@ function goHome() { history.back(); }
 function loadView(view) {
   if (view === 'quiz') { show('quiz'); loadQuiz(); }
   else if (view === 'wordList') { show('wordList'); loadWordListBody(); }
+  else if (view === 'stats') { show('stats'); loadStats(); }
   else if (view === 'home') { updateStats(); show('home'); }
   else show(view);
 }
@@ -1196,6 +1353,14 @@ function renderTexts() {
   document.getElementById('lF').textContent = t('f');
   document.getElementById('lN').textContent = t('n');
   document.getElementById('lWordList').textContent = t('wordList');
+  document.getElementById('lStats').textContent = t('statsBtn');
+  document.getElementById('lStatsTitle').textContent = t('statsTitle');
+  document.getElementById('lStreak').textContent = t('streakLabel');
+  document.getElementById('lToday').textContent = t('todayLabel');
+  document.getElementById('lAcc').textContent = t('accLabel');
+  document.getElementById('lDaily').textContent = t('dailyTitle');
+  document.getElementById('lBoxes').textContent = t('boxTitle');
+  document.getElementById('lBoxHint').textContent = t('boxHint');
   const wlTitle = document.getElementById('lWordListTitle');
   if (wlTitle) wlTitle.textContent = t('wordList');
   const wlSearch = document.getElementById('wlSearch');
@@ -1216,18 +1381,63 @@ function renderTexts() {
 async function updateStats() {
   const el = document.getElementById('homeStats');
   try {
-    const words = await api('GET', '/api/words');
-    if (!words.length) { el.innerHTML = ''; return; }
-    const tot = words.reduce((a, w) => a + w.test_count, 0);
-    const cor = words.reduce((a, w) => a + w.correct_count, 0);
-    const acc = tot === 0 ? null : Math.round(cor / tot * 100);
-    const dueN = words.filter(w => !w.due_at || new Date(w.due_at) <= Date.now()).length;
-    el.innerHTML = `<b>${words.length}</b> ${t('words')}`
+    const s = await api('GET', '/api/stats');
+    if (!s.word_count) { el.innerHTML = ''; return; }
+    const acc = s.test_total === 0 ? null : Math.round(s.correct_total / s.test_total * 100);
+    el.innerHTML = `<b>${s.word_count}</b> ${t('words')}`
       + (acc !== null ? `<span class="dot">·</span><b>${acc}%</b> ${t('accuracy')}` : '')
-      + (dueN > 0 ? `<span class="dot">·</span><span class="due-badge"><b>${dueN}</b> ${t('due')}</span>` : '');
+      + (s.due_count > 0 ? `<span class="dot">·</span><span class="due-badge"><b>${s.due_count}</b> ${t('due')}</span>` : '')
+      + (s.streak >= 2 ? `<span class="dot">·</span><span class="due-badge">${t('streakHome').replace('{n}', s.streak)}</span>` : '');
   } catch (e) {
     el.innerHTML = '';
   }
+}
+
+// ── Stats view ────────────────────────────────────────
+function startStats() {
+  go('stats');
+  loadStats();
+}
+
+const fmtDay = iso => `${+iso.slice(5, 7)}/${+iso.slice(8, 10)}`;
+
+async function loadStats() {
+  let s;
+  try {
+    s = await api('GET', '/api/stats');
+  } catch (e) {
+    return;
+  }
+
+  document.getElementById('stStreak').textContent = s.streak;
+  document.getElementById('stToday').textContent = s.today_total;
+  document.getElementById('stAcc').innerHTML = s.test_total === 0
+    ? '—'
+    : `${Math.round(s.correct_total / s.test_total * 100)}<small>%</small>`;
+
+  // 최근 14일: 최대값과 오늘만 값 라벨 (선택적 라벨)
+  const max = Math.max(...s.daily.map(d => d.total), 1);
+  const last = s.daily.length - 1;
+  document.getElementById('dailyBars').innerHTML = s.daily.map((d, i) => {
+    const label = d.total > 0 && (d.total === max || i === last) ? d.total : '';
+    return `<div class="bar-col${i === last ? ' today' : ''}"
+      title="${fmtDay(d.date)} · ${d.total} · ✓ ${d.correct}">
+      <div class="bar-val">${label}</div>
+      <div class="bar-fill" style="height:${Math.round(d.total / max * 92)}%"></div>
+    </div>`;
+  }).join('');
+  document.getElementById('dailyXRow').innerHTML =
+    `<span>${fmtDay(s.daily[0].date)}</span><span>${fmtDay(s.daily[last].date)}</span>`;
+
+  const bmax = Math.max(...Object.values(s.boxes), 1);
+  document.getElementById('boxRows').innerHTML = [0, 1, 2, 3, 4, 5].map(i => {
+    const v = s.boxes[String(i)] || 0;
+    return `<div class="box-row">
+      <span class="box-stage">${i}</span>
+      <div class="box-track"><div class="box-fill" style="width:${Math.round(v / bmax * 100)}%"></div></div>
+      <span class="box-count">${v}</span>
+    </div>`;
+  }).join('');
 }
 
 function updateNoneHint() {

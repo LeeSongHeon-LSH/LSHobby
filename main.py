@@ -8,6 +8,7 @@ from pydantic import BaseModel
 import db
 from db import Gender
 import quiz
+import stats
 
 app = FastAPI(title="Spanish Practice")
 
@@ -100,3 +101,9 @@ async def pick():
 async def answer(body: AnswerIn):
     quiz.submit_answer(body.word, body.correct)
     return {"ok": True}
+
+
+# ── Stats ──────────────────────────────────────────────
+@app.get("/api/stats")
+async def get_stats():
+    return stats.get_stats()
