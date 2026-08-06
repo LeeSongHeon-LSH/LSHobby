@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Español</title>
   <meta name="theme-color" content="#f4f0e8">
   <link rel="manifest" href="/static/manifest.webmanifest">
@@ -771,6 +771,15 @@
       .wl-body { max-height: none; }
 
       .drawer { height: 100dvh; padding-top: calc(env(safe-area-inset-top, 0px) + 28px); }
+
+      /* 키보드가 열려 있는 동안 퀴즈 카드를 압축해 가려지지 않게 함 */
+      body.kb-open .practice-note,
+      body.kb-open .word-meta { display: none; }
+      body.kb-open .word-card { padding: 18px 16px 16px; margin-bottom: 14px; }
+      body.kb-open .quiz-dir { margin-bottom: 8px; }
+      body.kb-open .quiz-word { font-size: clamp(24px, 7vw, 34px); }
+      body.kb-open .quiz-word-kr { font-size: clamp(20px, 6vw, 28px); }
+      body.kb-open .gender-badge { margin-top: 6px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1501,6 +1510,22 @@ document.getElementById('editWord').addEventListener('keydown', e => {
 document.getElementById('editMeaning').addEventListener('keydown', e => {
   if (e.key === 'Enter') saveEditSheet();
 });
+
+// 모바일 키보드 감지: 뷰포트가 크게 줄면 키보드가 열린 것으로 보고
+// 퀴즈 카드를 압축한 뒤 화면 안으로 스크롤
+if (window.visualViewport && matchMedia('(hover: none)').matches) {
+  visualViewport.addEventListener('resize', () => {
+    const kbOpen = visualViewport.height < screen.height * 0.72;
+    document.body.classList.toggle('kb-open', kbOpen);
+    if (kbOpen && curView === 'quiz' && !qAnswered) {
+      const card = document.getElementById('qCard');
+      if (card) {
+        const top = card.getBoundingClientRect().top + window.scrollY - 60;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      }
+    }
+  });
+}
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
