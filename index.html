@@ -388,6 +388,45 @@
       line-height: 2.2;
     }
 
+    /* ─── TTS (발음) ────────────────────── */
+    .tts-btn {
+      background: none; border: none;
+      color: var(--gold-mid);
+      cursor: pointer;
+      padding: 6px 8px;
+      transition: color 0.18s, transform 0.1s;
+    }
+    .tts-btn:hover { color: var(--gold); }
+    .tts-btn:active { transform: scale(0.88); }
+    .tts-btn.sm { padding: 0 4px; vertical-align: middle; }
+    .tts-btn.sm svg { width: 13px; height: 13px; }
+    body.no-tts .tts-btn, body.no-tts .play-btn { display: none; }
+
+    .play-btn {
+      width: 74px; height: 74px;
+      margin-top: 6px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--gold-mid);
+      color: var(--gold);
+      font-size: 22px;
+      text-indent: 4px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      display: inline-grid; place-items: center;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+    .play-btn:hover { background: var(--gold-glow); box-shadow: var(--shadow-md); }
+    .play-btn:active { transform: scale(0.94); }
+
+    .listen-hint {
+      font-size: 10px;
+      color: var(--dim);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+
     /* ─── ADD WORD ──────────────────────── */
     .form-heading {
       font-family: 'Cormorant Garamond', serif;
@@ -976,6 +1015,7 @@ const T = {
     delete: '삭제', confirmDelete: '한 번 더 누르면 삭제',
     accentFb: '정답 · 악센트 확인!', accentTitle: '악센트 주의',
     alsoTitle: '이런 뜻도 있어요',
+    dirListen: '듣고 받아쓰기', listenHint: '눌러서 듣기',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -1003,6 +1043,7 @@ const T = {
     delete: 'Eliminar', confirmDelete: 'Toca otra vez',
     accentFb: '¡Correcto! · Revisa la tilde', accentTitle: 'Ojo con la tilde',
     alsoTitle: 'También significa',
+    dirListen: 'Dictado', listenHint: 'Toca para escuchar',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1030,6 +1071,7 @@ const T = {
     delete: 'Delete', confirmDelete: 'Tap again to delete',
     accentFb: 'Correct · mind the accent!', accentTitle: 'Mind the accent',
     alsoTitle: 'Also means',
+    dirListen: 'Dictation', listenHint: 'Tap to listen',
   },
 };
 
@@ -1173,8 +1215,36 @@ function updateNoneHint() {
   hint.textContent = selGender ? '' : t('noneHint');
 }
 
+// ── TTS (발음) ─────────────────────────────────────────
+const TTS_ICON = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M2.5 6v4h2.6L9 13.2V2.8L5.1 6z"/><path d="M11 5.7a3.2 3.2 0 0 1 0 4.6" stroke-linecap="round"/><path d="M12.9 3.9a5.8 5.8 0 0 1 0 8.2" stroke-linecap="round"/></svg>';
+
+let esVoice = null;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices();
+  esVoice = vs.find(v => v.lang === 'es-ES') || vs.find(v => v.lang && v.lang.startsWith('es')) || null;
+  document.body.classList.toggle('no-tts', !esVoice);
+}
+
+function speak(text) {
+  if (!esVoice) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.voice = esVoice;
+  u.lang = esVoice.lang;
+  u.rate = 0.9;
+  speechSynthesis.speak(u);
+}
+
+if ('speechSynthesis' in window) {
+  pickVoice();
+  // 일부 브라우저는 음성 목록을 비동기로 로드함
+  speechSynthesis.onvoiceschanged = pickVoice;
+} else {
+  document.body.classList.add('no-tts');
+}
+
 // ── Quiz ──────────────────────────────────────────────
-let qDir = 'sk'; // 'sk' = 스페인어→한국어, 'ks' = 한국어→스페인어
+let qDir = 'sk'; // 'sk' = 스페인어→한국어, 'ks' = 한국어→스페인어, 'listen' = 받아쓰기
 
 function startQuiz() {
   go('quiz');
@@ -1185,7 +1255,9 @@ async function loadQuiz() {
   qAnswered = false;
   qWord = null;
   document.getElementById('quizBody').innerHTML = '';
-  qDir = Math.random() < 0.5 ? 'sk' : 'ks';
+  // 음성 지원 시 20%는 받아쓰기 문제
+  const dirs = esVoice ? ['sk', 'sk', 'ks', 'ks', 'listen'] : ['sk', 'ks'];
+  qDir = dirs[Math.floor(Math.random() * dirs.length)];
   try {
     qWord = await api('GET', '/api/quiz/pick');
   } catch (e) {
@@ -1203,22 +1275,30 @@ function renderQuiz() {
   }
 
   const isSK = qDir === 'sk';
-  const displayWord = isSK ? qWord.word : qWord.meaning;
-  const dirLabel = isSK ? t('dirSK') : t('dirKS');
+  const isListen = qDir === 'listen';
+  const dirLabel = isListen ? t('dirListen') : (isSK ? t('dirSK') : t('dirKS'));
   const placeholder = isSK ? t('answerSK') : t('answerKS');
   const genderLabel = qWord.gender !== 'none' ? t(qWord.gender) : '';
-  const isSpanishDisplay = isSK;
 
   const meta = qWord.test_count > 0
     ? `<b>${qWord.test_count}</b> ${t('tested')} · <b>${qWord.correct_count}</b> ${t('correctN')}`
     : '—';
 
+  // 받아쓰기: 단어 대신 재생 버튼, 정답 확인 후 단어·뜻 공개
+  const cardBody = isListen
+    ? `<button class="play-btn" onclick="speak(qWord.word)">▶</button>
+       <div class="listen-hint">${t('listenHint')}</div>
+       <div class="quiz-word" id="listenWord" style="display:none;margin-top:14px">${qWord.word}</div>
+       <div class="word-meta" id="listenMeaning" style="display:none">${qWord.meaning}</div>`
+    : `<div class="quiz-word${isSK ? '' : ' quiz-word-kr'}">${isSK ? qWord.word : qWord.meaning}</div>
+       ${isSK ? `<button class="tts-btn" onclick="speak(qWord.word)">${TTS_ICON}</button>` : ''}
+       ${genderLabel ? `<div class="gender-badge">${genderLabel}</div>` : ''}`;
+
   el.innerHTML = `
     ${qWord.due === false ? `<div class="practice-note">${t('reviewDone')}</div>` : ''}
     <div class="word-card" id="qCard">
       <div class="quiz-dir">${dirLabel}</div>
-      <div class="quiz-word${isSpanishDisplay ? '' : ' quiz-word-kr'}">${displayWord}</div>
-      ${genderLabel ? `<div class="gender-badge">${genderLabel}</div>` : ''}
+      ${cardBody}
       <div class="word-meta">${meta}</div>
     </div>
     <div class="answer-row">
@@ -1256,7 +1336,7 @@ function wlItemHTML(w) {
     : '—';
   return `
     <div class="wl-left">
-      <div class="wl-word">${w.word}${g}</div>
+      <div class="wl-word">${w.word}<button class="tts-btn sm" onclick="event.stopPropagation();speak(this.closest('.wl-item').dataset.word)">${TTS_ICON}</button>${g}</div>
       <div class="wl-meaning">${w.meaning}</div>
     </div>
     <div class="wl-right">
@@ -1433,15 +1513,22 @@ async function checkAnswer() {
   const matched = alts.find(a => norm(a) === norm(userAnswer)) || null;
   let ok = matched !== null;
 
-  // 스페인어 입력 방향: 모음 악센트만 틀렸으면 정답 처리하되 올바른 표기를 안내
+  // 스페인어 입력 방향(번역·받아쓰기): 모음 악센트만 틀렸으면 정답 처리하되 올바른 표기를 안내
   // (ñ은 별개 글자이므로 관대 처리 대상이 아님)
   let accentWord = null;
-  if (!ok && qDir === 'ks') {
+  if (!ok && qDir !== 'sk') {
     accentWord = alts.find(a => deaccentGrading(norm(a)) === deaccentGrading(norm(userAnswer))) || null;
     if (accentWord) ok = true;
   }
 
   input.disabled = true;
+
+  // 스페인어를 입력한 문제는 정답 확인 직후 발음을 들려줌
+  if (qDir !== 'sk') speak(qWord.word);
+  if (qDir === 'listen') {
+    document.getElementById('listenWord').style.display = '';
+    document.getElementById('listenMeaning').style.display = '';
+  }
 
   try {
     await api('POST', '/api/quiz/answer', { word: qWord.word, correct: ok });
