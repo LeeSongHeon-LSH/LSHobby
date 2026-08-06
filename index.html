@@ -184,6 +184,7 @@
       padding: 7px 12px;
       margin-bottom: 14px;
     }
+    .practice-note.hard { color: var(--gold); background: var(--gold-glow); }
 
     /* ─── QUIZ ─────────────────────────── */
     .quiz-prompt {
@@ -1058,7 +1059,7 @@
       <p class="home-sub" id="lSub">단어를 정복하라</p>
       <div class="rule"></div>
       <div class="home-actions">
-        <button class="main-btn primary" onclick="startQuiz()">
+        <button class="main-btn primary" onclick="startQuizMode(false)">
           <span class="btn-glyph">◈</span>
           <span id="lQuiz">퀴즈</span>
         </button>
@@ -1069,6 +1070,9 @@
       </div>
       <button class="wordlist-btn" id="flashHomeBtn" style="display:none" onclick="startFlash()">
         <span id="lFlashHome"></span>
+      </button>
+      <button class="wordlist-btn" id="hardHomeBtn" style="display:none" onclick="startQuizMode(true)">
+        <span id="lHardHome"></span>
       </button>
       <div class="home-secondary">
         <button class="wordlist-btn" onclick="startWordList()">
@@ -1262,6 +1266,7 @@ const T = {
     flashTitle: '새 단어', flashBtn: '새 단어 살펴보기',
     flashTapHint: '탭해서 뜻 보기', flashDone: '새 단어를 다 봤어요!',
     flashQuiz: '바로 퀴즈 풀기',
+    hardBtn: '어려운 단어 연습', hardNote: '어려운 단어 집중 연습 중',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -1299,6 +1304,7 @@ const T = {
     flashTitle: 'Palabras nuevas', flashBtn: 'Ver palabras nuevas',
     flashTapHint: 'Toca para ver el significado', flashDone: '¡Has visto todas!',
     flashQuiz: 'Empezar el quiz',
+    hardBtn: 'Palabras difíciles', hardNote: 'Práctica de palabras difíciles',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1336,6 +1342,7 @@ const T = {
     flashTitle: 'New words', flashBtn: 'Preview new words',
     flashTapHint: 'Tap to see meaning', flashDone: 'All new words seen!',
     flashQuiz: 'Start quiz',
+    hardBtn: 'Hard words', hardNote: 'Hard-word practice',
   },
 };
 
@@ -1481,9 +1488,12 @@ async function updateStats() {
       + (s.streak >= 2 ? `<span class="dot">·</span><span class="due-badge">${t('streakHome').replace('{n}', s.streak)}</span>` : '');
     document.getElementById('lFlashHome').textContent = `${t('flashBtn')} (${s.new_count})`;
     document.getElementById('flashHomeBtn').style.display = s.new_count > 0 ? '' : 'none';
+    document.getElementById('lHardHome').textContent = `${t('hardBtn')} (${s.hard_count})`;
+    document.getElementById('hardHomeBtn').style.display = s.hard_count > 0 ? '' : 'none';
   } catch (e) {
     el.innerHTML = '';
     document.getElementById('flashHomeBtn').style.display = 'none';
+    document.getElementById('hardHomeBtn').style.display = 'none';
   }
 }
 
@@ -1654,6 +1664,13 @@ if ('speechSynthesis' in window) {
 // ── Quiz ──────────────────────────────────────────────
 let qDir = 'sk'; // 'sk' = 스페인어→한국어, 'ks' = 한국어→스페인어, 'listen' = 받아쓰기
 
+let qHard = false; // 어려운 단어 집중 연습 모드
+
+function startQuizMode(hard) {
+  qHard = hard;
+  startQuiz();
+}
+
 function startQuiz() {
   go('quiz');
   loadQuiz();
@@ -1667,7 +1684,7 @@ async function loadQuiz() {
   const dirs = esVoice ? ['sk', 'sk', 'ks', 'ks', 'listen'] : ['sk', 'ks'];
   qDir = dirs[Math.floor(Math.random() * dirs.length)];
   try {
-    qWord = await api('GET', '/api/quiz/pick');
+    qWord = await api('GET', '/api/quiz/pick' + (qHard ? '?hard=1' : ''));
   } catch (e) {
     qWord = null;
   }
@@ -1750,7 +1767,8 @@ function renderQuiz() {
        </div>`;
 
   el.innerHTML = `
-    ${qWord.due === false ? `<div class="practice-note">${t('reviewDone')}</div>` : ''}
+    ${qHard ? `<div class="practice-note hard">${t('hardNote')}</div>`
+      : qWord.due === false ? `<div class="practice-note">${t('reviewDone')}</div>` : ''}
     <div class="word-card" id="qCard">
       <div class="quiz-dir">${dirLabel}</div>
       ${cardBody}

@@ -92,8 +92,8 @@ async def delete_word(word: str):
 
 # ── Quiz ───────────────────────────────────────────────
 @app.get("/api/quiz/pick")
-async def pick():
-    word = quiz.pick_word()
+async def pick(hard: bool = False):
+    word = quiz.pick_word(hard_only=hard)
     if word is None:
         raise HTTPException(404, detail="no_words")
     return word

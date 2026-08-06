@@ -182,3 +182,33 @@ class TestSRS:
         assert quiz.due_count() == 2
         quiz.submit_answer("casa", correct=True)
         assert quiz.due_count() == 1
+
+
+class TestHardWords:
+    def _make(self, word, test, correct):
+        db.add_word(word, Gender.NONE, "뜻")
+        for i in range(test):
+            db.record_attempt(word, i < correct)
+
+    def test_is_hard_boundaries(self):
+        assert not quiz.is_hard({"test_count": 3, "correct_count": 0})   # 출제 부족
+        assert quiz.is_hard({"test_count": 4, "correct_count": 2})       # 50% < 60%
+        assert not quiz.is_hard({"test_count": 5, "correct_count": 3})   # 60%는 어렵지 않음
+        assert not quiz.is_hard({"test_count": 10, "correct_count": 9})
+
+    def test_hard_pool_empty_returns_none(self):
+        self._make("facil", 10, 10)
+        assert quiz.pick_word(hard_only=True) is None
+
+    def test_hard_only_picks_hard_word(self):
+        self._make("facil", 10, 10)
+        self._make("dificil", 10, 2)
+        for _ in range(10):
+            picked = quiz.pick_word(hard_only=True)
+            assert picked["word"] == "dificil"
+            assert picked["due"] is True
+
+    def test_hard_count(self):
+        self._make("facil", 10, 10)
+        self._make("dificil", 10, 2)
+        assert quiz.hard_count() == 1

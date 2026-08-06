@@ -8,6 +8,10 @@ from db import get_all_words, get_word, record_attempt, set_srs
 BOX_INTERVALS = {1: 1, 2: 2, 3: 4, 4: 8, 5: 16}
 MAX_BOX = 5
 
+# 어려운 단어: 충분히 출제됐는데 정답률이 낮은 단어
+HARD_MIN_TESTS = 4
+HARD_MAX_ACCURACY = 0.6
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -32,8 +36,27 @@ def due_count() -> int:
     return sum(1 for w in get_all_words() if _is_due(w))
 
 
-def pick_word() -> dict | None:
+def is_hard(word: dict) -> bool:
+    if word["test_count"] < HARD_MIN_TESTS:
+        return False
+    return word["correct_count"] / word["test_count"] < HARD_MAX_ACCURACY
+
+
+def hard_count() -> int:
+    return sum(1 for w in get_all_words() if is_hard(w))
+
+
+def pick_word(hard_only: bool = False) -> dict | None:
     words = get_all_words()
+    if hard_only:
+        # 집중 연습: due와 무관하게 어려운 단어 전체에서 출제
+        pool = [w for w in words if is_hard(w)]
+        if not pool:
+            return None
+        weights = [_weight(w) for w in pool]
+        picked = dict(random.choices(pool, weights=weights, k=1)[0])
+        picked["due"] = True
+        return picked
     if not words:
         return None
     due = [w for w in words if _is_due(w)]
