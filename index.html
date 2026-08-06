@@ -349,6 +349,18 @@
     .correct-reveal.accent .reveal-label { color: var(--gold); }
     .reveal-word .acc { color: var(--gold); font-style: normal; font-weight: 500; }
 
+    /* 정답이지만 다른 뜻도 있을 때: 초록 안내로 나머지 뜻 표시 */
+    .correct-reveal.also {
+      background: var(--ok-bg);
+      border-color: var(--sage);
+    }
+    .correct-reveal.also .reveal-label { color: var(--sage); }
+    .correct-reveal.also .reveal-word {
+      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+      font-style: normal;
+      font-size: 15px;
+    }
+
     .next-btn {
       width: 100%; margin-top: 14px; padding: 14px;
       background: var(--surface);
@@ -963,6 +975,7 @@ const T = {
     editTitle: '단어 수정', gNone: '없음',
     delete: '삭제', confirmDelete: '한 번 더 누르면 삭제',
     accentFb: '정답 · 악센트 확인!', accentTitle: '악센트 주의',
+    alsoTitle: '이런 뜻도 있어요',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -989,6 +1002,7 @@ const T = {
     editTitle: 'Editar palabra', gNone: 'Ninguno',
     delete: 'Eliminar', confirmDelete: 'Toca otra vez',
     accentFb: '¡Correcto! · Revisa la tilde', accentTitle: 'Ojo con la tilde',
+    alsoTitle: 'También significa',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1015,6 +1029,7 @@ const T = {
     editTitle: 'Edit word', gNone: 'None',
     delete: 'Delete', confirmDelete: 'Tap again to delete',
     accentFb: 'Correct · mind the accent!', accentTitle: 'Mind the accent',
+    alsoTitle: 'Also means',
   },
 };
 
@@ -1408,14 +1423,16 @@ async function checkAnswer() {
 
   qAnswered = true;
   const correctAnswer = qDir === 'sk' ? qWord.meaning : qWord.word;
-  const alts = correctAnswer.split(',').map(s => s.trim().toLowerCase());
-  const ua = userAnswer.toLowerCase();
-  let ok = alts.includes(ua);
+  const alts = correctAnswer.split(',').map(s => s.trim()).filter(Boolean);
+  // 대소문자·띄어쓰기 차이는 무시하고 비교 ("일 하다" = "일하다")
+  const norm = s => s.toLowerCase().replace(/\s+/g, '');
+  const matched = alts.find(a => norm(a) === norm(userAnswer)) || null;
+  let ok = matched !== null;
 
   // 스페인어 입력 방향: 악센트(ñ 포함)만 틀렸으면 정답 처리하되 올바른 표기를 안내
   let accentWord = null;
   if (!ok && qDir === 'ks') {
-    accentWord = alts.find(a => deaccent(a) === deaccent(ua)) || null;
+    accentWord = alts.find(a => deaccent(norm(a)) === deaccent(norm(userAnswer))) || null;
     if (accentWord) ok = true;
   }
 
@@ -1441,6 +1458,12 @@ async function checkAnswer() {
       deaccent(ch) !== ch ? `<span class="acc">${ch}</span>` : ch
     ).join('');
     document.getElementById('correctReveal').classList.add('accent', 'show');
+  } else if (qDir === 'sk' && alts.length > 1) {
+    // 뜻이 여러 개면 맞힌 것 외의 나머지 뜻도 보여줘 복습 효과
+    const others = alts.filter(a => a !== matched);
+    document.getElementById('revealLabel').textContent = t('alsoTitle');
+    document.getElementById('revealWord').textContent = others.join(', ');
+    document.getElementById('correctReveal').classList.add('also', 'show');
   }
 
   document.getElementById('nextBtn').classList.add('show');
