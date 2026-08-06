@@ -341,6 +341,14 @@
       font-style: italic;
     }
 
+    /* 악센트만 틀렸을 때: 정답 처리하되 금색 안내로 올바른 표기를 각인 */
+    .correct-reveal.accent {
+      background: var(--gold-glow);
+      border-color: var(--gold-mid);
+    }
+    .correct-reveal.accent .reveal-label { color: var(--gold); }
+    .reveal-word .acc { color: var(--gold); font-style: normal; font-weight: 500; }
+
     .next-btn {
       width: 100%; margin-top: 14px; padding: 14px;
       background: var(--surface);
@@ -954,6 +962,7 @@ const T = {
     due: '복습', reviewDone: '오늘 복습 완료! 자유 연습 모드',
     editTitle: '단어 수정', gNone: '없음',
     delete: '삭제', confirmDelete: '한 번 더 누르면 삭제',
+    accentFb: '정답 · 악센트 확인!', accentTitle: '악센트 주의',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -979,6 +988,7 @@ const T = {
     due: 'repaso', reviewDone: '¡Repaso terminado! Práctica libre',
     editTitle: 'Editar palabra', gNone: 'Ninguno',
     delete: 'Eliminar', confirmDelete: 'Toca otra vez',
+    accentFb: '¡Correcto! · Revisa la tilde', accentTitle: 'Ojo con la tilde',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1004,6 +1014,7 @@ const T = {
     due: 'to review', reviewDone: 'All reviews done! Free practice',
     editTitle: 'Edit word', gNone: 'None',
     delete: 'Delete', confirmDelete: 'Tap again to delete',
+    accentFb: 'Correct · mind the accent!', accentTitle: 'Mind the accent',
   },
 };
 
@@ -1202,7 +1213,7 @@ function renderQuiz() {
     </div>
     <div class="quiz-fb" id="qFb"></div>
     <div class="correct-reveal" id="correctReveal">
-      <span class="reveal-label">${t('correctAnswer')}</span>
+      <span class="reveal-label" id="revealLabel">${t('correctAnswer')}</span>
       <span class="reveal-word" id="revealWord"></span>
     </div>
     <button class="next-btn" id="nextBtn" onclick="startQuiz()">${t('next')}</button>
@@ -1397,7 +1408,16 @@ async function checkAnswer() {
 
   qAnswered = true;
   const correctAnswer = qDir === 'sk' ? qWord.meaning : qWord.word;
-  const ok = correctAnswer.split(',').map(s => s.trim().toLowerCase()).includes(userAnswer.toLowerCase());
+  const alts = correctAnswer.split(',').map(s => s.trim().toLowerCase());
+  const ua = userAnswer.toLowerCase();
+  let ok = alts.includes(ua);
+
+  // 스페인어 입력 방향: 악센트(ñ 포함)만 틀렸으면 정답 처리하되 올바른 표기를 안내
+  let accentWord = null;
+  if (!ok && qDir === 'ks') {
+    accentWord = alts.find(a => deaccent(a) === deaccent(ua)) || null;
+    if (accentWord) ok = true;
+  }
 
   input.disabled = true;
 
@@ -1408,12 +1428,19 @@ async function checkAnswer() {
   document.getElementById('qCard').classList.add(ok ? 'state-ok' : 'state-err');
 
   const fb = document.getElementById('qFb');
-  fb.textContent = ok ? t('correct') : t('wrong');
+  fb.textContent = accentWord ? t('accentFb') : (ok ? t('correct') : t('wrong'));
   fb.className = 'quiz-fb ' + (ok ? 'ok' : 'err');
 
   if (!ok) {
     document.getElementById('revealWord').textContent = correctAnswer;
     document.getElementById('correctReveal').classList.add('show');
+  } else if (accentWord) {
+    document.getElementById('revealLabel').textContent = t('accentTitle');
+    // 틀린 글자(악센트 자리)만 금색으로 강조
+    document.getElementById('revealWord').innerHTML = accentWord.split('').map(ch =>
+      deaccent(ch) !== ch ? `<span class="acc">${ch}</span>` : ch
+    ).join('');
+    document.getElementById('correctReveal').classList.add('accent', 'show');
   }
 
   document.getElementById('nextBtn').classList.add('show');
