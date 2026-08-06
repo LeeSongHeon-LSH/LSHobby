@@ -428,6 +428,40 @@
       margin-top: 12px;
     }
 
+    /* ─── CLOZE (예문 빈칸) ─────────────── */
+    .cloze-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(22px, 6vw, 28px);
+      font-style: italic;
+      line-height: 1.55;
+      overflow-wrap: break-word;
+    }
+    .cloze-blank {
+      display: inline-block;
+      min-width: 64px;
+      border-bottom: 1.5px solid var(--gold-mid);
+      margin: 0 2px;
+    }
+    .cloze-blank.filled {
+      min-width: 0;
+      border-bottom-color: transparent;
+      color: var(--gold);
+      font-weight: 500;
+    }
+    .cloze-hint {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+    }
+    .cloze-trans {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--sage);
+      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+      line-height: 1.6;
+    }
+
     /* ─── GENDER DRILL ──────────────────── */
     .gender-answer {
       display: grid;
@@ -1267,6 +1301,7 @@ const T = {
     flashTapHint: '탭해서 뜻 보기', flashDone: '새 단어를 다 봤어요!',
     flashQuiz: '바로 퀴즈 풀기',
     hardBtn: '어려운 단어 연습', hardNote: '어려운 단어 집중 연습 중',
+    dirCloze: '빈칸 채우기',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -1305,6 +1340,7 @@ const T = {
     flashTapHint: 'Toca para ver el significado', flashDone: '¡Has visto todas!',
     flashQuiz: 'Empezar el quiz',
     hardBtn: 'Palabras difíciles', hardNote: 'Práctica de palabras difíciles',
+    dirCloze: 'Completa la frase',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1343,6 +1379,7 @@ const T = {
     flashTapHint: 'Tap to see meaning', flashDone: 'All new words seen!',
     flashQuiz: 'Start quiz',
     hardBtn: 'Hard words', hardNote: 'Hard-word practice',
+    dirCloze: 'Fill the blank',
   },
 };
 
@@ -1692,7 +1729,31 @@ async function loadQuiz() {
   if (qWord && (qWord.gender === 'm' || qWord.gender === 'f') && Math.random() < 0.25) {
     qDir = 'gender';
   }
+  // 그 외에는 30% 확률로 예문 빈칸 문제 시도 (예문 없거나 느리면 원래 문제로)
+  qSentence = null;
+  if (qWord && qDir !== 'gender' && Math.random() < 0.3) {
+    qSentence = await fetchSentence(qWord.word);
+    if (qSentence) qDir = 'cloze';
+  }
   renderQuiz();
+}
+
+let qSentence = null;
+
+// 예문 조회: 첫 요청은 서버가 Tatoeba에서 수집하느라 느릴 수 있어 2.5초만 기다림
+// (시간 초과로 넘어가도 서버는 수집을 마치고 캐시하므로 다음번엔 즉시 응답)
+async function fetchSentence(word) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 2500);
+  try {
+    const res = await fetch(`/api/sentence/${encodeURIComponent(word)}`, { signal: ctrl.signal });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function answerGender(g) {
@@ -1733,9 +1794,11 @@ function renderQuiz() {
   const isSK = qDir === 'sk';
   const isListen = qDir === 'listen';
   const isGender = qDir === 'gender';
+  const isCloze = qDir === 'cloze';
   const showSpanish = isSK || isGender;
   const dirLabel = isGender ? t('dirGender')
     : isListen ? t('dirListen')
+    : isCloze ? t('dirCloze')
     : (isSK ? t('dirSK') : t('dirKS'));
   const placeholder = isSK ? t('answerSK') : t('answerKS');
   const genderLabel = qWord.gender !== 'none' ? t(qWord.gender) : '';
@@ -1744,12 +1807,26 @@ function renderQuiz() {
     ? `<b>${qWord.test_count}</b> ${t('tested')} · <b>${qWord.correct_count}</b> ${t('correctN')}`
     : '—';
 
+  // 빈칸 문제: 예문에서 단어 자리를 밑줄로 (대소문자 무시, 첫 위치)
+  const clozeHTML = () => {
+    const s = qSentence.es_text;
+    const i = s.toLowerCase().indexOf(qWord.word.toLowerCase());
+    const blanked = i < 0 ? s
+      : s.slice(0, i) + '<span class="cloze-blank" id="clozeBlank"></span>' + s.slice(i + qWord.word.length);
+    const trans = qSentence.ko_text || qSentence.en_text || '';
+    return `<div class="cloze-text">${blanked}</div>
+      <div class="cloze-hint">${qWord.meaning}</div>
+      <div class="cloze-trans" id="clozeTrans" style="display:none">${trans}</div>`;
+  };
+
   // 받아쓰기: 단어 대신 재생 버튼, 정답 확인 후 단어·뜻 공개
   const cardBody = isListen
     ? `<button class="play-btn" onclick="speak(qWord.word)">▶</button>
        <div class="listen-hint">${t('listenHint')}</div>
        <div class="quiz-word" id="listenWord" style="display:none;margin-top:14px">${qWord.word}</div>
        <div class="word-meta" id="listenMeaning" style="display:none">${qWord.meaning}</div>`
+    : isCloze
+    ? clozeHTML()
     : `<div class="quiz-word${showSpanish ? '' : ' quiz-word-kr'}">${showSpanish ? qWord.word : qWord.meaning}</div>
        ${showSpanish ? `<button class="tts-btn" onclick="speak(qWord.word)">${TTS_ICON}</button>` : ''}
        ${genderLabel && !isGender ? `<div class="gender-badge">${genderLabel}</div>` : ''}`;
@@ -1999,6 +2076,13 @@ async function checkAnswer() {
   if (qDir === 'listen') {
     document.getElementById('listenWord').style.display = '';
     document.getElementById('listenMeaning').style.display = '';
+  }
+  if (qDir === 'cloze') {
+    // 빈칸을 정답 단어로 채우고 번역 공개
+    const blank = document.getElementById('clozeBlank');
+    if (blank) { blank.textContent = qWord.word; blank.classList.add('filled'); }
+    const tr = document.getElementById('clozeTrans');
+    if (tr && tr.textContent) tr.style.display = '';
   }
 
   try {

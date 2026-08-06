@@ -45,6 +45,24 @@ def init_db():
                 ts TEXT NOT NULL
             )
         """)
+        # Tatoeba 예문 캐시
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sentences (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                word TEXT NOT NULL,
+                es_text TEXT NOT NULL,
+                ko_text TEXT,
+                en_text TEXT,
+                source_url TEXT
+            )
+        """)
+        # 수집 시도 기록 (예문이 없는 단어를 매번 재조회하지 않게)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sentence_fetch (
+                word TEXT PRIMARY KEY,
+                fetched_at TEXT NOT NULL
+            )
+        """)
 
 
 def add_word(word: str, gender: Gender, meaning: str):
@@ -135,4 +153,36 @@ def delete_word(word: str):
     with get_connection() as conn:
         conn.execute(
             "DELETE FROM words WHERE word = ?", (word.strip().lower(),)
+        )
+
+
+def sentences_fetched(word: str) -> bool:
+    with get_connection() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM sentence_fetch WHERE word = ?", (word.strip().lower(),)
+        ).fetchone()
+    return row is not None
+
+
+def get_sentences(word: str) -> list[dict]:
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT es_text, ko_text, en_text, source_url FROM sentences WHERE word = ?",
+            (word.strip().lower(),),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def save_sentences(word: str, sentences: list[dict]):
+    w = word.strip().lower()
+    with get_connection() as conn:
+        for s in sentences:
+            conn.execute(
+                "INSERT INTO sentences (word, es_text, ko_text, en_text, source_url) VALUES (?, ?, ?, ?, ?)",
+                (w, s["es_text"], s.get("ko_text"), s.get("en_text"), s.get("source_url")),
+            )
+        conn.execute(
+            "INSERT OR REPLACE INTO sentence_fetch (word, fetched_at) VALUES (?, ?)",
+            (w, datetime.now().astimezone().isoformat()),
         )

@@ -1,8 +1,9 @@
 import csv
 import io
+import random
 import sqlite3
 
-from fastapi import FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -10,6 +11,7 @@ from pydantic import BaseModel
 import db
 from db import Gender
 import quiz
+import sentences
 import stats
 
 app = FastAPI(title="Spanish Practice")
@@ -55,7 +57,7 @@ async def get_words():
 
 
 @app.post("/api/words", status_code=201)
-async def add_word(body: WordIn):
+async def add_word(body: WordIn, background_tasks: BackgroundTasks):
     try:
         gender = Gender(body.gender)
     except ValueError:
@@ -66,6 +68,8 @@ async def add_word(body: WordIn):
         raise HTTPException(422, detail=str(e))
     except sqlite3.IntegrityError:
         raise HTTPException(409, detail="duplicate")
+    # 예문은 응답 후 백그라운드로 미리 수집해 둠
+    background_tasks.add_task(sentences.ensure_sentences, body.word.strip().lower())
     return {"ok": True}
 
 
@@ -109,6 +113,15 @@ async def answer(body: AnswerIn):
 @app.get("/api/stats")
 async def get_stats():
     return stats.get_stats()
+
+
+# ── Sentences ──────────────────────────────────────────
+@app.get("/api/sentence/{word}")
+async def get_sentence(word: str):
+    found = sentences.ensure_sentences(word.strip().lower())
+    if not found:
+        raise HTTPException(404, detail="no_sentence")
+    return random.choice(found)
 
 
 # ── Export ─────────────────────────────────────────────
