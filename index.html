@@ -1368,6 +1368,10 @@ async function deleteFromSheet() {
 // 악센트 무시 비교용: dónde → donde, español → espanol
 const deaccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+// 채점용 악센트 제거: ñ은 별개 글자이므로 유지 (U+0303 결합 틸데만 남김)
+const deaccentGrading = s =>
+  s.normalize('NFD').replace(/[\u0300-\u0302\u0304-\u036f]/g, '').normalize('NFC');
+
 function filterWordList() {
   const q = deaccent(document.getElementById('wlSearch').value.trim().toLowerCase());
   let shown = 0;
@@ -1429,10 +1433,11 @@ async function checkAnswer() {
   const matched = alts.find(a => norm(a) === norm(userAnswer)) || null;
   let ok = matched !== null;
 
-  // 스페인어 입력 방향: 악센트(ñ 포함)만 틀렸으면 정답 처리하되 올바른 표기를 안내
+  // 스페인어 입력 방향: 모음 악센트만 틀렸으면 정답 처리하되 올바른 표기를 안내
+  // (ñ은 별개 글자이므로 관대 처리 대상이 아님)
   let accentWord = null;
   if (!ok && qDir === 'ks') {
-    accentWord = alts.find(a => deaccent(norm(a)) === deaccent(norm(userAnswer))) || null;
+    accentWord = alts.find(a => deaccentGrading(norm(a)) === deaccentGrading(norm(userAnswer))) || null;
     if (accentWord) ok = true;
   }
 
@@ -1455,7 +1460,7 @@ async function checkAnswer() {
     document.getElementById('revealLabel').textContent = t('accentTitle');
     // 틀린 글자(악센트 자리)만 금색으로 강조
     document.getElementById('revealWord').innerHTML = accentWord.split('').map(ch =>
-      deaccent(ch) !== ch ? `<span class="acc">${ch}</span>` : ch
+      deaccentGrading(ch) !== ch ? `<span class="acc">${ch}</span>` : ch
     ).join('');
     document.getElementById('correctReveal').classList.add('accent', 'show');
   } else if (qDir === 'sk' && alts.length > 1) {
