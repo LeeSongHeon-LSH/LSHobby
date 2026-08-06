@@ -6,9 +6,8 @@ cd "$(dirname "$0")"
 [ "$(git rev-parse --abbrev-ref HEAD)" = "main" ] || { echo "not on main, skip"; exit 0; }
 
 git fetch origin main
-LOCAL=$(git rev-parse main)
-REMOTE=$(git rev-parse origin/main)
-[ "$LOCAL" = "$REMOTE" ] && exit 0
+# 원격에만 있는 새 커밋이 없으면 종료 (로컬이 같거나 앞서 있는 경우)
+[ "$(git rev-list main..origin/main --count)" -eq 0 ] && exit 0
 
 # 로컬에서 수정 작업 중이면 배포하지 않음
 [ -n "$(git status --porcelain)" ] && { echo "working tree dirty, skip deploy"; exit 0; }
