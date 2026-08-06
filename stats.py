@@ -44,6 +44,7 @@ def get_stats() -> dict:
 
     return {
         "word_count": len(words),
+        "new_count": sum(1 for w in words if w["test_count"] == 0),
         "due_count": quiz.due_count(),
         "test_total": sum(w["test_count"] for w in words),
         "correct_total": sum(w["correct_count"] for w in words),

@@ -48,6 +48,7 @@ class TestGetStats:
     def test_empty_db(self):
         s = stats.get_stats()
         assert s["word_count"] == 0
+        assert s["new_count"] == 0
         assert s["streak"] == 0
         assert s["today_total"] == 0
         assert len(s["daily"]) == 14
@@ -60,6 +61,7 @@ class TestGetStats:
         quiz.submit_answer("casa", True)
         s = stats.get_stats()
         assert s["word_count"] == 2
+        assert s["new_count"] == 1  # libro는 아직 미출제
         assert s["test_total"] == 1
         assert s["correct_total"] == 1
         assert s["streak"] == 1
