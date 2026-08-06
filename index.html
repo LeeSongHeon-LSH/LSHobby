@@ -1339,13 +1339,16 @@ async function deleteFromSheet() {
   }
 }
 
+// 악센트 무시 비교용: dónde → donde, español → espanol
+const deaccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 function filterWordList() {
-  const q = document.getElementById('wlSearch').value.trim().toLowerCase();
+  const q = deaccent(document.getElementById('wlSearch').value.trim().toLowerCase());
   let shown = 0;
   const total = Object.keys(wlCache).length;
   document.querySelectorAll('#wlBody .wl-item').forEach(item => {
     const w = wlCache[item.dataset.word];
-    const match = !q || w.word.includes(q) || w.meaning.toLowerCase().includes(q);
+    const match = !q || deaccent(w.word).includes(q) || deaccent(w.meaning.toLowerCase()).includes(q);
     item.style.display = match ? '' : 'none';
     if (match) shown++;
   });
