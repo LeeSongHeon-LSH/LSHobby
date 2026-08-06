@@ -427,6 +427,24 @@
       margin-top: 12px;
     }
 
+    /* ─── GENDER DRILL ──────────────────── */
+    .gender-answer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .g-opt.big {
+      padding: 16px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-style: italic;
+      text-transform: none;
+      letter-spacing: 0.04em;
+    }
+    .g-opt.right { border-color: var(--sage); color: var(--sage); background: var(--ok-bg); }
+    .g-opt.wrong { border-color: var(--rust); color: var(--rust); background: var(--err-bg); }
+
     /* ─── ADD WORD ──────────────────────── */
     .form-heading {
       font-family: 'Cormorant Garamond', serif;
@@ -1016,6 +1034,7 @@ const T = {
     accentFb: '정답 · 악센트 확인!', accentTitle: '악센트 주의',
     alsoTitle: '이런 뜻도 있어요',
     dirListen: '듣고 받아쓰기', listenHint: '눌러서 듣기',
+    dirGender: '관사 고르기',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -1044,6 +1063,7 @@ const T = {
     accentFb: '¡Correcto! · Revisa la tilde', accentTitle: 'Ojo con la tilde',
     alsoTitle: 'También significa',
     dirListen: 'Dictado', listenHint: 'Toca para escuchar',
+    dirGender: '¿El o la?',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1072,6 +1092,7 @@ const T = {
     accentFb: 'Correct · mind the accent!', accentTitle: 'Mind the accent',
     alsoTitle: 'Also means',
     dirListen: 'Dictation', listenHint: 'Tap to listen',
+    dirGender: 'El or la?',
   },
 };
 
@@ -1263,7 +1284,38 @@ async function loadQuiz() {
   } catch (e) {
     qWord = null;
   }
+  // 성별 있는 명사는 25% 확률로 관사(el/la) 문제
+  if (qWord && (qWord.gender === 'm' || qWord.gender === 'f') && Math.random() < 0.25) {
+    qDir = 'gender';
+  }
   renderQuiz();
+}
+
+async function answerGender(g) {
+  if (qAnswered || !qWord) return;
+  qAnswered = true;
+  const ok = g === qWord.gender;
+  const article = qWord.gender === 'm' ? 'el' : 'la';
+
+  try {
+    await api('POST', '/api/quiz/answer', { word: qWord.word, correct: ok });
+  } catch (e) {}
+
+  document.getElementById('qCard').classList.add(ok ? 'state-ok' : 'state-err');
+  document.getElementById('ga-' + qWord.gender).classList.add('right');
+  if (!ok) document.getElementById('ga-' + g).classList.add('wrong');
+
+  const fb = document.getElementById('qFb');
+  fb.textContent = ok ? t('correct') : t('wrong');
+  fb.className = 'quiz-fb ' + (ok ? 'ok' : 'err');
+
+  if (!ok) {
+    document.getElementById('revealWord').textContent = `${article} ${qWord.word}`;
+    document.getElementById('correctReveal').classList.add('show');
+  }
+
+  speak(`${article} ${qWord.word}`);
+  document.getElementById('nextBtn').classList.add('show');
 }
 
 function renderQuiz() {
@@ -1276,7 +1328,11 @@ function renderQuiz() {
 
   const isSK = qDir === 'sk';
   const isListen = qDir === 'listen';
-  const dirLabel = isListen ? t('dirListen') : (isSK ? t('dirSK') : t('dirKS'));
+  const isGender = qDir === 'gender';
+  const showSpanish = isSK || isGender;
+  const dirLabel = isGender ? t('dirGender')
+    : isListen ? t('dirListen')
+    : (isSK ? t('dirSK') : t('dirKS'));
   const placeholder = isSK ? t('answerSK') : t('answerKS');
   const genderLabel = qWord.gender !== 'none' ? t(qWord.gender) : '';
 
@@ -1290,9 +1346,21 @@ function renderQuiz() {
        <div class="listen-hint">${t('listenHint')}</div>
        <div class="quiz-word" id="listenWord" style="display:none;margin-top:14px">${qWord.word}</div>
        <div class="word-meta" id="listenMeaning" style="display:none">${qWord.meaning}</div>`
-    : `<div class="quiz-word${isSK ? '' : ' quiz-word-kr'}">${isSK ? qWord.word : qWord.meaning}</div>
-       ${isSK ? `<button class="tts-btn" onclick="speak(qWord.word)">${TTS_ICON}</button>` : ''}
-       ${genderLabel ? `<div class="gender-badge">${genderLabel}</div>` : ''}`;
+    : `<div class="quiz-word${showSpanish ? '' : ' quiz-word-kr'}">${showSpanish ? qWord.word : qWord.meaning}</div>
+       ${showSpanish ? `<button class="tts-btn" onclick="speak(qWord.word)">${TTS_ICON}</button>` : ''}
+       ${genderLabel && !isGender ? `<div class="gender-badge">${genderLabel}</div>` : ''}`;
+
+  // 관사 문제는 입력창 대신 el/la 선택 버튼
+  const answerUI = isGender
+    ? `<div class="gender-answer">
+         <button class="g-opt big" id="ga-m" onclick="answerGender('m')">el</button>
+         <button class="g-opt big" id="ga-f" onclick="answerGender('f')">la</button>
+       </div>`
+    : `<div class="answer-row">
+         <input class="answer-input" id="answerInput" type="text"
+                placeholder="${placeholder}" autocomplete="off" spellcheck="false">
+         <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">→</button>
+       </div>`;
 
   el.innerHTML = `
     ${qWord.due === false ? `<div class="practice-note">${t('reviewDone')}</div>` : ''}
@@ -1301,11 +1369,7 @@ function renderQuiz() {
       ${cardBody}
       <div class="word-meta">${meta}</div>
     </div>
-    <div class="answer-row">
-      <input class="answer-input" id="answerInput" type="text"
-             placeholder="${placeholder}" autocomplete="off" spellcheck="false">
-      <button class="submit-btn" id="submitBtn" onclick="checkAnswer()">→</button>
-    </div>
+    ${answerUI}
     <div class="quiz-fb" id="qFb"></div>
     <div class="correct-reveal" id="correctReveal">
       <span class="reveal-label" id="revealLabel">${t('correctAnswer')}</span>
@@ -1314,15 +1378,17 @@ function renderQuiz() {
     <button class="next-btn" id="nextBtn" onclick="startQuiz()">${t('next')}</button>
   `;
 
-  const input = document.getElementById('answerInput');
-  input.focus();
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.stopPropagation(); // 같은 Enter가 문서 레벨의 '다음 문제' 핸들러까지 올라가지 않게
-      checkAnswer();
-    }
-  });
-  addAccentShortcut(input);
+  if (!isGender) {
+    const input = document.getElementById('answerInput');
+    input.focus();
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.stopPropagation(); // 같은 Enter가 문서 레벨의 '다음 문제' 핸들러까지 올라가지 않게
+        checkAnswer();
+      }
+    });
+    addAccentShortcut(input);
+  }
 }
 
 let wlCache = {};
