@@ -148,6 +148,21 @@ def get_daily_attempts(days: int) -> dict:
     return {r[0]: {"total": r[1], "correct": r[2]} for r in rows}
 
 
+def count_words_first_attempted_on(day: str) -> int:
+    """해당 날짜(로컬 YYYY-MM-DD)에 처음 출제된 단어 수 — 하루 새 단어 한도용."""
+    with get_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) FROM (
+                SELECT MIN(substr(ts, 1, 10)) AS first_day
+                FROM attempts GROUP BY word
+            ) WHERE first_day = ?
+            """,
+            (day,),
+        ).fetchone()
+    return row[0]
+
+
 def get_attempt_dates() -> list[str]:
     """학습한 날짜 목록 (최신순, 중복 제거)."""
     with get_connection() as conn:

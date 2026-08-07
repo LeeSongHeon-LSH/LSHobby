@@ -184,6 +184,52 @@ class TestSRS:
         assert quiz.due_count() == 1
 
 
+class TestDailyNewLimit:
+    def _add_many(self, n):
+        for i in range(n):
+            db.add_word(f"palabra{i:03d}", Gender.NONE, f"뜻{i}")
+
+    def test_due_count_capped_at_limit(self):
+        self._add_many(25)
+        assert quiz.due_count() == quiz.DAILY_NEW_LIMIT
+
+    def test_under_limit_all_due(self):
+        self._add_many(5)
+        assert quiz.due_count() == 5
+
+    def test_picks_only_first_n_by_insertion_order(self):
+        self._add_many(30)
+        first20 = {f"palabra{i:03d}" for i in range(20)}
+        picked = {quiz.pick_word()["word"] for _ in range(80)}
+        assert picked <= first20
+
+    def test_studied_new_words_consume_quota(self):
+        # 오늘 새 단어 20개를 맞히면 새 단어는 더 나오지 않음
+        self._add_many(25)
+        for i in range(20):
+            quiz.submit_answer(f"palabra{i:03d}", correct=True)
+        assert quiz.due_count() == 0
+        picked = quiz.pick_word()
+        assert picked["due"] is False  # 자유 연습 모드로 전환
+
+    def test_wrong_new_word_becomes_review_beyond_cap(self):
+        # 오답으로 리셋된 단어는 복습이므로 한도와 무관하게 due
+        self._add_many(25)
+        quiz.submit_answer("palabra000", correct=False)
+        # 복습 1 + 새 단어 19 (오늘 1개 시작해 한도 차감) = 20
+        assert quiz.due_count() == 20
+        pool_words = {w["word"] for w in quiz._due_pool(db.get_all_words())}
+        assert "palabra000" in pool_words
+
+    def test_mixed_reviews_not_capped(self):
+        # 복습 단어가 많아도 한도는 새 단어에만 적용
+        self._add_many(25)
+        for i in range(20):
+            quiz.submit_answer(f"palabra{i:03d}", correct=False)  # 전부 즉시 복습으로
+        # 복습 20 + 새 단어 0 (한도 소진) = 20
+        assert quiz.due_count() == 20
+
+
 class TestHardWords:
     def _make(self, word, test, correct):
         db.add_word(word, Gender.NONE, "뜻")
