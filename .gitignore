@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 .venv/
 spanish.db
+# deploy.sh가 마지막으로 배포한 리비전 기록 (추적되면 dirty 판정에 걸려 배포가 멈춤)
+.deployed-rev
