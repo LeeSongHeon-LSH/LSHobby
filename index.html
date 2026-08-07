@@ -3,534 +3,710 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
-  <title>Español</title>
-  <meta name="theme-color" content="#f4f0e8">
+  <title>español</title>
+  <meta name="theme-color" content="#e7ebea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d141a" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="/static/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* ─── Tokens ─────────────────────────────────────────
+       Azulejo: 유약(glaze) 바탕 위의 타일. 두 안료가 문법성을 나타냄
+       — 코발트 = el(남성), 카르민 = la(여성). */
     :root {
-      --bg: #f4f0e8;
-      --surface: #ffffff;
-      --card: #fdfbf7;
-      --border: #ddd4c4;
-      --border-soft: #ede7da;
-      --text: #1c1610;
-      --muted: #7a6c5a;
-      --dim: #bdb0a0;
-      --gold: #8a6218;
-      --gold-mid: #a87828;
-      --gold-glow: rgba(138, 98, 24, 0.08);
-      --rust: #922e18;
-      --sage: #2a5e3a;
-      --err-bg: rgba(146, 46, 24, 0.07);
-      --ok-bg: rgba(42, 94, 58, 0.07);
-      --shadow-sm: 0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow-md: 0 4px 14px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+      --glaze:     #e7ebea;
+      --glaze-2:   #dce2e1;
+      --tile:      #fcfdfd;
+      --tile-2:    #f1f5f4;
+      --line:      #ccd6d5;
+      --line-soft: #e0e7e6;
+      --ink:       #101820;
+      --ink-2:     #55636d;
+      --ink-3:     #8a97a1;
+      --cobalt:    #1d4ed8;
+      --cobalt-2:  #2f63ee;
+      --cobalt-w:  rgba(29, 78, 216, 0.09);
+      --carmine:   #af322a;
+      --carmine-w: rgba(175, 50, 42, 0.09);
+      --pine:      #0f6349;
+      --pine-w:    rgba(15, 99, 73, 0.10);
+      --saffron:   #a06605;
+      --saffron-w: rgba(160, 102, 5, 0.12);
+
+      /* Fraunces는 스페인어 전용. 한글은 어느 스택에서든 Plex Sans KR로 떨어지게 해
+         시스템 폰트 대체로 자간·크기가 들쭉날쭉해지는 것을 막는다 */
+      --display: 'Fraunces', 'IBM Plex Sans KR', Georgia, serif;
+      --sans: 'IBM Plex Sans KR', system-ui, -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', 'IBM Plex Sans KR', ui-monospace, monospace;
+
+      --r: 4px;
+      --shadow:    0 1px 2px rgba(16, 24, 32, 0.05), 0 3px 10px rgba(16, 24, 32, 0.05);
+      --shadow-md: 0 1px 3px rgba(16, 24, 32, 0.07), 0 8px 22px rgba(16, 24, 32, 0.09);
+      --shadow-lg: 0 2px 6px rgba(16, 24, 32, 0.09), 0 18px 40px rgba(16, 24, 32, 0.14);
+
+      --topbar-h: 54px;
+      --tabs-h: 60px;
+      --col: 420px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --glaze:     #0d141a;
+        --glaze-2:   #070c11;
+        --tile:      #151e27;
+        --tile-2:    #1c2832;
+        --line:      #2a3945;
+        --line-soft: #222f3a;
+        --ink:       #e9eff2;
+        --ink-2:     #9aa9b4;
+        --ink-3:     #6a7a86;
+        --cobalt:    #7ba4ff;
+        --cobalt-2:  #9dbcff;
+        --cobalt-w:  rgba(123, 164, 255, 0.15);
+        --carmine:   #f0796a;
+        --carmine-w: rgba(240, 121, 106, 0.15);
+        --pine:      #4fc79b;
+        --pine-w:    rgba(79, 199, 155, 0.15);
+        --saffron:   #e4ac4e;
+        --saffron-w: rgba(228, 172, 78, 0.15);
+        --shadow:    0 1px 2px rgba(0, 0, 0, 0.5), 0 3px 10px rgba(0, 0, 0, 0.35);
+        --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.5), 0 8px 22px rgba(0, 0, 0, 0.45);
+        --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.6), 0 18px 40px rgba(0, 0, 0, 0.55);
+      }
     }
 
     body {
-      font-family: 'Fira Code', monospace;
-      background:
-        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(200, 160, 70, 0.07) 0%, transparent 100%),
-        radial-gradient(ellipse 45% 60% at 85% 80%, rgba(160, 120, 60, 0.05) 0%, transparent 100%),
-        var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
+      font-family: var(--sans);
+      font-weight: 400;
+      background: var(--glaze);
+      color: var(--ink);
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      padding:
+        calc(env(safe-area-inset-top, 0px) + var(--topbar-h) + 18px)
+        16px
+        calc(env(safe-area-inset-bottom, 0px) + var(--tabs-h) + 24px);
     }
 
-    /* ─── Fixed chrome ─────────────────── */
-    .back-btn {
-      position: fixed;
-      top: 22px; left: 22px;
-      background: none; border: none;
-      color: var(--dim);
-      font-family: 'Fira Code', monospace;
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      cursor: pointer;
-      display: flex; align-items: center; gap: 7px;
-      transition: color 0.2s;
-      padding: 6px;
+    :focus-visible {
+      outline: 2px solid var(--cobalt);
+      outline-offset: 2px;
+      border-radius: 2px;
     }
-    .back-btn:hover { color: var(--muted); }
-    .back-btn.hidden { visibility: hidden; pointer-events: none; }
+
+    button, input, a { font-family: inherit; }
+
+    /* ─── Cenefa ─────────────────────────────────────────
+       세비야 타일 테두리 문양. 앱의 유일한 장식 — 상단 바 밑단에만 씀 */
+    .cenefa {
+      height: 10px;
+      background:
+        repeating-conic-gradient(from 45deg, var(--cobalt) 0% 25%, transparent 0% 50%)
+        0 0 / 10px 10px;
+      opacity: 0.28;
+    }
+
+    /* ─── Top bar ────────────────────────────────────────── */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 40;
+      background: color-mix(in srgb, var(--glaze) 88%, transparent);
+      backdrop-filter: blur(12px);
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .topbar-in {
+      height: var(--topbar-h);
+      max-width: var(--col);
+      margin: 0 auto;
+      padding: 0 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wordmark {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: 25px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      color: var(--ink);
+      padding: 6px 8px;
+      line-height: 1;
+    }
+    .wordmark .n { color: var(--cobalt); }
 
     .settings-btn {
-      position: fixed;
-      top: 22px; right: 22px;
-      width: 36px; height: 36px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--dim);
+      width: 38px; height: 38px;
+      background: none;
+      border: 1px solid transparent;
+      color: var(--ink-3);
       cursor: pointer;
       display: grid; place-items: center;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+      border-radius: var(--r);
+      transition: color 0.18s, border-color 0.18s, background 0.18s;
     }
-    .settings-btn:hover {
-      border-color: var(--gold-mid);
-      color: var(--gold);
-      box-shadow: var(--shadow-md);
+    .settings-btn:hover { color: var(--cobalt); border-color: var(--line); background: var(--tile); }
+
+    /* ─── Tab bar ────────────────────────────────────────── */
+    .tabs {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 40;
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+      background: color-mix(in srgb, var(--glaze) 90%, transparent);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--line-soft);
+      padding: 0 6px env(safe-area-inset-bottom, 0px);
+    }
+    .tab {
+      position: relative;
+      flex: 1 1 0;
+      max-width: 96px;
+      height: var(--tabs-h);
+      background: none; border: none;
+      cursor: pointer;
+      color: var(--ink-3);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      border-radius: var(--r);
+      transition: color 0.16s;
+    }
+    .tab svg { display: block; }
+    .tab:hover { color: var(--ink-2); }
+    .tab.on { color: var(--cobalt); }
+    /* 활성 탭 위의 코발트 마커 */
+    .tab.on::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 22px; height: 2px;
+      background: var(--cobalt);
+      border-radius: 0 0 2px 2px;
     }
 
-    /* ─── Views ────────────────────────── */
-    .app { width: 400px; max-width: 92vw; }
+    /* ─── Column & views ─────────────────────────────────── */
+    /* margin auto: 내용이 짧으면 세로 가운데, 길면 위에서부터 자연스럽게 스크롤 */
+    .app { width: 100%; max-width: var(--col); margin: auto; }
 
-    .view { display: none; animation: rise 0.28s ease both; }
+    .view { display: none; animation: rise 0.26s ease both; }
     .view.active { display: block; }
 
     @keyframes rise {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(7px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ─── HOME ─────────────────────────── */
-    .home-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(48px, 14vw, 68px);
-      font-weight: 300;
-      font-style: italic;
+    .view-title {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 18px;
+    }
+
+    /* ─── HOME: 덱 ───────────────────────────────────────
+       시그니처. 복습할 단어가 많을수록 타일이 실제로 두껍게 쌓임 */
+    .home-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
       letter-spacing: 0.04em;
-      line-height: 1;
-      text-align: center;
-      margin-bottom: 10px;
-      color: var(--text);
-    }
-    .home-title em { color: var(--gold); font-style: normal; }
-
-    .home-sub {
-      text-align: center;
-      font-size: 10px;
-      color: var(--dim);
-      letter-spacing: 0.25em;
       text-transform: uppercase;
-      margin-bottom: 48px;
+      color: var(--ink-3);
+      margin-bottom: 22px;
     }
 
-    .rule {
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--border), transparent);
-      margin-bottom: 40px;
-    }
-
-    .home-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 28px;
-    }
-
-    .main-btn {
-      padding: 30px 12px;
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      color: var(--text);
-      cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 14px;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.22s, transform 0.2s, box-shadow 0.22s;
-      position: relative; overflow: hidden;
-    }
-    .main-btn::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: var(--gold-glow);
-      opacity: 0; transition: opacity 0.22s;
-    }
-    .main-btn:hover {
-      border-color: var(--gold-mid);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-    .main-btn:hover::after { opacity: 1; }
-
-    .btn-glyph { font-size: 22px; line-height: 1; }
-    .main-btn.primary .btn-glyph { color: var(--gold); }
-    .main-btn.secondary .btn-glyph { color: var(--dim); }
-
-    .home-stats {
-      text-align: center;
-      font-size: 11px;
-      color: var(--dim);
-      letter-spacing: 0.1em;
-    }
-    .home-stats b { color: var(--muted); font-weight: 400; }
-    .home-stats .dot { margin: 0 9px; }
-    .home-stats .due-badge { color: var(--gold); }
-    .home-stats .due-badge b { color: var(--gold); }
-
-    .practice-note {
-      text-align: center;
-      font-size: 11px;
-      letter-spacing: 0.06em;
-      color: var(--sage);
-      background: var(--ok-bg);
-      border-radius: 6px;
-      padding: 7px 12px;
-      margin-bottom: 14px;
-    }
-    .practice-note.hard { color: var(--gold); background: var(--gold-glow); }
-
-    /* ─── QUIZ ─────────────────────────── */
-    .quiz-prompt {
-      text-align: center;
-      font-size: 10px;
-      color: var(--dim);
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      margin-bottom: 28px;
-    }
-
-    .word-card {
-      border: 1px solid var(--border-soft);
-      background: var(--surface);
-      padding: 52px 28px 40px;
-      text-align: center;
-      margin-bottom: 24px;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
+    .deck {
+      /* --layers는 JS가 복습할 단어 수에 맞춰 설정 — 아래 여백이 쌓인 두께가 된다 */
+      --layers: 0;
       position: relative;
-      transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+      display: block;
+      width: 100%;
+      margin-bottom: 32px;
+      background: none;
+      border: none;
+      padding: 0 0 calc(var(--layers) * 8px);
+      cursor: pointer;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
     }
-    .word-card::before, .word-card::after {
+
+    .deck-layer {
+      position: absolute;
+      left: calc(var(--i) * 9px);
+      right: calc(var(--i) * 9px);
+      top: calc(var(--i) * 8px);
+      bottom: calc(var(--layers) * 8px - var(--i) * 8px);
+      background: var(--tile);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    .deck-face {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 40px 24px 34px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-md);
+      transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1), box-shadow 0.28s;
+    }
+    /* azulejo 특유의 이중 헤어라인 */
+    .deck-face::before {
       content: '';
       position: absolute;
-      width: 14px; height: 14px;
-      border-color: var(--gold-mid);
-      border-style: solid;
-      opacity: 0.35;
+      inset: 7px;
+      border: 1px solid var(--line-soft);
+      border-radius: 2px;
+      pointer-events: none;
     }
-    .word-card::before { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
-    .word-card::after  { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
 
-    .word-card.state-ok  { border-color: var(--sage); background: var(--ok-bg); }
-    .word-card.state-err { border-color: var(--rust); background: var(--err-bg); }
+    .deck:hover .deck-face { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .deck:hover .deck-layer { transform: translateY(-1px); }
+    .deck:active .deck-face { transform: translateY(0); }
+
+    .emblem {
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: 46px;
+      font-weight: 600;
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .emblem .el { color: var(--cobalt); }
+    .emblem .la { color: var(--carmine); }
+    .emblem .slash { color: var(--ink-3); font-size: 26px; font-weight: 400; }
+
+    .deck-count {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink-2);
+      line-height: 1.4;
+    }
+    .deck-count b { color: var(--ink); font-weight: 600; }
+
+    .deck-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 24px;
+      background: var(--cobalt);
+      color: #fff;
+      border-radius: var(--r);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      transition: background 0.18s;
+    }
+    .deck:hover .deck-cta { background: var(--cobalt-2); }
+    .deck-cta .arr { transition: transform 0.2s; }
+    .deck:hover .deck-cta .arr { transform: translateX(3px); }
+
+    @media (prefers-color-scheme: dark) {
+      .deck-cta { color: #0d141a; }
+    }
+
+    /* 칩: 새 단어 / 어려운 단어 */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .chip {
+      flex: 1 1 auto;
+      padding: 12px 16px;
+      background: var(--tile);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--r);
+      color: var(--ink-2);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: left;
+      box-shadow: var(--shadow);
+      transition: border-color 0.18s, color 0.18s, transform 0.18s;
+    }
+    .chip:hover { border-color: var(--cobalt); color: var(--ink); transform: translateY(-1px); }
+    .chip.hard:hover { border-color: var(--saffron); }
+
+    .home-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink-3);
+    }
+    .home-stats b { color: var(--ink-2); font-weight: 500; }
+    .home-stats .streak { color: var(--saffron); }
+    .home-stats .streak b { color: var(--saffron); }
+
+    /* ─── QUIZ ───────────────────────────────────────────── */
+    .practice-note {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--pine);
+      background: var(--pine-w);
+      border-radius: var(--r);
+      padding: 9px 13px;
+      margin-bottom: 12px;
+    }
+    .practice-note.hard { color: var(--saffron); background: var(--saffron-w); }
+
+    .word-card {
+      position: relative;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-md);
+      padding: 30px 22px 24px;
+      text-align: center;
+      margin-bottom: 16px;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .word-card::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border: 1px solid var(--line-soft);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+    .word-card.state-ok  { border-color: var(--pine); background: var(--pine-w); }
+    .word-card.state-err { border-color: var(--carmine); background: var(--carmine-w); }
+    .word-card.state-ok::before  { border-color: color-mix(in srgb, var(--pine) 26%, transparent); }
+    .word-card.state-err::before { border-color: color-mix(in srgb, var(--carmine) 26%, transparent); }
+
+    .quiz-dir {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 22px;
+    }
 
     .quiz-word {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(34px, 10vw, 54px);
-      font-weight: 300;
-      font-style: italic;
-      line-height: 1.1;
-      color: var(--text);
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: clamp(36px, 11vw, 52px);
+      font-weight: 600;
+      line-height: 1.08;
+      letter-spacing: -0.015em;
+      color: var(--ink);
       overflow-wrap: break-word;
     }
     .quiz-word-kr {
-      font-style: normal;
-      font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-      font-size: clamp(26px, 8vw, 38px);
-      font-weight: 300;
+      font-family: var(--sans);
+      font-size: clamp(27px, 8vw, 36px);
+      font-weight: 500;
+      letter-spacing: -0.02em;
     }
 
     .word-meta {
+      font-family: var(--mono);
       font-size: 10px;
-      color: var(--dim);
-      letter-spacing: 0.1em;
-      margin-top: 10px;
+      letter-spacing: 0.02em;
+      color: var(--ink-3);
+      margin-top: 14px;
     }
-    .word-meta b { color: var(--muted); font-weight: 400; }
+    .word-meta b { color: var(--ink-2); font-weight: 500; }
 
-    /* direction badge */
-    .quiz-dir {
-      font-size: 9px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 20px;
-    }
-
-    /* gender badge */
     .gender-badge {
       display: inline-block;
       margin-top: 12px;
       padding: 3px 10px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
+      border-radius: 100px;
+      font-family: var(--mono);
       font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      background: var(--bg);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--ink-2);
+      background: var(--tile-2);
+      border: 1px solid var(--line-soft);
+    }
+    /* 성 안료를 배지에도 적용 — el/la 드릴에서는 배지를 숨기므로 정답이 새지 않음 */
+    .gender-badge[data-g="m"] {
+      color: var(--cobalt);
+      background: var(--cobalt-w);
+      border-color: color-mix(in srgb, var(--cobalt) 32%, transparent);
+    }
+    .gender-badge[data-g="f"] {
+      color: var(--carmine);
+      background: var(--carmine-w);
+      border-color: color-mix(in srgb, var(--carmine) 32%, transparent);
     }
 
-    /* answer input row */
-    .answer-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
+    /* 답 입력 */
+    .answer-row { display: flex; gap: 8px; margin-bottom: 12px; }
     .answer-input {
-      flex: 1;
-      padding: 13px 15px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
-      font-size: 15px;
+      flex: 1; min-width: 0;
+      padding: 15px 16px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 16px;
       outline: none;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, box-shadow 0.2s;
+      border-radius: var(--r);
+      transition: border-color 0.18s, box-shadow 0.18s;
     }
-    .answer-input:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
-    .answer-input:disabled { opacity: 0.6; }
+    .answer-input::placeholder { color: var(--ink-3); }
+    .answer-input:focus { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--cobalt-w); }
+    .answer-input:disabled { opacity: 0.65; }
 
     .submit-btn {
-      padding: 13px 18px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
+      flex: 0 0 58px;
+      background: var(--cobalt);
+      border: 1px solid var(--cobalt);
+      color: #fff;
       cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 14px;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.18s, color 0.18s;
-      flex-shrink: 0;
+      font-size: 17px;
+      border-radius: var(--r);
+      transition: background 0.18s, opacity 0.18s;
     }
-    .submit-btn:hover:not(:disabled) { border-color: var(--gold-mid); color: var(--text); }
-    .submit-btn:disabled { opacity: 0.3; cursor: default; }
+    .submit-btn:hover:not(:disabled) { background: var(--cobalt-2); }
+    .submit-btn:disabled { opacity: 0.35; cursor: default; }
 
     .quiz-fb {
+      font-size: 13px;
+      font-weight: 600;
+      min-height: 20px;
       text-align: center;
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      min-height: 18px;
     }
-    .quiz-fb.ok  { color: var(--sage); }
-    .quiz-fb.err { color: var(--rust); }
+    .quiz-fb.ok  { color: var(--pine); }
+    .quiz-fb.err { color: var(--carmine); }
 
-    /* correct answer reveal */
     .correct-reveal {
       display: none;
       margin-top: 10px;
-      padding: 12px 16px;
-      background: var(--err-bg);
-      border: 1px solid var(--rust);
-      border-radius: 3px;
-      font-size: 13px;
-      color: var(--text);
+      padding: 14px 16px;
+      background: var(--carmine-w);
+      border-left: 3px solid var(--carmine);
+      border-radius: 0 var(--r) var(--r) 0;
+      color: var(--ink);
       animation: rise 0.2s ease both;
     }
     .correct-reveal.show { display: block; }
     .correct-reveal .reveal-label {
-      font-size: 9px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--rust);
       display: block;
-      margin-bottom: 4px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--carmine);
+      margin-bottom: 5px;
     }
     .correct-reveal .reveal-word {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-style: italic;
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: 24px;
+      font-weight: 600;
     }
 
-    /* 악센트만 틀렸을 때: 정답 처리하되 금색 안내로 올바른 표기를 각인 */
-    .correct-reveal.accent {
-      background: var(--gold-glow);
-      border-color: var(--gold-mid);
-    }
-    .correct-reveal.accent .reveal-label { color: var(--gold); }
-    .reveal-word .acc { color: var(--gold); font-style: normal; font-weight: 500; }
+    /* 악센트만 틀림: 정답 처리하되 올바른 표기를 각인 */
+    .correct-reveal.accent { background: var(--saffron-w); border-left-color: var(--saffron); }
+    .correct-reveal.accent .reveal-label { color: var(--saffron); }
+    .reveal-word .acc { color: var(--saffron); }
 
-    /* 정답이지만 다른 뜻도 있을 때: 초록 안내로 나머지 뜻 표시 */
-    .correct-reveal.also {
-      background: var(--ok-bg);
-      border-color: var(--sage);
-    }
-    .correct-reveal.also .reveal-label { color: var(--sage); }
+    /* 맞혔지만 다른 뜻도 있을 때 */
+    .correct-reveal.also { background: var(--pine-w); border-left-color: var(--pine); }
+    .correct-reveal.also .reveal-label { color: var(--pine); }
     .correct-reveal.also .reveal-word {
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
-      font-style: normal;
-      font-size: 15px;
+      font-family: var(--sans);
+      font-size: 16px;
+      font-weight: 500;
     }
 
     .next-btn {
-      width: 100%; margin-top: 14px; padding: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, color 0.2s;
       display: none;
+      width: 100%;
+      margin-top: 12px;
+      padding: 16px;
+      background: var(--cobalt);
+      border: 1px solid var(--cobalt);
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--r);
+      transition: background 0.18s;
     }
-    .next-btn.show { display: block; animation: rise 0.25s ease both; }
-    .next-btn:hover { border-color: var(--gold-mid); color: var(--text); }
+    .next-btn.show { display: block; animation: rise 0.22s ease both; }
+    .next-btn:hover { background: var(--cobalt-2); }
+
+    @media (prefers-color-scheme: dark) {
+      .submit-btn, .next-btn { color: #0d141a; }
+    }
 
     .empty-quiz {
       text-align: center;
-      padding: 64px 0;
-      font-size: 12px;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      line-height: 2.2;
+      padding: 56px 0;
+      font-size: 14px;
+      color: var(--ink-2);
+      line-height: 2;
     }
 
-    /* ─── TTS (발음) ────────────────────── */
+    /* ─── TTS ────────────────────────────────────────────── */
     .tts-btn {
       background: none; border: none;
-      color: var(--gold-mid);
+      color: var(--cobalt);
       cursor: pointer;
-      padding: 6px 8px;
-      transition: color 0.18s, transform 0.1s;
+      padding: 8px;
+      border-radius: var(--r);
+      transition: background 0.16s, transform 0.1s;
     }
-    .tts-btn:hover { color: var(--gold); }
-    .tts-btn:active { transform: scale(0.88); }
-    .tts-btn.sm { padding: 0 4px; vertical-align: middle; }
+    .tts-btn:hover { background: var(--cobalt-w); }
+    .tts-btn:active { transform: scale(0.9); }
+    .tts-btn.sm { padding: 2px 4px; vertical-align: middle; }
     .tts-btn.sm svg { width: 13px; height: 13px; }
     body.no-tts .tts-btn, body.no-tts .play-btn { display: none; }
 
     .play-btn {
-      width: 74px; height: 74px;
-      margin-top: 6px;
+      width: 78px; height: 78px;
+      margin-top: 4px;
       border-radius: 50%;
-      background: var(--surface);
-      border: 1px solid var(--gold-mid);
-      color: var(--gold);
-      font-size: 22px;
+      background: var(--cobalt);
+      border: none;
+      color: #fff;
+      font-size: 24px;
       text-indent: 4px;
       cursor: pointer;
-      box-shadow: var(--shadow-sm);
       display: inline-grid; place-items: center;
-      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+      box-shadow: var(--shadow-md);
+      transition: background 0.18s, transform 0.12s;
     }
-    .play-btn:hover { background: var(--gold-glow); box-shadow: var(--shadow-md); }
+    .play-btn:hover { background: var(--cobalt-2); }
     .play-btn:active { transform: scale(0.94); }
 
     .listen-hint {
+      font-family: var(--mono);
       font-size: 10px;
-      color: var(--dim);
-      letter-spacing: 0.16em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      margin-top: 12px;
+      color: var(--ink-3);
+      margin-top: 14px;
     }
 
-    /* ─── CLOZE (예문 빈칸) ─────────────── */
+    /* ─── CLOZE ──────────────────────────────────────────── */
     .cloze-text {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(22px, 6vw, 28px);
-      font-style: italic;
-      line-height: 1.55;
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: clamp(21px, 6vw, 26px);
+      font-weight: 400;
+      line-height: 1.6;
       overflow-wrap: break-word;
     }
     .cloze-blank {
       display: inline-block;
-      min-width: 64px;
-      border-bottom: 1.5px solid var(--gold-mid);
-      margin: 0 2px;
+      min-width: 68px;
+      border-bottom: 2px solid var(--cobalt);
+      margin: 0 3px;
     }
     .cloze-blank.filled {
       min-width: 0;
       border-bottom-color: transparent;
-      color: var(--gold);
-      font-weight: 500;
+      color: var(--cobalt);
+      font-weight: 600;
     }
     .cloze-hint {
-      margin-top: 14px;
-      font-size: 13px;
-      color: var(--muted);
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink-2);
     }
     .cloze-trans {
       margin-top: 10px;
-      font-size: 12px;
-      color: var(--sage);
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
+      font-size: 13px;
+      color: var(--pine);
       line-height: 1.6;
     }
 
-    /* ─── GENDER DRILL ──────────────────── */
+    /* ─── el / la 드릴 ───────────────────────────────────── */
     .gender-answer {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .g-opt.big {
-      padding: 16px;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 24px;
-      font-style: italic;
+      padding: 20px 12px;
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 0;
       text-transform: none;
-      letter-spacing: 0.04em;
+      color: var(--ink);
     }
-    .g-opt.right { border-color: var(--sage); color: var(--sage); background: var(--ok-bg); }
-    .g-opt.wrong { border-color: var(--rust); color: var(--rust); background: var(--err-bg); }
+    /* 정답 단서를 주지 않도록, 답하기 전에는 두 버튼 모두 중립색 */
+    .g-opt.right { border-color: var(--pine); color: var(--pine); background: var(--pine-w); }
+    .g-opt.wrong { border-color: var(--carmine); color: var(--carmine); background: var(--carmine-w); }
 
-    /* ─── STATS ─────────────────────────── */
-    .home-secondary {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
+    /* ─── STATS ──────────────────────────────────────────── */
     .stat-tiles {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .stat-tile {
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      padding: 16px 6px 13px;
+      background: var(--tile);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      padding: 18px 8px 14px;
       text-align: center;
     }
     .stat-num {
-      font-family: 'Cormorant Garamond', serif;
+      font-family: var(--display);
+      font-optical-sizing: auto;
       font-size: 34px;
-      font-weight: 300;
+      font-weight: 600;
       line-height: 1.05;
-      color: var(--gold);
+      color: var(--cobalt);
     }
-    .stat-num small { font-size: 17px; color: var(--muted); }
+    .stat-num small { font-size: 16px; margin-left: 2px; color: var(--ink-3); font-weight: 400; }
     .stat-label {
-      font-size: 9px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin-top: 7px;
+      font-size: 11px;
+      color: var(--ink-3);
+      margin-top: 8px;
     }
 
     .chart-block {
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
+      background: var(--tile);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
       padding: 18px 16px 14px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .chart-title {
-      font-size: 9px;
-      letter-spacing: 0.2em;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 16px;
+      color: var(--ink-3);
+      margin-bottom: 18px;
     }
 
     .bars {
@@ -538,7 +714,7 @@
       align-items: flex-end;
       gap: 3px;
       height: 104px;
-      border-bottom: 1px solid var(--border-soft);
+      border-bottom: 1px solid var(--line-soft);
     }
     .bar-col {
       flex: 1;
@@ -550,518 +726,481 @@
     }
     .bar-fill {
       width: 100%;
-      background: var(--gold-mid);
-      opacity: 0.55;
-      border-radius: 3px 3px 0 0;
+      background: var(--cobalt);
+      opacity: 0.32;
+      border-radius: 2px 2px 0 0;
       transition: height 0.4s ease;
     }
-    .bar-col.today .bar-fill { background: var(--gold); opacity: 1; }
-    .bar-val { font-size: 9px; color: var(--muted); margin-bottom: 3px; }
+    .bar-col.today .bar-fill { opacity: 1; }
+    .bar-val { font-family: var(--mono); font-size: 9px; color: var(--ink-3); margin-bottom: 4px; }
     .bar-x-row {
       display: flex;
       justify-content: space-between;
+      font-family: var(--mono);
       font-size: 9px;
-      color: var(--dim);
-      letter-spacing: 0.06em;
-      margin-top: 6px;
+      color: var(--ink-3);
+      margin-top: 7px;
     }
 
     .box-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .box-stage { width: 14px; text-align: center; font-size: 11px; color: var(--muted); }
+    .box-stage { width: 14px; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
     .box-track {
       flex: 1;
       height: 10px;
-      background: var(--bg);
+      background: var(--glaze-2);
       border-radius: 5px;
       overflow: hidden;
     }
     .box-fill {
       height: 100%;
-      background: var(--gold-mid);
+      background: var(--cobalt);
       border-radius: 5px;
       transition: width 0.4s ease;
     }
-    .box-count { width: 28px; text-align: right; font-size: 11px; color: var(--muted); }
+    .box-count { width: 26px; text-align: right; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
     .box-hint {
-      font-size: 9px;
-      color: var(--dim);
-      letter-spacing: 0.08em;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--ink-3);
       text-align: center;
-      margin-top: 12px;
+      margin-top: 14px;
     }
 
-    /* ─── FLASHCARDS (새 단어) ──────────── */
-    .flash-scene { perspective: 900px; margin-bottom: 14px; cursor: pointer; }
+    /* ─── FLASHCARDS ─────────────────────────────────────── */
+    .flash-scene { perspective: 1000px; margin-bottom: 12px; cursor: pointer; }
     .flash-inner {
       position: relative;
-      height: 250px;
+      height: 260px;
       transform-style: preserve-3d;
-      transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .flash-inner.flipped { transform: rotateY(180deg); }
     .flash-face {
       position: absolute; inset: 0;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow-md);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 14px;
+      gap: 16px;
       padding: 24px;
       text-align: center;
     }
-    .flash-face.back { transform: rotateY(180deg); background: var(--card); }
+    .flash-face::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border: 1px solid var(--line-soft);
+      border-radius: 2px;
+    }
+    .flash-face.back { transform: rotateY(180deg); background: var(--tile-2); }
     .flash-word {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(34px, 10vw, 46px);
-      font-weight: 300;
-      font-style: italic;
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: clamp(34px, 10vw, 44px);
+      font-weight: 600;
+      letter-spacing: -0.015em;
       overflow-wrap: break-word;
       max-width: 100%;
     }
-    .flash-meaning {
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
-      font-size: 22px;
-      font-weight: 300;
-    }
+    .flash-meaning { font-size: 24px; font-weight: 500; letter-spacing: -0.02em; }
     .flash-hint {
-      font-size: 9px;
-      color: var(--dim);
-      letter-spacing: 0.18em;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
+      color: var(--ink-3);
     }
     .flash-nav { display: flex; gap: 8px; }
     .flash-nav button {
       flex: 1;
-      padding: 13px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
+      padding: 15px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      color: var(--ink-2);
       cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 14px;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, color 0.2s;
+      font-size: 16px;
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      transition: border-color 0.18s, color 0.18s;
     }
-    .flash-nav button:hover:not(:disabled) { border-color: var(--gold-mid); color: var(--text); }
+    .flash-nav button:hover:not(:disabled) { border-color: var(--cobalt); color: var(--cobalt); }
     .flash-nav button:disabled { opacity: 0.3; cursor: default; }
 
-    /* ─── ADD WORD ──────────────────────── */
-    .form-heading {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(26px, 7vw, 34px);
-      font-weight: 300;
-      font-style: italic;
-      text-align: center;
-      margin-bottom: 36px;
-      color: var(--text);
-    }
-
-    .field { margin-bottom: 22px; }
+    /* ─── FORMS ──────────────────────────────────────────── */
+    .field { margin-bottom: 20px; }
 
     .field-label {
-      display: block;
-      font-size: 9px;
-      letter-spacing: 0.24em;
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 9px;
-      display: flex; align-items: center; gap: 8px;
+      color: var(--ink-3);
+      margin-bottom: 8px;
     }
     .field-label .optional {
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      color: var(--dim);
-      font-style: italic;
+      letter-spacing: 0.04em;
       text-transform: none;
+      color: var(--ink-3);
+      opacity: 0.8;
     }
 
     .word-input {
       width: 100%;
-      padding: 13px 15px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Cormorant Garamond', serif;
+      padding: 13px 16px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-family: var(--display);
+      font-optical-sizing: auto;
       font-size: 26px;
-      font-style: italic;
+      font-weight: 600;
       outline: none;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, box-shadow 0.2s;
+      border-radius: var(--r);
+      transition: border-color 0.18s, box-shadow 0.18s;
     }
-    .word-input::placeholder { color: var(--dim); font-style: italic; }
-    .word-input:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
+    .word-input::placeholder { color: var(--ink-3); font-weight: 400; }
+    .word-input:focus { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--cobalt-w); }
 
     .meaning-input {
       width: 100%;
-      padding: 11px 15px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
-      font-size: 15px;
-      outline: none;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .meaning-input::placeholder { color: var(--dim); }
-    .meaning-input:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
-
-    .wordlist-btn {
-      width: 100%; margin-top: 10px; padding: 13px;
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      color: var(--muted);
-      cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .wordlist-btn:hover { border-color: var(--gold-mid); color: var(--text); }
-
-    .wl-search {
-      width: 100%;
-      padding: 10px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Fira Code', 'Malgun Gothic', sans-serif;
-      font-size: 13px;
-      outline: none;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.2s, box-shadow 0.2s;
-      margin-bottom: 12px;
-    }
-    .wl-search::placeholder { color: var(--dim); }
-    .wl-search:focus { border-color: var(--gold-mid); box-shadow: 0 0 0 3px var(--gold-glow); }
-
-    .wl-count {
-      text-align: center;
-      font-size: 11px; color: var(--dim);
-      letter-spacing: 0.1em;
-      margin-bottom: 14px;
-    }
-    .wl-body { max-height: 62vh; overflow-y: auto; }
-    .wl-item {
-      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
       padding: 14px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 16px;
+      outline: none;
+      border-radius: var(--r);
+      transition: border-color 0.18s, box-shadow 0.18s;
     }
-    .wl-item:hover { border-color: var(--gold-mid); box-shadow: var(--shadow-md); }
-    .wl-item:active { background: var(--card); }
-    .wl-word {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px; font-style: italic; font-weight: 300;
-      color: var(--text);
-    }
-    .wl-meaning { font-size: 12px; color: var(--muted); margin-top: 3px; }
-    .wl-left { flex: 1; min-width: 0; }
-    .wl-right { flex-shrink: 0; text-align: right; }
-    .wl-stat { font-size: 10px; color: var(--dim); letter-spacing: 0.08em; }
-    .wl-edit-glyph {
-      display: block; margin-top: 8px;
-      font-size: 12px; color: var(--dim);
-    }
-    .wl-item:hover .wl-edit-glyph { color: var(--gold); }
+    .meaning-input::placeholder { color: var(--ink-3); }
+    .meaning-input:focus { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--cobalt-w); }
 
-    /* ─── EDIT SHEET ────────────────────── */
-    .sheet {
-      position: fixed;
-      left: 0; right: 0; bottom: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      border-radius: 14px 14px 0 0;
-      box-shadow: 0 -8px 32px rgba(0,0,0,0.14);
-      padding: 24px 22px calc(env(safe-area-inset-bottom, 0px) + 24px);
-      max-height: 88dvh;
-      overflow-y: auto;
-      transform: translateY(105%);
-      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 61;
-    }
-    .sheet.open { transform: translateY(0); }
-
-    @media (min-width: 601px) {
-      .sheet {
-        left: 50%; right: auto; bottom: auto; top: 50%;
-        width: 400px; max-height: 86vh;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        box-shadow: var(--shadow-md);
-        transform: translate(-50%, -47%);
-        opacity: 0; pointer-events: none;
-        transition: opacity 0.22s, transform 0.22s;
-      }
-      .sheet.open {
-        transform: translate(-50%, -50%);
-        opacity: 1; pointer-events: all;
-      }
-    }
-
-    .sheet-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 26px;
-    }
-
-    #sheetOverlay { z-index: 60; }
-
+    .gender-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .gender-pick.four { grid-template-columns: repeat(4, 1fr); }
 
-    .delete-btn {
-      width: 100%; margin-top: 10px; padding: 13px;
-      background: none;
-      border: 1px solid transparent;
-      color: var(--rust);
-      opacity: 0.7;
+    .g-opt {
+      padding: 14px 6px;
+      background: var(--tile);
+      border: 1px solid var(--line-soft);
+      color: var(--ink-2);
       cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      border-radius: 3px;
-      transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
     }
-    .delete-btn:hover { opacity: 1; }
-    .delete-btn.armed {
-      border-color: var(--rust);
-      background: var(--err-bg);
-      opacity: 1;
+    .g-opt:hover { border-color: var(--ink-3); color: var(--ink); }
+    .g-opt.on { border-color: var(--cobalt); color: var(--cobalt); background: var(--cobalt-w); }
+    /* 성별 안료로 구분: 남성 = 코발트, 여성 = 카르민 */
+    #gf.on, #eg-f.on { border-color: var(--carmine); color: var(--carmine); background: var(--carmine-w); }
+
+    .none-hint {
+      margin-top: 9px;
+      font-size: 12px;
+      color: var(--ink-3);
+      text-align: center;
+      min-height: 17px;
+    }
+
+    .add-btn {
+      width: 100%;
+      margin-top: 24px;
+      padding: 16px;
+      background: var(--cobalt);
+      border: 1px solid var(--cobalt);
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--r);
+      transition: background 0.18s, opacity 0.18s;
+    }
+    .add-btn:hover:not(:disabled) { background: var(--cobalt-2); }
+    .add-btn:disabled { opacity: 0.32; cursor: default; }
+
+    @media (prefers-color-scheme: dark) {
+      .add-btn, .play-btn { color: #0d141a; }
+    }
+
+    .add-msg {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      min-height: 19px;
+      margin-top: 12px;
     }
 
     .shortcut-hint {
-      margin-top: 6px;
+      margin-top: 8px;
+      font-family: var(--mono);
       font-size: 10px;
-      color: var(--dim);
-      letter-spacing: 0.06em;
+      color: var(--ink-3);
     }
     .shortcut-hint kbd {
       display: inline-block;
       padding: 1px 5px;
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: var(--tile-2);
+      border: 1px solid var(--line);
       border-radius: 3px;
-      font-family: 'Fira Code', monospace;
+      font-family: var(--mono);
       font-size: 10px;
-      color: var(--muted);
+      color: var(--ink-2);
     }
 
-    .gender-pick {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-    }
-
-    .g-opt {
-      padding: 13px 6px;
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      color: var(--muted);
-      cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-align: center;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: border-color 0.18s, color 0.18s, background 0.18s;
-    }
-    .g-opt:hover { border-color: var(--gold-mid); color: var(--text); }
-    .g-opt.on {
-      border-color: var(--gold-mid);
-      color: var(--gold);
-      background: var(--gold-glow);
-    }
-
-    /* subtle none-hint below gender buttons */
-    .none-hint {
+    .delete-btn {
+      width: 100%;
       margin-top: 8px;
-      font-size: 10px;
-      color: var(--dim);
-      letter-spacing: 0.08em;
-      text-align: center;
-      min-height: 16px;
-      transition: opacity 0.2s;
-    }
-
-    .add-btn {
-      width: 100%; margin-top: 26px; padding: 15px;
-      background: var(--surface);
-      border: 1px solid var(--gold-mid);
-      color: var(--gold);
+      padding: 14px;
+      background: none;
+      border: 1px solid transparent;
+      color: var(--carmine);
       cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 11px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      border-radius: 3px;
-      box-shadow: var(--shadow-sm);
-      transition: background 0.2s, box-shadow 0.2s;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--r);
+      transition: border-color 0.18s, background 0.18s;
     }
-    .add-btn:hover:not(:disabled) {
-      background: var(--gold-glow);
-      box-shadow: var(--shadow-md);
-    }
-    .add-btn:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
+    .delete-btn:hover { background: var(--carmine-w); }
+    .delete-btn.armed { border-color: var(--carmine); background: var(--carmine-w); }
 
-    .add-msg {
-      text-align: center;
+    /* ─── WORD LIST ──────────────────────────────────────── */
+    .wl-search {
+      width: 100%;
+      padding: 13px 16px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 16px;
+      outline: none;
+      border-radius: var(--r);
+      transition: border-color 0.18s, box-shadow 0.18s;
+      margin-bottom: 10px;
+    }
+    .wl-search::placeholder { color: var(--ink-3); }
+    .wl-search:focus { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--cobalt-w); }
+
+    .wl-count {
+      font-family: var(--mono);
       font-size: 11px;
-      letter-spacing: 0.14em;
-      min-height: 18px;
-      margin-top: 12px;
+      color: var(--ink-3);
+      margin-bottom: 12px;
     }
 
-    /* ─── SETTINGS DRAWER ───────────────── */
+    .wl-item {
+      position: relative;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 13px 14px 13px 17px;
+      background: var(--tile);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      margin-bottom: 6px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .wl-item:hover { border-color: var(--ink-3); transform: translateX(2px); }
+
+    /* 성 안료 표시: 항목 왼쪽 세로 잉크 바 */
+    .wl-ink {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--ink-3);
+    }
+    .wl-ink[data-g="m"] { background: var(--cobalt); }
+    .wl-ink[data-g="f"] { background: var(--carmine); }
+    .wl-ink[data-g="n"] { background: linear-gradient(var(--cobalt) 50%, var(--carmine) 50%); }
+    .wl-ink[data-g="none"] { background: var(--line); }
+
+    .wl-left { flex: 1; min-width: 0; }
+    .wl-word {
+      font-family: var(--display);
+      font-optical-sizing: auto;
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    /* 관사를 단어와 함께 노출해 성을 자연스럽게 익히게 함 */
+    .art { font-weight: 400; color: var(--ink-3); }
+    .art[data-g="m"] { color: var(--cobalt); }
+    .art[data-g="f"] { color: var(--carmine); }
+    .wl-meaning { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+    .wl-right { flex-shrink: 0; text-align: right; }
+    .wl-stat { font-family: var(--mono); font-size: 10px; color: var(--ink-3); }
+    .wl-edit-glyph { display: block; margin-top: 6px; font-size: 12px; color: var(--ink-3); }
+    .wl-item:hover .wl-edit-glyph { color: var(--cobalt); }
+
+    /* ─── OVERLAY / DRAWER / SHEET ───────────────────────── */
     .overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.22);
+      background: rgba(8, 14, 20, 0.34);
       opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
+      transition: opacity 0.28s;
       z-index: 50;
       backdrop-filter: blur(2px);
     }
     .overlay.open { opacity: 1; pointer-events: all; }
+    #sheetOverlay { z-index: 60; }
 
     .drawer {
       position: fixed;
       top: 0; right: 0;
-      width: 264px; max-width: 82vw;
-      height: 100vh;
-      background: var(--surface);
-      border-left: 1px solid var(--border);
-      box-shadow: -4px 0 24px rgba(0,0,0,0.08);
-      padding: 28px 24px;
+      width: 280px; max-width: 84vw;
+      height: 100dvh;
+      background: var(--tile);
+      border-left: 1px solid var(--line);
+      box-shadow: var(--shadow-lg);
+      padding: calc(env(safe-area-inset-top, 0px) + 24px) 20px 24px;
       transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 51;
+      overflow-y: auto;
     }
     .drawer.open { transform: translateX(0); }
 
-    .drawer-head {
+    .drawer-head, .sheet-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 44px;
+      margin-bottom: 28px;
     }
 
     .drawer-title {
-      font-size: 10px;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: var(--muted);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--ink);
     }
 
     .close-btn {
       background: none; border: none;
-      color: var(--dim); cursor: pointer;
-      font-size: 20px; line-height: 1;
-      transition: color 0.18s; padding: 2px 4px;
+      color: var(--ink-3); cursor: pointer;
+      font-size: 24px; line-height: 1;
+      padding: 4px 8px;
+      border-radius: var(--r);
+      transition: color 0.18s, background 0.18s;
     }
-    .close-btn:hover { color: var(--text); }
+    .close-btn:hover { color: var(--ink); background: var(--tile-2); }
 
     .drawer-section-label {
-      font-size: 9px;
-      letter-spacing: 0.22em;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: var(--dim);
-      margin-bottom: 14px;
+      color: var(--ink-3);
+      margin-bottom: 10px;
     }
 
-    .lang-list { display: flex; flex-direction: column; gap: 4px; }
+    .lang-list { display: flex; flex-direction: column; gap: 2px; }
 
     .lang-btn {
-      padding: 11px 13px;
+      padding: 12px 13px;
       background: none;
       border: 1px solid transparent;
-      color: var(--muted);
+      color: var(--ink-2);
       cursor: pointer;
-      font-family: 'Fira Code', monospace;
-      font-size: 12px;
+      font-size: 14px;
       text-align: left;
       display: flex; align-items: center; gap: 11px;
-      border-radius: 3px;
-      transition: border-color 0.18s, color 0.18s, background 0.18s;
+      border-radius: var(--r);
+      text-decoration: none;
+      transition: color 0.18s, background 0.18s;
     }
-    .lang-btn:hover { border-color: var(--border); color: var(--text); background: var(--card); }
-    a.lang-btn { text-decoration: none; }
-    .lang-btn.on {
-      border-color: var(--gold-mid);
-      color: var(--gold);
-      background: var(--gold-glow);
-    }
+    .lang-btn:hover { color: var(--ink); background: var(--tile-2); }
+    .lang-btn.on { color: var(--cobalt); background: var(--cobalt-w); font-weight: 500; }
 
     .lang-pip {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: var(--border); flex-shrink: 0;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--line); flex-shrink: 0;
       transition: background 0.18s;
     }
-    .lang-btn.on .lang-pip { background: var(--gold); }
+    .lang-btn.on .lang-pip { background: var(--cobalt); }
 
-    /* ─── MOBILE ───────────────────────── */
-    /* 터치 기기: alt 단축키 안내 숨김 */
+    .sheet {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: var(--tile);
+      border-top: 1px solid var(--line);
+      border-radius: 14px 14px 0 0;
+      box-shadow: var(--shadow-lg);
+      padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 22px);
+      max-height: 90dvh;
+      overflow-y: auto;
+      transform: translateY(105%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 61;
+    }
+    .sheet.open { transform: translateY(0); }
+    /* 바텀시트 손잡이 */
+    .sheet::before {
+      content: '';
+      position: absolute;
+      top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 36px; height: 4px;
+      border-radius: 2px;
+      background: var(--line);
+    }
+
+    /* ─── 데스크톱 ───────────────────────────────────────── */
+    @media (min-width: 601px) {
+      body { padding-left: 24px; padding-right: 24px; }
+
+      .tabs {
+        left: 50%;
+        right: auto;
+        bottom: 20px;
+        transform: translateX(-50%);
+        border: 1px solid var(--line-soft);
+        border-radius: 100px;
+        background: color-mix(in srgb, var(--tile) 92%, transparent);
+        box-shadow: var(--shadow-md);
+        padding: 0 8px;
+      }
+      /* 알약형 바에서는 상단 마커 대신 배경 강조가 자연스러움 */
+      .tabs { gap: 4px; padding: 6px 8px; }
+      .tab { flex: 0 0 auto; max-width: none; min-width: 74px; height: 52px; border-radius: 100px; }
+      .tab.on { background: var(--cobalt-w); }
+      .tab.on::before { display: none; }
+
+      .sheet {
+        left: 50%; right: auto; bottom: auto; top: 50%;
+        width: var(--col); max-height: 86vh;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        transform: translate(-50%, -46%);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+      }
+      .sheet.open { transform: translate(-50%, -50%); opacity: 1; pointer-events: all; }
+      .sheet::before { display: none; }
+    }
+
+    /* 터치 기기에서는 alt 단축키 안내가 쓸모없음 */
     @media (hover: none) {
       .shortcut-hint { display: none; }
     }
 
+    /* 모바일 키보드가 열리면 퀴즈 카드를 압축해 가려지지 않게 함 */
     @media (max-width: 600px) {
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        overflow-y: auto;
-        min-height: 100dvh;
-        padding: calc(env(safe-area-inset-top, 0px) + 72px)
-                 16px
-                 calc(env(safe-area-inset-bottom, 0px) + 32px);
-      }
-      /* margin auto: 내용이 짧으면 세로 중앙, 길면 자연스럽게 스크롤 */
-      .app { margin: auto; width: 100%; max-width: 400px; }
-
-      .back-btn { top: calc(env(safe-area-inset-top, 0px) + 14px); left: 10px; }
-      .settings-btn { top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px; }
-
-      .home-sub { margin-bottom: 36px; }
-      .rule { margin-bottom: 30px; }
-
-      .word-card { padding: 40px 20px 32px; }
-
-      .form-heading { margin-bottom: 28px; }
-
-      /* iOS는 16px 미만 입력창 포커스 시 화면을 강제 확대함 */
-      .answer-input, .meaning-input, .wl-search { font-size: 16px; }
-
-      /* 내부 스크롤 대신 페이지 스크롤 사용 */
-      .wl-body { max-height: none; }
-
-      .drawer { height: 100dvh; padding-top: calc(env(safe-area-inset-top, 0px) + 28px); }
-
-      /* 키보드가 열려 있는 동안 퀴즈 카드를 압축해 가려지지 않게 함 */
+      body.kb-open { padding-bottom: 24px; }
+      body.kb-open .tabs { display: none; }
       body.kb-open .practice-note,
       body.kb-open .word-meta { display: none; }
-      body.kb-open .word-card { padding: 18px 16px 16px; margin-bottom: 14px; }
-      body.kb-open .quiz-dir { margin-bottom: 8px; }
-      body.kb-open .quiz-word { font-size: clamp(24px, 7vw, 34px); }
-      body.kb-open .quiz-word-kr { font-size: clamp(20px, 6vw, 28px); }
+      body.kb-open .word-card { padding: 16px 16px 14px; margin-bottom: 12px; }
+      body.kb-open .quiz-dir { margin-bottom: 10px; }
+      body.kb-open .quiz-word { font-size: clamp(24px, 7vw, 32px); }
+      body.kb-open .quiz-word-kr { font-size: clamp(20px, 6vw, 27px); }
       body.kb-open .gender-badge { margin-top: 6px; }
     }
 
@@ -1075,48 +1214,34 @@
 </head>
 <body>
 
-  <button class="back-btn hidden" id="backBtn" onclick="goHome()">
-    ← <span id="lBack">뒤로</span>
-  </button>
-  <button class="settings-btn" onclick="toggleDrawer()">
-    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.15">
-      <circle cx="7.5" cy="7.5" r="2.2"/>
-      <path d="M7.5 1v1.8M7.5 12.2V14M1 7.5h1.8M12.2 7.5H14M2.9 2.9l1.27 1.27M10.83 10.83l1.27 1.27M2.9 12.1l1.27-1.27M10.83 4.17l1.27-1.27"/>
-    </svg>
-  </button>
+  <header class="topbar">
+    <div class="topbar-in">
+      <button class="wordmark" onclick="tabGo('home')">espa<span class="n">ñ</span>ol</button>
+      <button class="settings-btn" id="settingsBtn" onclick="toggleDrawer()" aria-label="설정">
+        <!-- 세 줄 길이를 모두 같게 둬서 단어장 탭의 목록 아이콘과 구분되게 함 -->
+        <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M3 5.5h13M3 9.5h13M3 13.5h13"/>
+        </svg>
+      </button>
+    </div>
+    <div class="cenefa"></div>
+  </header>
 
   <div class="app">
 
     <!-- ── HOME ── -->
     <div class="view active" id="vHome">
-      <h1 class="home-title">E<em>s</em>pañol</h1>
-      <p class="home-sub" id="lSub">단어를 정복하라</p>
-      <div class="rule"></div>
-      <div class="home-actions">
-        <button class="main-btn primary" onclick="startQuizMode(false)">
-          <span class="btn-glyph">◈</span>
-          <span id="lQuiz">퀴즈</span>
+      <p class="home-kicker" id="lSub">단어를 정복하라</p>
+      <button class="deck" id="deck" onclick="deckAction()"></button>
+      <div class="chips">
+        <button class="chip" id="flashHomeBtn" style="display:none" onclick="startFlash()">
+          <span id="lFlashHome"></span>
         </button>
-        <button class="main-btn secondary" onclick="go('addWord')">
-          <span class="btn-glyph">＋</span>
-          <span id="lAdd">단어 추가</span>
+        <button class="chip hard" id="hardHomeBtn" style="display:none" onclick="startQuizMode(true)">
+          <span id="lHardHome"></span>
         </button>
       </div>
-      <button class="wordlist-btn" id="flashHomeBtn" style="display:none" onclick="startFlash()">
-        <span id="lFlashHome"></span>
-      </button>
-      <button class="wordlist-btn" id="hardHomeBtn" style="display:none" onclick="startQuizMode(true)">
-        <span id="lHardHome"></span>
-      </button>
-      <div class="home-secondary">
-        <button class="wordlist-btn" onclick="startWordList()">
-          <span id="lWordList">단어장</span>
-        </button>
-        <button class="wordlist-btn" onclick="startStats()">
-          <span id="lStats">통계</span>
-        </button>
-      </div>
-      <div class="home-stats" id="homeStats" style="margin-top:16px"></div>
+      <div class="home-stats" id="homeStats"></div>
     </div>
 
     <!-- ── QUIZ ── -->
@@ -1126,7 +1251,7 @@
 
     <!-- ── WORD LIST ── -->
     <div class="view" id="vWordList">
-      <h2 class="form-heading" id="lWordListTitle">단어장</h2>
+      <h2 class="view-title" id="lWordListTitle">단어장</h2>
       <input class="wl-search" id="wlSearch" type="text" autocomplete="off" spellcheck="false">
       <p class="wl-count" id="wlCount"></p>
       <div class="wl-body" id="wlBody"></div>
@@ -1134,14 +1259,14 @@
 
     <!-- ── FLASHCARDS ── -->
     <div class="view" id="vFlash">
-      <h2 class="form-heading" id="lFlashTitle">새 단어</h2>
+      <h2 class="view-title" id="lFlashTitle">새 단어</h2>
       <p class="wl-count" id="flashCount"></p>
       <div id="flashBody"></div>
     </div>
 
     <!-- ── STATS ── -->
     <div class="view" id="vStats">
-      <h2 class="form-heading" id="lStatsTitle">학습 통계</h2>
+      <h2 class="view-title" id="lStatsTitle">학습 통계</h2>
       <div class="stat-tiles">
         <div class="stat-tile">
           <div class="stat-num" id="stStreak">0</div>
@@ -1170,7 +1295,7 @@
 
     <!-- ── ADD WORD ── -->
     <div class="view" id="vAddWord">
-      <h2 class="form-heading" id="lFormTitle">단어 추가</h2>
+      <h2 class="view-title" id="lFormTitle">단어 추가</h2>
       <div class="field">
         <label class="field-label" id="lWordLabel">단어</label>
         <input class="word-input" id="wordInput" type="text"
@@ -1207,6 +1332,40 @@
 
   </div>
 
+  <!-- ── TABS ── -->
+  <nav class="tabs">
+    <button class="tab" data-view="home" onclick="tabGo('home')">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M3 8.2 9.5 3 16 8.2V16H3z"/>
+      </svg>
+      <span id="lTabHome">홈</span>
+    </button>
+    <button class="tab" data-view="quiz" onclick="tabGo('quiz')">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M9.5 2.5 16.5 9.5 9.5 16.5 2.5 9.5z"/>
+      </svg>
+      <span id="lTabQuiz">퀴즈</span>
+    </button>
+    <button class="tab" data-view="wordList" onclick="tabGo('wordList')">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M3 5h13M3 9.5h13M3 14h8"/>
+      </svg>
+      <span id="lTabList">단어장</span>
+    </button>
+    <button class="tab" data-view="stats" onclick="tabGo('stats')">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M4 15V9M9.5 15V4M15 15v-4"/>
+      </svg>
+      <span id="lTabStats">통계</span>
+    </button>
+    <button class="tab" data-view="addWord" onclick="tabGo('addWord')">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M9.5 3.5v12M3.5 9.5h12"/>
+      </svg>
+      <span id="lTabAdd">추가</span>
+    </button>
+  </nav>
+
   <!-- ── SETTINGS ── -->
   <div class="overlay" id="overlay" onclick="toggleDrawer()"></div>
   <div class="drawer" id="drawer">
@@ -1226,7 +1385,7 @@
         <span class="lang-pip"></span>English
       </button>
     </div>
-    <p class="drawer-section-label" id="lDataSection" style="margin-top:36px">데이터</p>
+    <p class="drawer-section-label" id="lDataSection" style="margin-top:32px">데이터</p>
     <a class="lang-btn" href="/api/export.csv" download>
       <span class="lang-pip"></span><span id="lExport">CSV 내보내기</span>
     </a>
@@ -1260,7 +1419,6 @@
     <button class="delete-btn" id="editDelete" onclick="deleteFromSheet()">삭제</button>
     <p class="add-msg" id="editMsg"></p>
   </div>
-
 <script>
 // ── i18n ──────────────────────────────────────────────
 const T = {
@@ -1274,7 +1432,6 @@ const T = {
     noneHint: '선택하지 않으면 성 없음으로 저장됩니다',
     placeholder: 'palabra...', meaningPlaceholder: '한국어 뜻...',
     addBtn: '추가하기', added: '추가됨!', duplicate: '이미 있는 단어입니다',
-    back: '뒤로',
     noWords: '단어장이 비어 있습니다\n단어를 먼저 추가해 주세요',
     words: '단어', accuracy: '정답률',
     tested: '출제', correctN: '정답',
@@ -1285,7 +1442,7 @@ const T = {
     next: '다음 →',
     wordList: '단어장', save: '저장',
     searchPlaceholder: '단어 또는 뜻 검색...',
-    due: '복습', reviewDone: '오늘 복습 완료! 자유 연습 모드',
+    reviewDone: '오늘 복습 완료! 자유 연습 모드',
     editTitle: '단어 수정', gNone: '없음',
     delete: '삭제', confirmDelete: '한 번 더 누르면 삭제',
     accentFb: '정답 · 악센트 확인!', accentTitle: '악센트 주의',
@@ -1302,6 +1459,10 @@ const T = {
     flashQuiz: '바로 퀴즈 풀기',
     hardBtn: '어려운 단어 연습', hardNote: '어려운 단어 집중 연습 중',
     dirCloze: '빈칸 채우기',
+    tabHome: '홈', tabAdd: '추가',
+    deckDue: '오늘 복습할 단어 <b>{n}개</b>', deckClear: '오늘 복습을 다 끝냈어요',
+    deckGo: '연습 시작', deckFree: '자유 연습',
+    deckEmpty: '아직 단어가 없어요', deckAdd: '첫 단어 추가',
   },
   es: {
     sub: 'Conquista el vocabulario',
@@ -1313,7 +1474,6 @@ const T = {
     noneHint: 'Sin selección → sin género (verbos, etc.)',
     placeholder: 'palabra...', meaningPlaceholder: 'significado en coreano...',
     addBtn: 'Añadir', added: '¡Añadida!', duplicate: 'Ya existe esta palabra',
-    back: 'Volver',
     noWords: 'El vocabulario está vacío\nAñade palabras primero',
     words: 'palabras', accuracy: 'aciertos',
     tested: 'visto', correctN: 'correcto',
@@ -1324,7 +1484,7 @@ const T = {
     next: 'Siguiente →',
     wordList: 'Vocabulario', save: 'Guardar',
     searchPlaceholder: 'Buscar palabra o significado...',
-    due: 'repaso', reviewDone: '¡Repaso terminado! Práctica libre',
+    reviewDone: '¡Repaso terminado! Práctica libre',
     editTitle: 'Editar palabra', gNone: 'Ninguno',
     delete: 'Eliminar', confirmDelete: 'Toca otra vez',
     accentFb: '¡Correcto! · Revisa la tilde', accentTitle: 'Ojo con la tilde',
@@ -1341,6 +1501,10 @@ const T = {
     flashQuiz: 'Empezar el quiz',
     hardBtn: 'Palabras difíciles', hardNote: 'Práctica de palabras difíciles',
     dirCloze: 'Completa la frase',
+    tabHome: 'Inicio', tabAdd: 'Añadir',
+    deckDue: '<b>{n}</b> para repasar hoy', deckClear: 'Repaso de hoy terminado',
+    deckGo: 'Empezar', deckFree: 'Práctica libre',
+    deckEmpty: 'Aún no hay palabras', deckAdd: 'Añadir la primera',
   },
   en: {
     sub: 'Conquer the vocabulary',
@@ -1352,7 +1516,6 @@ const T = {
     noneHint: 'No selection → saved as genderless (verbs, etc.)',
     placeholder: 'palabra...', meaningPlaceholder: 'Korean meaning...',
     addBtn: 'Add', added: 'Added!', duplicate: 'Word already exists',
-    back: 'Back',
     noWords: 'Your word bank is empty\nAdd some words first',
     words: 'words', accuracy: 'accuracy',
     tested: 'tested', correctN: 'correct',
@@ -1363,7 +1526,7 @@ const T = {
     next: 'Next →',
     wordList: 'Word List', save: 'Save',
     searchPlaceholder: 'Search word or meaning...',
-    due: 'to review', reviewDone: 'All reviews done! Free practice',
+    reviewDone: 'All reviews done! Free practice',
     editTitle: 'Edit word', gNone: 'None',
     delete: 'Delete', confirmDelete: 'Tap again to delete',
     accentFb: 'Correct · mind the accent!', accentTitle: 'Mind the accent',
@@ -1380,6 +1543,10 @@ const T = {
     flashQuiz: 'Start quiz',
     hardBtn: 'Hard words', hardNote: 'Hard-word practice',
     dirCloze: 'Fill the blank',
+    tabHome: 'Home', tabAdd: 'Add',
+    deckDue: '<b>{n}</b> to review today', deckClear: "Today's reviews are done",
+    deckGo: 'Start', deckFree: 'Free practice',
+    deckEmpty: 'No words yet', deckAdd: 'Add your first word',
   },
 };
 
@@ -1408,8 +1575,11 @@ let curView = 'home';
 function show(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('v' + view[0].toUpperCase() + view.slice(1)).classList.add('active');
-  document.getElementById('backBtn').classList.toggle('hidden', view === 'home');
+  // 새 단어(flash)는 홈에서 들어가는 화면이라 홈 탭을 계속 켜 둠
+  const tab = view === 'flash' ? 'home' : view;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.view === tab));
   curView = view;
+  window.scrollTo(0, 0);
   renderTexts();
 }
 
@@ -1418,7 +1588,13 @@ function go(view) {
   show(view);
 }
 
-function goHome() { history.back(); }
+// 탭 이동: 현재 화면이면 무시하고, 아니면 히스토리에 쌓은 뒤 해당 화면을 로드
+function tabGo(view) {
+  if (view === curView) return;
+  if (view === 'quiz') qHard = false;
+  history.pushState({ view }, '');
+  loadView(view);
+}
 
 function loadView(view) {
   if (view === 'quiz') { show('quiz'); loadQuiz(); }
@@ -1463,14 +1639,18 @@ function setLang(l) {
     b.classList.toggle('on', b.id === 'btn-' + l)
   );
   renderTexts();
+  // 덱과 홈 통계는 JS가 문구를 만들어 넣으므로 언어가 바뀌면 다시 그려야 한다
+  updateStats();
 }
 
 // ── Render all text ───────────────────────────────────
 function renderTexts() {
-  document.getElementById('lBack').textContent = t('back');
   document.getElementById('lSub').textContent = t('sub');
-  document.getElementById('lQuiz').textContent = t('quiz');
-  document.getElementById('lAdd').textContent = t('add');
+  document.getElementById('lTabHome').textContent = t('tabHome');
+  document.getElementById('lTabQuiz').textContent = t('quiz');
+  document.getElementById('lTabList').textContent = t('wordList');
+  document.getElementById('lTabStats').textContent = t('statsBtn');
+  document.getElementById('lTabAdd').textContent = t('tabAdd');
   document.getElementById('lSettings').textContent = t('settings');
   document.getElementById('lLangSection').textContent = t('langSec');
   document.getElementById('lFormTitle').textContent = t('formTitle');
@@ -1484,8 +1664,6 @@ function renderTexts() {
   document.getElementById('lM').textContent = t('m');
   document.getElementById('lF').textContent = t('f');
   document.getElementById('lN').textContent = t('n');
-  document.getElementById('lWordList').textContent = t('wordList');
-  document.getElementById('lStats').textContent = t('statsBtn');
   document.getElementById('lStatsTitle').textContent = t('statsTitle');
   document.getElementById('lStreak').textContent = t('streakLabel');
   document.getElementById('lToday').textContent = t('todayLabel');
@@ -1513,25 +1691,58 @@ function renderTexts() {
   updateNoneHint();
 }
 
+// 홈의 덱: 복습할 단어가 많을수록 타일이 실제로 두껍게 쌓인다
+let deckMode = 'quiz';
+
+function renderDeck(s) {
+  const el = document.getElementById('deck');
+  const empty = !s || !s.word_count;
+  const due = empty ? 0 : s.due_count;
+  deckMode = empty ? 'add' : 'quiz';
+
+  const line = empty ? t('deckEmpty')
+    : due > 0 ? t('deckDue').replace('{n}', due)
+    : t('deckClear');
+  const cta = empty ? t('deckAdd') : due > 0 ? t('deckGo') : t('deckFree');
+
+  const layers = Math.min(due, 4);
+  el.style.setProperty('--layers', layers);
+  el.innerHTML =
+    Array.from({ length: layers }, (_, k) =>
+      `<span class="deck-layer" style="--i:${layers - k}"></span>`).join('')
+    + `<span class="deck-face">
+         <span class="emblem"><span class="el">el</span><span class="slash">/</span><span class="la">la</span></span>
+         <span class="deck-count">${line}</span>
+         <span class="deck-cta">${cta} <span class="arr">→</span></span>
+       </span>`;
+}
+
+function deckAction() {
+  if (deckMode === 'add') tabGo('addWord');
+  else startQuizMode(false);
+}
+
 async function updateStats() {
   const el = document.getElementById('homeStats');
+  let s = null;
   try {
-    const s = await api('GET', '/api/stats');
-    if (!s.word_count) { el.innerHTML = ''; return; }
-    const acc = s.test_total === 0 ? null : Math.round(s.correct_total / s.test_total * 100);
-    el.innerHTML = `<b>${s.word_count}</b> ${t('words')}`
-      + (acc !== null ? `<span class="dot">·</span><b>${acc}%</b> ${t('accuracy')}` : '')
-      + (s.due_count > 0 ? `<span class="dot">·</span><span class="due-badge"><b>${s.due_count}</b> ${t('due')}</span>` : '')
-      + (s.streak >= 2 ? `<span class="dot">·</span><span class="due-badge">${t('streakHome').replace('{n}', s.streak)}</span>` : '');
-    document.getElementById('lFlashHome').textContent = `${t('flashBtn')} (${s.new_count})`;
-    document.getElementById('flashHomeBtn').style.display = s.new_count > 0 ? '' : 'none';
-    document.getElementById('lHardHome').textContent = `${t('hardBtn')} (${s.hard_count})`;
-    document.getElementById('hardHomeBtn').style.display = s.hard_count > 0 ? '' : 'none';
-  } catch (e) {
+    s = await api('GET', '/api/stats');
+  } catch (e) {}
+  renderDeck(s);
+  if (!s || !s.word_count) {
     el.innerHTML = '';
     document.getElementById('flashHomeBtn').style.display = 'none';
     document.getElementById('hardHomeBtn').style.display = 'none';
+    return;
   }
+  const acc = s.test_total === 0 ? null : Math.round(s.correct_total / s.test_total * 100);
+  el.innerHTML = `<span><b>${s.word_count}</b> ${t('words')}</span>`
+    + (acc !== null ? `<span><b>${acc}%</b> ${t('accuracy')}</span>` : '')
+    + (s.streak >= 2 ? `<span class="streak">${t('streakHome').replace('{n}', s.streak)}</span>` : '');
+  document.getElementById('lFlashHome').textContent = `${t('flashBtn')} (${s.new_count})`;
+  document.getElementById('flashHomeBtn').style.display = s.new_count > 0 ? '' : 'none';
+  document.getElementById('lHardHome').textContent = `${t('hardBtn')} (${s.hard_count})`;
+  document.getElementById('hardHomeBtn').style.display = s.hard_count > 0 ? '' : 'none';
 }
 
 // ── Flashcards (새 단어) ───────────────────────────────
@@ -1575,7 +1786,7 @@ function renderFlash() {
 
   const w = flashWords[flashIdx];
   count.textContent = `${flashIdx + 1} / ${flashWords.length}`;
-  const g = w.gender !== 'none' ? `<div class="gender-badge">${t(w.gender)}</div>` : '';
+  const g = w.gender !== 'none' ? `<div class="gender-badge" data-g="${w.gender}">${t(w.gender)}</div>` : '';
   el.innerHTML = `
     <div class="flash-scene" onclick="flipFlash()">
       <div class="flash-inner" id="flashInner">
@@ -1713,28 +1924,46 @@ function startQuiz() {
   loadQuiz();
 }
 
+// 문제 로딩이 겹칠 수 있어(탭 연타 등) 토큰으로 최신 요청만 화면에 반영한다.
+// 지역 변수에 모아 두었다가 마지막에 한 번에 커밋해야, 뒤처진 요청이
+// qDir만 'cloze'로 바꿔 놓고 qSentence는 비어 있는 상태를 만들지 않는다.
+let quizToken = 0;
+
 async function loadQuiz() {
+  const token = ++quizToken;
   qAnswered = false;
   qWord = null;
+  qSentence = null;
   document.getElementById('quizBody').innerHTML = '';
+
   // 음성 지원 시 20%는 받아쓰기 문제
   const dirs = esVoice ? ['sk', 'sk', 'ks', 'ks', 'listen'] : ['sk', 'ks'];
-  qDir = dirs[Math.floor(Math.random() * dirs.length)];
+  let dir = dirs[Math.floor(Math.random() * dirs.length)];
+
+  let word;
   try {
-    qWord = await api('GET', '/api/quiz/pick' + (qHard ? '?hard=1' : ''));
+    word = await api('GET', '/api/quiz/pick' + (qHard ? '?hard=1' : ''));
   } catch (e) {
-    qWord = null;
+    word = null;
   }
+  if (token !== quizToken) return;
+
   // 성별 있는 명사는 25% 확률로 관사(el/la) 문제
-  if (qWord && (qWord.gender === 'm' || qWord.gender === 'f') && Math.random() < 0.25) {
-    qDir = 'gender';
+  if (word && (word.gender === 'm' || word.gender === 'f') && Math.random() < 0.25) {
+    dir = 'gender';
   }
+
   // 그 외에는 30% 확률로 예문 빈칸 문제 시도 (예문 없거나 느리면 원래 문제로)
-  qSentence = null;
-  if (qWord && qDir !== 'gender' && Math.random() < 0.3) {
-    qSentence = await fetchSentence(qWord.word);
-    if (qSentence) qDir = 'cloze';
+  let sentence = null;
+  if (word && dir !== 'gender' && Math.random() < 0.3) {
+    sentence = await fetchSentence(word.word);
+    if (token !== quizToken) return;
+    if (sentence) dir = 'cloze';
   }
+
+  qWord = word;
+  qDir = dir;
+  qSentence = sentence;
   renderQuiz();
 }
 
@@ -1829,7 +2058,7 @@ function renderQuiz() {
     ? clozeHTML()
     : `<div class="quiz-word${showSpanish ? '' : ' quiz-word-kr'}">${showSpanish ? qWord.word : qWord.meaning}</div>
        ${showSpanish ? `<button class="tts-btn" onclick="speak(qWord.word)">${TTS_ICON}</button>` : ''}
-       ${genderLabel && !isGender ? `<div class="gender-badge">${genderLabel}</div>` : ''}`;
+       ${genderLabel && !isGender ? `<div class="gender-badge" data-g="${qWord.gender}">${genderLabel}</div>` : ''}`;
 
   // 관사 문제는 입력창 대신 el/la 선택 버튼
   const answerUI = isGender
@@ -1875,16 +2104,20 @@ function renderQuiz() {
 
 let wlCache = {};
 
+// 성을 안료로 표시: 관사를 단어 앞에 함께 보여줘 자연스럽게 외우게 함
+const ARTICLE = { m: 'el', f: 'la', n: 'el/la' };
+
 function wlItemHTML(w) {
-  const g = w.gender !== 'none'
-    ? ` <span class="gender-badge" style="font-size:9px;padding:2px 7px">${t(w.gender)}</span>`
+  const art = ARTICLE[w.gender]
+    ? `<span class="art" data-g="${w.gender}">${ARTICLE[w.gender]}</span> `
     : '';
   const stat = w.test_count > 0
     ? `${w.test_count} ${t('tested')} · ${w.correct_count} ${t('correctN')}`
     : '—';
   return `
+    <span class="wl-ink" data-g="${w.gender}"></span>
     <div class="wl-left">
-      <div class="wl-word">${w.word}<button class="tts-btn sm" onclick="event.stopPropagation();speak(this.closest('.wl-item').dataset.word)">${TTS_ICON}</button>${g}</div>
+      <div class="wl-word">${art}${w.word}<button class="tts-btn sm" onclick="event.stopPropagation();speak(this.closest('.wl-item').dataset.word)">${TTS_ICON}</button></div>
       <div class="wl-meaning">${w.meaning}</div>
     </div>
     <div class="wl-right">
@@ -2191,8 +2424,7 @@ async function addWord() {
 }
 
 // ── Init ──────────────────────────────────────────────
-setLang(lang);
-updateStats();
+setLang(lang); // updateStats()까지 함께 호출됨
 updateNoneHint();
 
 // 새로고침 시 브라우저가 보존한 히스토리 상태로 화면 복원
