@@ -1,4 +1,5 @@
 import sqlite3
+import unicodedata
 from datetime import datetime
 from enum import Enum
 
@@ -10,6 +11,18 @@ class Gender(str, Enum):
     FEMININE = "f"
     NEUTRAL = "n"
     NONE = "none"
+
+
+def normalize_word(word: str) -> str:
+    """중복 비교용 정규화: 소문자화 후 모음 악센트만 제거, ñ은 유지.
+
+    채점 원칙(모음 악센트만 관대, ñ은 엄격)과 동일 규칙 —
+    index.html의 deaccentGrading과 짝을 이룬다.
+    país → pais, año → año
+    """
+    nfd = unicodedata.normalize("NFD", word.strip().lower())
+    kept = "".join(c for c in nfd if not (unicodedata.combining(c) and c != "̃"))
+    return unicodedata.normalize("NFC", kept)
 
 
 def get_connection():
@@ -27,7 +40,8 @@ def init_db():
                 test_count INTEGER NOT NULL DEFAULT 0,
                 correct_count INTEGER NOT NULL DEFAULT 0,
                 box INTEGER NOT NULL DEFAULT 0,
-                due_at TEXT
+                due_at TEXT,
+                norm TEXT
             )
         """)
         # 기존 DB 마이그레이션: SRS 컬럼이 없으면 추가
@@ -36,6 +50,17 @@ def init_db():
             conn.execute("ALTER TABLE words ADD COLUMN box INTEGER NOT NULL DEFAULT 0")
         if "due_at" not in cols:
             conn.execute("ALTER TABLE words ADD COLUMN due_at TEXT")
+        # 악센트 무시 중복 차단용 norm 컬럼: 없으면 추가 후 backfill
+        if "norm" not in cols:
+            conn.execute("ALTER TABLE words ADD COLUMN norm TEXT")
+        for (w,) in conn.execute("SELECT word FROM words WHERE norm IS NULL"):
+            conn.execute(
+                "UPDATE words SET norm = ? WHERE word = ?", (normalize_word(w), w)
+            )
+        # fresh/기존 DB 모두 인덱스 방식으로 통일해 유일성 보장
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_words_norm ON words(norm)"
+        )
         # 학습 이력 (통계·스트릭용)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS attempts (
@@ -68,10 +93,11 @@ def init_db():
 def add_word(word: str, gender: Gender, meaning: str):
     if not meaning.strip():
         raise ValueError("meaning must not be empty")
+    w = word.strip().lower()
     with get_connection() as conn:
         conn.execute(
-            "INSERT INTO words (word, gender, meaning) VALUES (?, ?, ?)",
-            (word.strip().lower(), gender.value, meaning.strip()),
+            "INSERT INTO words (word, gender, meaning, norm) VALUES (?, ?, ?, ?)",
+            (w, gender.value, meaning.strip(), normalize_word(w)),
         )
 
 
@@ -142,10 +168,11 @@ def set_srs(word: str, box: int, due_at: str | None):
 def update_word(old_word: str, new_word: str, gender: Gender, meaning: str):
     if not meaning.strip():
         raise ValueError("meaning must not be empty")
+    w = new_word.strip().lower()
     with get_connection() as conn:
         conn.execute(
-            "UPDATE words SET word = ?, gender = ?, meaning = ? WHERE word = ?",
-            (new_word.strip().lower(), gender.value, meaning.strip(), old_word.strip().lower()),
+            "UPDATE words SET word = ?, gender = ?, meaning = ?, norm = ? WHERE word = ?",
+            (w, gender.value, meaning.strip(), normalize_word(w), old_word.strip().lower()),
         )
 
 

@@ -909,6 +909,15 @@
       min-height: 17px;
     }
 
+    /* 이미 있는 단어를 입력하면 단어 입력창 아래에 표시 */
+    .dup-hint {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--carmine);
+      min-height: 17px;
+    }
+
     .add-btn {
       width: 100%;
       margin-top: 24px;
@@ -1306,6 +1315,7 @@
           <kbd>alt</kbd>+<kbd>/</kbd> → ¿ &ensp;
           <kbd>alt</kbd>+<kbd>1</kbd> → ¡
         </p>
+        <p class="dup-hint" id="dupHint"></p>
       </div>
       <div class="field">
         <label class="field-label" id="lMeaningLabel">뜻</label>
@@ -1601,6 +1611,7 @@ function loadView(view) {
   else if (view === 'wordList') { show('wordList'); loadWordListBody(); }
   else if (view === 'stats') { show('stats'); loadStats(); }
   else if (view === 'flash') { show('flash'); loadFlash(); }
+  else if (view === 'addWord') { show('addWord'); loadAddNorms(); }
   else if (view === 'home') { updateStats(); show('home'); }
   else show(view);
 }
@@ -2364,10 +2375,26 @@ function pickGender(g) {
   checkReady();
 }
 
+// 추가 화면의 사전 중복 안내용 캐시 (서버 norm과 같은 규칙: 모음 악센트만 무시)
+// 로드 실패 시 null → 사전 안내 없이 서버 409가 최종 방어선
+let addNorms = null;
+
+async function loadAddNorms() {
+  try {
+    const words = await api('GET', '/api/words');
+    addNorms = new Set(words.map(w => deaccentGrading(w.word)));
+  } catch (e) {
+    addNorms = null;
+  }
+  checkReady();
+}
+
 function checkReady() {
-  const word = document.getElementById('wordInput').value.trim();
+  const word = document.getElementById('wordInput').value.trim().toLowerCase();
   const meaning = document.getElementById('meaningInput').value.trim();
-  document.getElementById('addBtn').disabled = !(word && meaning);
+  const dup = !!word && addNorms !== null && addNorms.has(deaccentGrading(word));
+  document.getElementById('dupHint').textContent = dup ? t('duplicate') : '';
+  document.getElementById('addBtn').disabled = !(word && meaning) || dup;
 }
 
 document.getElementById('wordInput').addEventListener('input', checkReady);
@@ -2406,6 +2433,7 @@ async function addWord() {
   try {
     await api('POST', '/api/words', { word, gender, meaning });
 
+    if (addNorms) addNorms.add(deaccentGrading(word));
     document.getElementById('wordInput').value = '';
     document.getElementById('meaningInput').value = '';
     selGender = null;

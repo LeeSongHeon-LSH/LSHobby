@@ -43,6 +43,19 @@ class TestAddWord:
         with pytest.raises(sqlite3.IntegrityError):
             db.add_word("casa", Gender.MASCULINE, "집")
 
+    def test_accent_variant_is_duplicate(self):
+        # 모음 악센트만 다른 단어는 같은 단어로 취급해 차단
+        db.add_word("país", Gender.MASCULINE, "나라")
+        with pytest.raises(sqlite3.IntegrityError):
+            db.add_word("pais", Gender.MASCULINE, "나라")
+
+    def test_enye_is_distinct(self):
+        # ñ은 별개 글자 — año와 ano는 서로 다른 단어
+        db.add_word("año", Gender.MASCULINE, "년")
+        db.add_word("ano", Gender.MASCULINE, "항문")
+        assert db.get_word("año") is not None
+        assert db.get_word("ano") is not None
+
     def test_invalid_gender_raises(self):
         with pytest.raises(ValueError):
             db.add_word("test", Gender("x"), "테스트")
@@ -77,6 +90,79 @@ class TestMeaning:
                     "INSERT INTO words (word, gender, meaning) VALUES (?, ?, ?)",
                     ("bypass", "m", ""),
                 )
+
+
+class TestNormalizeWord:
+    def test_strips_vowel_accents(self):
+        assert db.normalize_word("país") == "pais"
+        assert db.normalize_word("Dónde") == "donde"
+        assert db.normalize_word("  MÉdico ") == "medico"
+
+    def test_keeps_enye(self):
+        assert db.normalize_word("año") == "año"
+        assert db.normalize_word("España") == "españa"
+
+
+class TestNormMigration:
+    def test_legacy_table_backfilled(self):
+        # norm 컬럼이 없던 예전 스키마에서 init_db가 backfill하는지 확인
+        with db.get_connection() as conn:
+            conn.execute("DROP INDEX IF EXISTS idx_words_norm")
+            conn.execute("DROP TABLE words")
+            conn.execute("""
+                CREATE TABLE words (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    word TEXT NOT NULL UNIQUE,
+                    gender TEXT NOT NULL,
+                    meaning TEXT NOT NULL
+                )
+            """)
+            conn.execute(
+                "INSERT INTO words (word, gender, meaning) VALUES ('país', 'm', '나라')"
+            )
+        db.init_db()
+        with db.get_connection() as conn:
+            row = conn.execute("SELECT norm FROM words WHERE word = 'país'").fetchone()
+        assert row[0] == "pais"
+        # 마이그레이션 후에도 유일성이 동작해야 함
+        with pytest.raises(sqlite3.IntegrityError):
+            db.add_word("pais", Gender.MASCULINE, "나라")
+
+
+class TestUpdateWordNorm:
+    def test_update_refreshes_norm(self):
+        db.add_word("casa", Gender.FEMININE, "집")
+        db.update_word("casa", "café", Gender.MASCULINE, "커피")
+        with pytest.raises(sqlite3.IntegrityError):
+            db.add_word("cafe", Gender.MASCULINE, "커피")
+
+    def test_update_collision_raises(self):
+        db.add_word("país", Gender.MASCULINE, "나라")
+        db.add_word("casa", Gender.FEMININE, "집")
+        with pytest.raises(sqlite3.IntegrityError):
+            db.update_word("casa", "pais", Gender.MASCULINE, "나라")
+
+    def test_update_same_word_is_fine(self):
+        # 뜻만 고칠 때 자기 자신과의 norm 충돌은 없어야 함
+        db.add_word("país", Gender.MASCULINE, "나라")
+        db.update_word("país", "país", Gender.MASCULINE, "나라, 국가")
+        assert db.get_word("país")["meaning"] == "나라, 국가"
+
+
+class TestAddWordAPI:
+    def test_accent_variant_returns_409(self, monkeypatch):
+        from fastapi.testclient import TestClient
+        import main
+        import sentences
+
+        # POST가 백그라운드로 예문을 수집하므로 네트워크 호출은 막는다
+        monkeypatch.setattr(sentences, "fetch_for_word", lambda w: [])
+        client = TestClient(main.app)
+        r1 = client.post("/api/words", json={"word": "país", "gender": "m", "meaning": "나라"})
+        assert r1.status_code == 201
+        r2 = client.post("/api/words", json={"word": "pais", "gender": "m", "meaning": "나라"})
+        assert r2.status_code == 409
+        assert r2.json()["detail"] == "duplicate"
 
 
 class TestGetWord:

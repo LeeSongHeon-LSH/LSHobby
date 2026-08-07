@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import db
 from db import Gender
 import quiz
+import seed
 import sentences
 import stats
 
@@ -33,6 +34,7 @@ class AnswerIn(BaseModel):
 @app.on_event("startup")
 async def startup():
     db.init_db()
+    seed.seed_if_empty()
 
 
 # ── Static ─────────────────────────────────────────────
