@@ -142,6 +142,7 @@ create table es_words (
   scheduled_days int not null default 0,
   reps           int not null default 0,
   lapses         int not null default 0,
+  learning_steps int not null default 0,       -- ts-fsrs 5.x 추가 필드 (2026-08-14 마이그레이션으로 반영)
   state          smallint not null default 0,  -- 0 New / 1 Learning / 2 Review / 3 Relearning
   last_review    timestamptz,
   created_at     timestamptz not null default now()
