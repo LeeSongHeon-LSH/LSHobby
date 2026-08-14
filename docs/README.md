@@ -37,3 +37,6 @@
 | §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~41 |
 | §11 | [11-wireframes.md](11-wireframes.md) | 화면 와이어프레임 — 내비 문법, 전 세션 화면 인벤토리 |
 | §12 | [12-requirements.md](12-requirements.md) | **요구사항 명세(SRS)** — FR/NFR/SEC 통합, 보안·백업 신규 확정, 수용 기준 |
+| §13 | [13-user-stories.md](13-user-stories.md) | 유저 스토리 — 에픽 E1~E8, US↔FR 추적 매트릭스 |
+| §14 | [14-flows.md](14-flows.md) | 흐름도(mermaid) — 내비·인증·퀴즈·완독 기록·개념 저장·삭제 |
+| §15 | [15-dcd.md](15-dcd.md) | DCD — 모듈 공개 인터페이스·의존 방향·테이블 소유권·유지보수 불변식 |
