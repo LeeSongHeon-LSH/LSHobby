@@ -181,6 +181,24 @@ describe("통계 집계 (구 stats.py 이식)", () => {
   });
 });
 
+describe("Tatoeba 추출 (구 _extract 이식)", () => {
+  it("표층형 그대로 든 70자 이하 문장만, 지정 언어 번역 채택", async () => {
+    const { extractSentences } = await import("./tatoeba");
+    const results = [
+      { id: 1, text: "Mi casa es grande.", translations: [[{ lang: "kor", text: "우리 집은 크다." }]] },
+      { id: 2, text: "Las casas son caras.", translations: [] }, // 변형(casas) → 제외
+      { id: 3, text: "casa ".repeat(20), translations: [] }, // 70자 초과 → 제외
+      { id: 4, text: "¿Vamos a casa?", translations: [[{ lang: "eng", text: "Shall we go home?" }]] },
+    ];
+    const out = extractSentences(results, "casa", "kor");
+    expect(out.map((s) => s.es_text)).toEqual(["Mi casa es grande.", "¿Vamos a casa?"]);
+    expect(out[0].ko_text).toBe("우리 집은 크다.");
+    expect(out[0].en_text).toBeNull();
+    expect(out[1].ko_text).toBeNull(); // kor 모드에선 eng 번역 무시
+    expect(out[0].source_url).toContain("/sentences/show/1");
+  });
+});
+
 describe("파생 판정·가중치 (구 is_hard/_weight 이식)", () => {
   it("isHard: 4회 이상 + 정답률 60% 미만", () => {
     expect(isHard(4, 2)).toBe(true); // 50%

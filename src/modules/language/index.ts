@@ -6,7 +6,8 @@ export { addWord, countWords, deleteWord, findByNorm, listWords, updateWord, typ
 export { countNewStartedToday, todayPool } from "./session";
 export { reviewStats, todayReviewSummary, type WordStat } from "./review-stats";
 export { answerWord } from "./answer";
-export { pickSentence, type Sentence } from "./sentences";
+export { ensureSentences, type Sentence } from "./sentences";
+export { configFor, languageConfigs } from "./registry";
 export { aggregate, buildCsv, computeStreak, fetchStats, localDate, type LangStats } from "./stats";
 export { articleFor, stateLabel } from "./display";
 export {

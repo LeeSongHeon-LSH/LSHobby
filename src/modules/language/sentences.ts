@@ -10,14 +10,22 @@ export interface Sentence {
   source_url: string | null;
 }
 
-/** 저장된 예문 중 하나 (cloze용). Tatoeba 수집은 별도 단계 — 없으면 null */
-export async function pickSentence(config: LanguageConfig, wordId: number): Promise<Sentence | null> {
-  const { data, error } = await supabase
-    .from(config.sentenceTable)
-    .select("*")
-    .eq("word_id", wordId);
-  if (error) throw error;
-  const rows = data as Sentence[];
-  if (rows.length === 0) return null;
-  return rows[Math.floor(Math.random() * rows.length)];
+/**
+ * 예문 확보 (구 fetchSentence 이식): 서버 API가 캐시 우선·미수집 시 Tatoeba 수집.
+ * 첫 수집은 느릴 수 있어 2.5초 제한 — 초과해도 서버는 수집을 마치고 저장하므로 다음번엔 즉시.
+ */
+export async function ensureSentences(config: LanguageConfig, wordId: number): Promise<Sentence[]> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return [];
+  try {
+    const res = await fetch(`/api/sentence/${config.code}/${wordId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(2500),
+    });
+    if (!res.ok) return [];
+    return (await res.json()) as Sentence[];
+  } catch {
+    return [];
+  }
 }

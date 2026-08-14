@@ -9,10 +9,13 @@ const stripAccentsKeepTilde = (s: string) =>
     .normalize("NFC");
 
 export const esConfig: LanguageConfig = {
+  // 언어 추가 시 이 객체를 복제해 규칙만 바꾼다 (§6.2)
   code: "es",
   wordTable: "es_words",
   reviewLogTable: "es_review_log",
   sentenceTable: "es_sentences",
+  sentenceFetchTable: "es_sentence_fetch",
+  tatoebaLang: "spa",
   normalize: (word) => stripAccentsKeepTilde(word.trim().toLowerCase()),
   gradeLenient: stripAccentsKeepTilde,
 };

@@ -8,7 +8,7 @@ import {
   esConfig,
   gradeAnswer,
   isHard,
-  pickSentence,
+  ensureSentences,
   pickWeight,
   reviewStats,
   todayPool,
@@ -74,8 +74,9 @@ export default function QuizPage() {
     let sentence: Sentence | null = null;
     let blankAt = -1;
     if (Math.random() < 0.3) {
-      sentence = await pickSentence(esConfig, word.id).catch(() => null);
-      if (sentence) {
+      const candidates = await ensureSentences(esConfig, word.id);
+      if (candidates.length > 0) {
+        sentence = candidates[Math.floor(Math.random() * candidates.length)];
         blankAt = sentence.es_text.toLowerCase().indexOf(word.word.toLowerCase());
         if (blankAt >= 0) dir = "cloze";
         else sentence = null;
