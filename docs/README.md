@@ -2,8 +2,8 @@
 
 > **작성일**: 2026-08-14 (모듈·ERD/DDL·와이어프레임 확정: 2026-08-14)
 > **앱 이름**: **LSHobby** — GitHub 리포 `LeeSongHeon-LSH/LSHobby` (구 Spanish-Practice에서 개명 완료)
-> **상태**: 설계 단계 전부 확정 — 아키텍처·화면구조·세 모듈·ERD/DDL·와이어프레임·요구사항 명세(§12)
-> **다음 작업**: 프로젝트 초기 세팅 — Next.js + Supabase 연결 (로드맵은 [06-language-srs.md](06-language-srs.md) §6.6, 세팅 직후 보안 체크리스트는 [§12.6](12-requirements.md))
+> **상태**: 설계 확정 + **인프라 세팅 완료** — Supabase(스키마·보안)·Next.js 스캐폴드·Vercel 자동 배포 ([§16](16-infra.md) 참조, 프로덕션 https://lshobby.vercel.app)
+> **다음 작업**: 언어 모듈 구현 (로드맵은 [06-language-srs.md](06-language-srs.md) §6.6, 컷오버 기준 §6.5)
 
 ## 1. 프로젝트 개요
 
@@ -40,3 +40,4 @@
 | §13 | [13-user-stories.md](13-user-stories.md) | 유저 스토리 — 에픽 E1~E8, US↔FR 추적 매트릭스 |
 | §14 | [14-flows.md](14-flows.md) | 흐름도(mermaid) — 내비·인증·퀴즈·완독 기록·개념 저장·삭제 |
 | §15 | [15-dcd.md](15-dcd.md) | DCD — 모듈 공개 인터페이스·의존 방향·테이블 소유권·유지보수 불변식 |
+| §16 | [16-infra.md](16-infra.md) | 인프라 구조 해설 — 요청·인증 경로, 키 체계, 배포 파이프라인, 운영 식별자 |
