@@ -1,9 +1,9 @@
 # LSHobby — 개인 지식·취미 관리 웹앱 설계 문서
 
-> **작성일**: 2026-08-14 (언어·책·CS 모듈 + ERD/DDL 확정: 2026-08-14)
+> **작성일**: 2026-08-14 (모듈·ERD/DDL·와이어프레임 확정: 2026-08-14)
 > **앱 이름**: **LSHobby** — GitHub 리포 `LeeSongHeon-LSH/LSHobby` (구 Spanish-Practice에서 개명 완료)
-> **상태**: 아키텍처·화면구조·세 모듈(언어·책·CS)·ERD/DDL 전부 확정
-> **다음 작업**: 화면 와이어프레임 — 모바일 우선 (로드맵은 [06-language-srs.md](06-language-srs.md) §6.6)
+> **상태**: 설계 단계 전부 확정 — 아키텍처·화면구조·세 모듈·ERD/DDL·와이어프레임
+> **다음 작업**: 프로젝트 초기 세팅 — Next.js + Supabase 연결 (로드맵은 [06-language-srs.md](06-language-srs.md) §6.6)
 
 ## 1. 프로젝트 개요
 
@@ -34,4 +34,5 @@
 | §7 | [07-library.md](07-library.md) | 책 모듈 — 완독 후 일괄 기록, 회독·인용구·노트 |
 | §8 | [08-knowledge.md](08-knowledge.md) | CS 모듈 — 개념 문서, 태그 + 위키링크·백링크 |
 | §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 13개 테이블, RLS (컷오버 시 마이그레이션 원본) |
-| §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~37 |
+| §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~41 |
+| §11 | [11-wireframes.md](11-wireframes.md) | 화면 와이어프레임 — 내비 문법, 전 세션 화면 인벤토리 |
