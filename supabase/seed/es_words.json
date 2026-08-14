@@ -1,0 +1,1310 @@
+[
+ {
+  "word": "hola",
+  "gender": "none",
+  "meaning": "안녕, 안녕하세요",
+  "norm": "hola"
+ },
+ {
+  "word": "adiós",
+  "gender": "none",
+  "meaning": "잘 가, 안녕히 가세요",
+  "norm": "adios"
+ },
+ {
+  "word": "gracias",
+  "gender": "none",
+  "meaning": "고마워, 감사합니다",
+  "norm": "gracias"
+ },
+ {
+  "word": "por favor",
+  "gender": "none",
+  "meaning": "부탁합니다, 제발",
+  "norm": "por favor"
+ },
+ {
+  "word": "perdón",
+  "gender": "none",
+  "meaning": "미안합니다, 실례합니다",
+  "norm": "perdon"
+ },
+ {
+  "word": "sí",
+  "gender": "none",
+  "meaning": "네, 응",
+  "norm": "si"
+ },
+ {
+  "word": "no",
+  "gender": "none",
+  "meaning": "아니요, 아니",
+  "norm": "no"
+ },
+ {
+  "word": "familia",
+  "gender": "f",
+  "meaning": "가족",
+  "norm": "familia"
+ },
+ {
+  "word": "padre",
+  "gender": "m",
+  "meaning": "아버지",
+  "norm": "padre"
+ },
+ {
+  "word": "madre",
+  "gender": "f",
+  "meaning": "어머니",
+  "norm": "madre"
+ },
+ {
+  "word": "hijo",
+  "gender": "m",
+  "meaning": "아들",
+  "norm": "hijo"
+ },
+ {
+  "word": "hija",
+  "gender": "f",
+  "meaning": "딸",
+  "norm": "hija"
+ },
+ {
+  "word": "hermano",
+  "gender": "m",
+  "meaning": "형, 오빠, 남동생",
+  "norm": "hermano"
+ },
+ {
+  "word": "hermana",
+  "gender": "f",
+  "meaning": "누나, 언니, 여동생",
+  "norm": "hermana"
+ },
+ {
+  "word": "abuelo",
+  "gender": "m",
+  "meaning": "할아버지",
+  "norm": "abuelo"
+ },
+ {
+  "word": "hombre",
+  "gender": "m",
+  "meaning": "남자",
+  "norm": "hombre"
+ },
+ {
+  "word": "mujer",
+  "gender": "f",
+  "meaning": "여자, 아내",
+  "norm": "mujer"
+ },
+ {
+  "word": "niño",
+  "gender": "m",
+  "meaning": "남자아이, 어린이",
+  "norm": "niño"
+ },
+ {
+  "word": "amigo",
+  "gender": "m",
+  "meaning": "친구",
+  "norm": "amigo"
+ },
+ {
+  "word": "persona",
+  "gender": "f",
+  "meaning": "사람",
+  "norm": "persona"
+ },
+ {
+  "word": "nombre",
+  "gender": "m",
+  "meaning": "이름",
+  "norm": "nombre"
+ },
+ {
+  "word": "profesor",
+  "gender": "m",
+  "meaning": "선생님, 교사",
+  "norm": "profesor"
+ },
+ {
+  "word": "estudiante",
+  "gender": "n",
+  "meaning": "학생",
+  "norm": "estudiante"
+ },
+ {
+  "word": "turista",
+  "gender": "n",
+  "meaning": "관광객",
+  "norm": "turista"
+ },
+ {
+  "word": "artista",
+  "gender": "n",
+  "meaning": "예술가",
+  "norm": "artista"
+ },
+ {
+  "word": "cantante",
+  "gender": "n",
+  "meaning": "가수",
+  "norm": "cantante"
+ },
+ {
+  "word": "periodista",
+  "gender": "n",
+  "meaning": "기자",
+  "norm": "periodista"
+ },
+ {
+  "word": "policía",
+  "gender": "n",
+  "meaning": "경찰",
+  "norm": "policia"
+ },
+ {
+  "word": "joven",
+  "gender": "n",
+  "meaning": "젊은이, 젊은",
+  "norm": "joven"
+ },
+ {
+  "word": "modelo",
+  "gender": "n",
+  "meaning": "모델",
+  "norm": "modelo"
+ },
+ {
+  "word": "casa",
+  "gender": "f",
+  "meaning": "집",
+  "norm": "casa"
+ },
+ {
+  "word": "puerta",
+  "gender": "f",
+  "meaning": "문",
+  "norm": "puerta"
+ },
+ {
+  "word": "mesa",
+  "gender": "f",
+  "meaning": "탁자, 테이블",
+  "norm": "mesa"
+ },
+ {
+  "word": "silla",
+  "gender": "f",
+  "meaning": "의자",
+  "norm": "silla"
+ },
+ {
+  "word": "cama",
+  "gender": "f",
+  "meaning": "침대",
+  "norm": "cama"
+ },
+ {
+  "word": "cocina",
+  "gender": "f",
+  "meaning": "부엌, 주방",
+  "norm": "cocina"
+ },
+ {
+  "word": "baño",
+  "gender": "m",
+  "meaning": "화장실, 욕실",
+  "norm": "baño"
+ },
+ {
+  "word": "habitación",
+  "gender": "f",
+  "meaning": "방",
+  "norm": "habitacion"
+ },
+ {
+  "word": "teléfono",
+  "gender": "m",
+  "meaning": "전화, 전화기",
+  "norm": "telefono"
+ },
+ {
+  "word": "ordenador",
+  "gender": "m",
+  "meaning": "컴퓨터",
+  "norm": "ordenador"
+ },
+ {
+  "word": "libro",
+  "gender": "m",
+  "meaning": "책",
+  "norm": "libro"
+ },
+ {
+  "word": "ropa",
+  "gender": "f",
+  "meaning": "옷",
+  "norm": "ropa"
+ },
+ {
+  "word": "zapato",
+  "gender": "m",
+  "meaning": "신발, 구두",
+  "norm": "zapato"
+ },
+ {
+  "word": "pantalón",
+  "gender": "m",
+  "meaning": "바지",
+  "norm": "pantalon"
+ },
+ {
+  "word": "regalo",
+  "gender": "m",
+  "meaning": "선물",
+  "norm": "regalo"
+ },
+ {
+  "word": "carta",
+  "gender": "f",
+  "meaning": "편지, 카드",
+  "norm": "carta"
+ },
+ {
+  "word": "dinero",
+  "gender": "m",
+  "meaning": "돈",
+  "norm": "dinero"
+ },
+ {
+  "word": "cosa",
+  "gender": "f",
+  "meaning": "것, 물건",
+  "norm": "cosa"
+ },
+ {
+  "word": "comida",
+  "gender": "f",
+  "meaning": "음식, 식사",
+  "norm": "comida"
+ },
+ {
+  "word": "agua",
+  "gender": "f",
+  "meaning": "물",
+  "norm": "agua"
+ },
+ {
+  "word": "pan",
+  "gender": "m",
+  "meaning": "빵",
+  "norm": "pan"
+ },
+ {
+  "word": "leche",
+  "gender": "f",
+  "meaning": "우유",
+  "norm": "leche"
+ },
+ {
+  "word": "café",
+  "gender": "m",
+  "meaning": "커피",
+  "norm": "cafe"
+ },
+ {
+  "word": "té",
+  "gender": "m",
+  "meaning": "차",
+  "norm": "te"
+ },
+ {
+  "word": "carne",
+  "gender": "f",
+  "meaning": "고기",
+  "norm": "carne"
+ },
+ {
+  "word": "pescado",
+  "gender": "m",
+  "meaning": "생선",
+  "norm": "pescado"
+ },
+ {
+  "word": "pollo",
+  "gender": "m",
+  "meaning": "닭고기, 닭",
+  "norm": "pollo"
+ },
+ {
+  "word": "huevo",
+  "gender": "m",
+  "meaning": "달걀, 계란",
+  "norm": "huevo"
+ },
+ {
+  "word": "arroz",
+  "gender": "m",
+  "meaning": "쌀, 밥",
+  "norm": "arroz"
+ },
+ {
+  "word": "fruta",
+  "gender": "f",
+  "meaning": "과일",
+  "norm": "fruta"
+ },
+ {
+  "word": "manzana",
+  "gender": "f",
+  "meaning": "사과",
+  "norm": "manzana"
+ },
+ {
+  "word": "cena",
+  "gender": "f",
+  "meaning": "저녁 식사",
+  "norm": "cena"
+ },
+ {
+  "word": "restaurante",
+  "gender": "m",
+  "meaning": "식당, 레스토랑",
+  "norm": "restaurante"
+ },
+ {
+  "word": "perro",
+  "gender": "m",
+  "meaning": "개, 강아지",
+  "norm": "perro"
+ },
+ {
+  "word": "gato",
+  "gender": "m",
+  "meaning": "고양이",
+  "norm": "gato"
+ },
+ {
+  "word": "pájaro",
+  "gender": "m",
+  "meaning": "새",
+  "norm": "pajaro"
+ },
+ {
+  "word": "animal",
+  "gender": "m",
+  "meaning": "동물",
+  "norm": "animal"
+ },
+ {
+  "word": "cabeza",
+  "gender": "f",
+  "meaning": "머리",
+  "norm": "cabeza"
+ },
+ {
+  "word": "ojo",
+  "gender": "m",
+  "meaning": "눈",
+  "norm": "ojo"
+ },
+ {
+  "word": "nariz",
+  "gender": "f",
+  "meaning": "코",
+  "norm": "nariz"
+ },
+ {
+  "word": "boca",
+  "gender": "f",
+  "meaning": "입",
+  "norm": "boca"
+ },
+ {
+  "word": "mano",
+  "gender": "f",
+  "meaning": "손",
+  "norm": "mano"
+ },
+ {
+  "word": "pie",
+  "gender": "m",
+  "meaning": "발",
+  "norm": "pie"
+ },
+ {
+  "word": "pelo",
+  "gender": "m",
+  "meaning": "머리카락",
+  "norm": "pelo"
+ },
+ {
+  "word": "corazón",
+  "gender": "m",
+  "meaning": "심장, 마음",
+  "norm": "corazon"
+ },
+ {
+  "word": "cuerpo",
+  "gender": "m",
+  "meaning": "몸",
+  "norm": "cuerpo"
+ },
+ {
+  "word": "ciudad",
+  "gender": "f",
+  "meaning": "도시",
+  "norm": "ciudad"
+ },
+ {
+  "word": "calle",
+  "gender": "f",
+  "meaning": "길, 거리",
+  "norm": "calle"
+ },
+ {
+  "word": "tienda",
+  "gender": "f",
+  "meaning": "가게, 상점",
+  "norm": "tienda"
+ },
+ {
+  "word": "mercado",
+  "gender": "m",
+  "meaning": "시장",
+  "norm": "mercado"
+ },
+ {
+  "word": "banco",
+  "gender": "m",
+  "meaning": "은행, 벤치",
+  "norm": "banco"
+ },
+ {
+  "word": "hospital",
+  "gender": "m",
+  "meaning": "병원",
+  "norm": "hospital"
+ },
+ {
+  "word": "escuela",
+  "gender": "f",
+  "meaning": "학교",
+  "norm": "escuela"
+ },
+ {
+  "word": "universidad",
+  "gender": "f",
+  "meaning": "대학교",
+  "norm": "universidad"
+ },
+ {
+  "word": "parque",
+  "gender": "m",
+  "meaning": "공원",
+  "norm": "parque"
+ },
+ {
+  "word": "estación",
+  "gender": "f",
+  "meaning": "역, 정거장",
+  "norm": "estacion"
+ },
+ {
+  "word": "playa",
+  "gender": "f",
+  "meaning": "해변, 바닷가",
+  "norm": "playa"
+ },
+ {
+  "word": "mar",
+  "gender": "m",
+  "meaning": "바다",
+  "norm": "mar"
+ },
+ {
+  "word": "país",
+  "gender": "m",
+  "meaning": "나라, 국가",
+  "norm": "pais"
+ },
+ {
+  "word": "mundo",
+  "gender": "m",
+  "meaning": "세계, 세상",
+  "norm": "mundo"
+ },
+ {
+  "word": "trabajo",
+  "gender": "m",
+  "meaning": "일, 직장",
+  "norm": "trabajo"
+ },
+ {
+  "word": "clase",
+  "gender": "f",
+  "meaning": "수업, 교실",
+  "norm": "clase"
+ },
+ {
+  "word": "examen",
+  "gender": "m",
+  "meaning": "시험",
+  "norm": "examen"
+ },
+ {
+  "word": "coche",
+  "gender": "m",
+  "meaning": "자동차, 차",
+  "norm": "coche"
+ },
+ {
+  "word": "autobús",
+  "gender": "m",
+  "meaning": "버스",
+  "norm": "autobus"
+ },
+ {
+  "word": "tren",
+  "gender": "m",
+  "meaning": "기차",
+  "norm": "tren"
+ },
+ {
+  "word": "avión",
+  "gender": "m",
+  "meaning": "비행기",
+  "norm": "avion"
+ },
+ {
+  "word": "bicicleta",
+  "gender": "f",
+  "meaning": "자전거",
+  "norm": "bicicleta"
+ },
+ {
+  "word": "taxi",
+  "gender": "m",
+  "meaning": "택시",
+  "norm": "taxi"
+ },
+ {
+  "word": "viaje",
+  "gender": "m",
+  "meaning": "여행",
+  "norm": "viaje"
+ },
+ {
+  "word": "día",
+  "gender": "m",
+  "meaning": "날, 하루",
+  "norm": "dia"
+ },
+ {
+  "word": "noche",
+  "gender": "f",
+  "meaning": "밤",
+  "norm": "noche"
+ },
+ {
+  "word": "mañana",
+  "gender": "f",
+  "meaning": "아침, 내일",
+  "norm": "mañana"
+ },
+ {
+  "word": "tarde",
+  "gender": "f",
+  "meaning": "오후, 저녁",
+  "norm": "tarde"
+ },
+ {
+  "word": "semana",
+  "gender": "f",
+  "meaning": "주, 일주일",
+  "norm": "semana"
+ },
+ {
+  "word": "mes",
+  "gender": "m",
+  "meaning": "달, 월",
+  "norm": "mes"
+ },
+ {
+  "word": "año",
+  "gender": "m",
+  "meaning": "년, 해",
+  "norm": "año"
+ },
+ {
+  "word": "hora",
+  "gender": "f",
+  "meaning": "시간, 시",
+  "norm": "hora"
+ },
+ {
+  "word": "tiempo",
+  "gender": "m",
+  "meaning": "시간, 날씨",
+  "norm": "tiempo"
+ },
+ {
+  "word": "hoy",
+  "gender": "none",
+  "meaning": "오늘",
+  "norm": "hoy"
+ },
+ {
+  "word": "ayer",
+  "gender": "none",
+  "meaning": "어제",
+  "norm": "ayer"
+ },
+ {
+  "word": "ahora",
+  "gender": "none",
+  "meaning": "지금",
+  "norm": "ahora"
+ },
+ {
+  "word": "lunes",
+  "gender": "m",
+  "meaning": "월요일",
+  "norm": "lunes"
+ },
+ {
+  "word": "martes",
+  "gender": "m",
+  "meaning": "화요일",
+  "norm": "martes"
+ },
+ {
+  "word": "miércoles",
+  "gender": "m",
+  "meaning": "수요일",
+  "norm": "miercoles"
+ },
+ {
+  "word": "jueves",
+  "gender": "m",
+  "meaning": "목요일",
+  "norm": "jueves"
+ },
+ {
+  "word": "viernes",
+  "gender": "m",
+  "meaning": "금요일",
+  "norm": "viernes"
+ },
+ {
+  "word": "sábado",
+  "gender": "m",
+  "meaning": "토요일",
+  "norm": "sabado"
+ },
+ {
+  "word": "domingo",
+  "gender": "m",
+  "meaning": "일요일",
+  "norm": "domingo"
+ },
+ {
+  "word": "sol",
+  "gender": "m",
+  "meaning": "해, 태양",
+  "norm": "sol"
+ },
+ {
+  "word": "luna",
+  "gender": "f",
+  "meaning": "달",
+  "norm": "luna"
+ },
+ {
+  "word": "cielo",
+  "gender": "m",
+  "meaning": "하늘",
+  "norm": "cielo"
+ },
+ {
+  "word": "lluvia",
+  "gender": "f",
+  "meaning": "비",
+  "norm": "lluvia"
+ },
+ {
+  "word": "nieve",
+  "gender": "f",
+  "meaning": "눈(날씨)",
+  "norm": "nieve"
+ },
+ {
+  "word": "flor",
+  "gender": "f",
+  "meaning": "꽃",
+  "norm": "flor"
+ },
+ {
+  "word": "árbol",
+  "gender": "m",
+  "meaning": "나무",
+  "norm": "arbol"
+ },
+ {
+  "word": "rojo",
+  "gender": "none",
+  "meaning": "빨간, 빨강",
+  "norm": "rojo"
+ },
+ {
+  "word": "azul",
+  "gender": "none",
+  "meaning": "파란, 파랑",
+  "norm": "azul"
+ },
+ {
+  "word": "blanco",
+  "gender": "none",
+  "meaning": "하얀, 흰색",
+  "norm": "blanco"
+ },
+ {
+  "word": "negro",
+  "gender": "none",
+  "meaning": "검은, 검정",
+  "norm": "negro"
+ },
+ {
+  "word": "uno",
+  "gender": "none",
+  "meaning": "하나, 1",
+  "norm": "uno"
+ },
+ {
+  "word": "dos",
+  "gender": "none",
+  "meaning": "둘, 2",
+  "norm": "dos"
+ },
+ {
+  "word": "tres",
+  "gender": "none",
+  "meaning": "셋, 3",
+  "norm": "tres"
+ },
+ {
+  "word": "cuatro",
+  "gender": "none",
+  "meaning": "넷, 4",
+  "norm": "cuatro"
+ },
+ {
+  "word": "cinco",
+  "gender": "none",
+  "meaning": "다섯, 5",
+  "norm": "cinco"
+ },
+ {
+  "word": "seis",
+  "gender": "none",
+  "meaning": "여섯, 6",
+  "norm": "seis"
+ },
+ {
+  "word": "siete",
+  "gender": "none",
+  "meaning": "일곱, 7",
+  "norm": "siete"
+ },
+ {
+  "word": "ocho",
+  "gender": "none",
+  "meaning": "여덟, 8",
+  "norm": "ocho"
+ },
+ {
+  "word": "nueve",
+  "gender": "none",
+  "meaning": "아홉, 9",
+  "norm": "nueve"
+ },
+ {
+  "word": "diez",
+  "gender": "none",
+  "meaning": "열, 10",
+  "norm": "diez"
+ },
+ {
+  "word": "ser",
+  "gender": "none",
+  "meaning": "~이다",
+  "norm": "ser"
+ },
+ {
+  "word": "estar",
+  "gender": "none",
+  "meaning": "있다, ~한 상태이다",
+  "norm": "estar"
+ },
+ {
+  "word": "tener",
+  "gender": "none",
+  "meaning": "가지다, 있다",
+  "norm": "tener"
+ },
+ {
+  "word": "hacer",
+  "gender": "none",
+  "meaning": "하다, 만들다",
+  "norm": "hacer"
+ },
+ {
+  "word": "ir",
+  "gender": "none",
+  "meaning": "가다",
+  "norm": "ir"
+ },
+ {
+  "word": "venir",
+  "gender": "none",
+  "meaning": "오다",
+  "norm": "venir"
+ },
+ {
+  "word": "ver",
+  "gender": "none",
+  "meaning": "보다",
+  "norm": "ver"
+ },
+ {
+  "word": "comer",
+  "gender": "none",
+  "meaning": "먹다",
+  "norm": "comer"
+ },
+ {
+  "word": "beber",
+  "gender": "none",
+  "meaning": "마시다",
+  "norm": "beber"
+ },
+ {
+  "word": "hablar",
+  "gender": "none",
+  "meaning": "말하다, 이야기하다",
+  "norm": "hablar"
+ },
+ {
+  "word": "escuchar",
+  "gender": "none",
+  "meaning": "듣다",
+  "norm": "escuchar"
+ },
+ {
+  "word": "leer",
+  "gender": "none",
+  "meaning": "읽다",
+  "norm": "leer"
+ },
+ {
+  "word": "escribir",
+  "gender": "none",
+  "meaning": "쓰다",
+  "norm": "escribir"
+ },
+ {
+  "word": "estudiar",
+  "gender": "none",
+  "meaning": "공부하다",
+  "norm": "estudiar"
+ },
+ {
+  "word": "aprender",
+  "gender": "none",
+  "meaning": "배우다",
+  "norm": "aprender"
+ },
+ {
+  "word": "trabajar",
+  "gender": "none",
+  "meaning": "일하다",
+  "norm": "trabajar"
+ },
+ {
+  "word": "vivir",
+  "gender": "none",
+  "meaning": "살다",
+  "norm": "vivir"
+ },
+ {
+  "word": "dormir",
+  "gender": "none",
+  "meaning": "자다",
+  "norm": "dormir"
+ },
+ {
+  "word": "comprar",
+  "gender": "none",
+  "meaning": "사다",
+  "norm": "comprar"
+ },
+ {
+  "word": "abrir",
+  "gender": "none",
+  "meaning": "열다",
+  "norm": "abrir"
+ },
+ {
+  "word": "entrar",
+  "gender": "none",
+  "meaning": "들어가다",
+  "norm": "entrar"
+ },
+ {
+  "word": "salir",
+  "gender": "none",
+  "meaning": "나가다, 나오다",
+  "norm": "salir"
+ },
+ {
+  "word": "llegar",
+  "gender": "none",
+  "meaning": "도착하다",
+  "norm": "llegar"
+ },
+ {
+  "word": "buscar",
+  "gender": "none",
+  "meaning": "찾다, 검색하다",
+  "norm": "buscar"
+ },
+ {
+  "word": "dar",
+  "gender": "none",
+  "meaning": "주다",
+  "norm": "dar"
+ },
+ {
+  "word": "tomar",
+  "gender": "none",
+  "meaning": "잡다, 마시다, 타다",
+  "norm": "tomar"
+ },
+ {
+  "word": "poner",
+  "gender": "none",
+  "meaning": "놓다, 두다",
+  "norm": "poner"
+ },
+ {
+  "word": "querer",
+  "gender": "none",
+  "meaning": "원하다, 사랑하다",
+  "norm": "querer"
+ },
+ {
+  "word": "poder",
+  "gender": "none",
+  "meaning": "할 수 있다",
+  "norm": "poder"
+ },
+ {
+  "word": "saber",
+  "gender": "none",
+  "meaning": "알다",
+  "norm": "saber"
+ },
+ {
+  "word": "ayudar",
+  "gender": "none",
+  "meaning": "돕다",
+  "norm": "ayudar"
+ },
+ {
+  "word": "llamar",
+  "gender": "none",
+  "meaning": "부르다, 전화하다",
+  "norm": "llamar"
+ },
+ {
+  "word": "pensar",
+  "gender": "none",
+  "meaning": "생각하다",
+  "norm": "pensar"
+ },
+ {
+  "word": "gustar",
+  "gender": "none",
+  "meaning": "좋아하다, 마음에 들다",
+  "norm": "gustar"
+ },
+ {
+  "word": "jugar",
+  "gender": "none",
+  "meaning": "놀다, 경기하다",
+  "norm": "jugar"
+ },
+ {
+  "word": "grande",
+  "gender": "none",
+  "meaning": "큰",
+  "norm": "grande"
+ },
+ {
+  "word": "pequeño",
+  "gender": "none",
+  "meaning": "작은",
+  "norm": "pequeño"
+ },
+ {
+  "word": "bueno",
+  "gender": "none",
+  "meaning": "좋은, 착한",
+  "norm": "bueno"
+ },
+ {
+  "word": "malo",
+  "gender": "none",
+  "meaning": "나쁜",
+  "norm": "malo"
+ },
+ {
+  "word": "nuevo",
+  "gender": "none",
+  "meaning": "새, 새로운",
+  "norm": "nuevo"
+ },
+ {
+  "word": "fácil",
+  "gender": "none",
+  "meaning": "쉬운",
+  "norm": "facil"
+ },
+ {
+  "word": "difícil",
+  "gender": "none",
+  "meaning": "어려운",
+  "norm": "dificil"
+ },
+ {
+  "word": "frío",
+  "gender": "none",
+  "meaning": "차가운, 추운",
+  "norm": "frio"
+ },
+ {
+  "word": "caro",
+  "gender": "none",
+  "meaning": "비싼",
+  "norm": "caro"
+ },
+ {
+  "word": "barato",
+  "gender": "none",
+  "meaning": "싼, 저렴한",
+  "norm": "barato"
+ },
+ {
+  "word": "rápido",
+  "gender": "none",
+  "meaning": "빠른",
+  "norm": "rapido"
+ },
+ {
+  "word": "feliz",
+  "gender": "none",
+  "meaning": "행복한",
+  "norm": "feliz"
+ },
+ {
+  "word": "triste",
+  "gender": "none",
+  "meaning": "슬픈",
+  "norm": "triste"
+ },
+ {
+  "word": "mucho",
+  "gender": "none",
+  "meaning": "많은",
+  "norm": "mucho"
+ },
+ {
+  "word": "poco",
+  "gender": "none",
+  "meaning": "적은, 조금",
+  "norm": "poco"
+ },
+ {
+  "word": "todo",
+  "gender": "none",
+  "meaning": "모든, 전부",
+  "norm": "todo"
+ },
+ {
+  "word": "otro",
+  "gender": "none",
+  "meaning": "다른, 또 하나의",
+  "norm": "otro"
+ },
+ {
+  "word": "aquí",
+  "gender": "none",
+  "meaning": "여기",
+  "norm": "aqui"
+ },
+ {
+  "word": "bien",
+  "gender": "none",
+  "meaning": "잘, 좋게",
+  "norm": "bien"
+ },
+ {
+  "word": "muy",
+  "gender": "none",
+  "meaning": "매우, 아주",
+  "norm": "muy"
+ },
+ {
+  "word": "más",
+  "gender": "none",
+  "meaning": "더, 더 많이",
+  "norm": "mas"
+ },
+ {
+  "word": "también",
+  "gender": "none",
+  "meaning": "~도, 또한",
+  "norm": "tambien"
+ },
+ {
+  "word": "pero",
+  "gender": "none",
+  "meaning": "그러나, 하지만",
+  "norm": "pero"
+ },
+ {
+  "word": "porque",
+  "gender": "none",
+  "meaning": "왜냐하면, ~때문에",
+  "norm": "porque"
+ },
+ {
+  "word": "qué",
+  "gender": "none",
+  "meaning": "무엇, 뭐",
+  "norm": "que"
+ },
+ {
+  "word": "quién",
+  "gender": "none",
+  "meaning": "누구",
+  "norm": "quien"
+ },
+ {
+  "word": "cuándo",
+  "gender": "none",
+  "meaning": "언제",
+  "norm": "cuando"
+ },
+ {
+  "word": "dónde",
+  "gender": "none",
+  "meaning": "어디, 어디에",
+  "norm": "donde"
+ },
+ {
+  "word": "cómo",
+  "gender": "none",
+  "meaning": "어떻게",
+  "norm": "como"
+ },
+ {
+  "word": "español",
+  "gender": "m",
+  "meaning": "스페인어",
+  "norm": "español"
+ },
+ {
+  "word": "inglés",
+  "gender": "m",
+  "meaning": "영어",
+  "norm": "ingles"
+ },
+ {
+  "word": "coreano",
+  "gender": "m",
+  "meaning": "한국어",
+  "norm": "coreano"
+ },
+ {
+  "word": "españa",
+  "gender": "f",
+  "meaning": "스페인",
+  "norm": "españa"
+ },
+ {
+  "word": "corea",
+  "gender": "f",
+  "meaning": "한국",
+  "norm": "corea"
+ },
+ {
+  "word": "palabra",
+  "gender": "f",
+  "meaning": "단어, 말",
+  "norm": "palabra"
+ },
+ {
+  "word": "pregunta",
+  "gender": "f",
+  "meaning": "질문",
+  "norm": "pregunta"
+ },
+ {
+  "word": "problema",
+  "gender": "m",
+  "meaning": "문제",
+  "norm": "problema"
+ },
+ {
+  "word": "música",
+  "gender": "f",
+  "meaning": "음악",
+  "norm": "musica"
+ },
+ {
+  "word": "número",
+  "gender": "m",
+  "meaning": "숫자, 번호",
+  "norm": "numero"
+ },
+ {
+  "word": "amor",
+  "gender": "m",
+  "meaning": "사랑",
+  "norm": "amor"
+ },
+ {
+  "word": "vida",
+  "gender": "f",
+  "meaning": "삶, 인생, 생활",
+  "norm": "vida"
+ },
+ {
+  "word": "ayuda",
+  "gender": "f",
+  "meaning": "도움",
+  "norm": "ayuda"
+ },
+ {
+  "word": "sueño",
+  "gender": "m",
+  "meaning": "잠, 꿈",
+  "norm": "sueño"
+ }
+]
