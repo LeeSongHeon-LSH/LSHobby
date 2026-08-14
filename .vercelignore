@@ -1,0 +1,11 @@
+# CLI 직접 배포 시 업로드 제외 목록 — 비밀·구 파이썬 앱 자산 (docs/12 SEC-03)
+.env
+.env.*
+spanish.db
+.venv
+__pycache__
+.pytest_cache
+tests
+*.service
+*.timer
+deploy.sh
