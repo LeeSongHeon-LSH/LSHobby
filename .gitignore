@@ -8,3 +8,14 @@ spanish.db
 # Supabase/Next.js 환경변수 — 키 커밋 금지 (docs/12 SEC-03)
 .env
 .env.*
+
+# Next.js
+/node_modules
+/.next/
+/out/
+/coverage
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+.vercel
+.DS_Store
