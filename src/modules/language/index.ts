@@ -7,6 +7,7 @@ export { countNewStartedToday, todayPool } from "./session";
 export { reviewStats, todayReviewSummary, type WordStat } from "./review-stats";
 export { answerWord } from "./answer";
 export { pickSentence, type Sentence } from "./sentences";
+export { aggregate, buildCsv, computeStreak, fetchStats, localDate, type LangStats } from "./stats";
 export { articleFor, stateLabel } from "./display";
 export {
   applyAnswer,

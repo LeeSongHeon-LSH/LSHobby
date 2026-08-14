@@ -133,6 +133,54 @@ describe("duePool (구 _due_pool 이식 — 새 단어 일일 한도)", () => {
   });
 });
 
+describe("통계 집계 (구 stats.py 이식)", () => {
+  it("computeStreak: 오늘/어제로 끝나는 연속만 인정", async () => {
+    const { computeStreak } = await import("./stats");
+    const today = "2026-08-15";
+    expect(computeStreak([], today)).toBe(0);
+    expect(computeStreak(["2026-08-15", "2026-08-14", "2026-08-13"], today)).toBe(3);
+    expect(computeStreak(["2026-08-14", "2026-08-13"], today)).toBe(2); // 어제까지 인정
+    expect(computeStreak(["2026-08-13"], today)).toBe(0); // 이틀 전 = 끊김
+    expect(computeStreak(["2026-08-15", "2026-08-13"], today)).toBe(1); // 중간 공백
+  });
+  it("aggregate: 일별 14칸·오늘 수·상태 분포", async () => {
+    const { aggregate } = await import("./stats");
+    const now = new Date("2026-08-15T12:00:00");
+    const logs = [
+      { rating: 3, reviewed_at: "2026-08-15T09:00:00" },
+      { rating: 1, reviewed_at: "2026-08-15T09:01:00" },
+      { rating: 3, reviewed_at: "2026-08-14T09:00:00" },
+    ];
+    const words = [newRow({ state: 0 }), newRow({ state: 2 }), newRow({ state: 2 })].map(
+      (r, i) => ({ ...r, id: i + 1, word: "w", gender: "none" as const, meaning: "m", norm: `n${i}`, created_at: "" }),
+    );
+    const s = aggregate(logs, words, now);
+    expect(s.daily).toHaveLength(14);
+    expect(s.daily[13]).toEqual({ date: "2026-08-15", total: 2, correct: 1 });
+    expect(s.todayTotal).toBe(2);
+    expect(s.streak).toBe(2);
+    expect(s.totalReviews).toBe(3);
+    expect(s.totalCorrect).toBe(2);
+    expect(s.stateCounts).toEqual([1, 0, 2, 0]);
+  });
+  it("buildCsv: 헤더 + 이스케이프", async () => {
+    const { buildCsv } = await import("./stats");
+    const w = {
+      ...newRow(),
+      id: 1,
+      word: "casa",
+      gender: "f" as const,
+      meaning: '집, "가정"',
+      norm: "casa",
+      created_at: "2026-08-15",
+    };
+    const csv = buildCsv([w], new Map([[1, { reviews: 2, correct: 1 }]]));
+    const [header, row] = csv.trim().split("\n");
+    expect(header).toBe("word,gender,meaning,reviews,correct,state,due,created_at");
+    expect(row).toContain('casa,f,"집, ""가정""",2,1,0,,2026-08-15');
+  });
+});
+
 describe("파생 판정·가중치 (구 is_hard/_weight 이식)", () => {
   it("isHard: 4회 이상 + 정답률 60% 미만", () => {
     expect(isHard(4, 2)).toBe(true); // 50%
