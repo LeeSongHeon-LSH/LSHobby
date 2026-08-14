@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AuthGuard, signOut } from "@/modules/shared/auth";
 import { getFeed, type FeedItem } from "@/modules/shared/activity";
 import { countWords, esConfig } from "@/modules/language";
+import { countBooks } from "@/modules/library";
 
 // §11.3 홈(허브) — 세션 카드 + 도메인 횡단 타임라인. 탭바 없음 (§11.1)
 const relTime = (iso: string): string => {
@@ -18,10 +19,12 @@ const relTime = (iso: string): string => {
 function Hub() {
   const router = useRouter();
   const [wordCount, setWordCount] = useState<number | null>(null);
+  const [bookCount, setBookCount] = useState<number | null>(null);
   const [feed, setFeed] = useState<FeedItem[]>([]);
 
   useEffect(() => {
     countWords(esConfig).then(setWordCount).catch(() => setWordCount(null));
+    countBooks().then(setBookCount).catch(() => setBookCount(null));
     getFeed(30).then(setFeed).catch(() => setFeed([]));
   }, []);
 
@@ -40,10 +43,15 @@ function Hub() {
       </header>
 
       <nav className="space-y-3">
-        <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 opacity-50">
+        <Link
+          href="/library"
+          className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"
+        >
           <span className="text-lg font-semibold">📚 책</span>
-          <span className="text-sm text-neutral-500">준비 중</span>
-        </div>
+          <span className="text-sm text-neutral-500">
+            {bookCount === null ? "" : `완독 ${bookCount}권`}
+          </span>
+        </Link>
         <Link
           href="/language"
           className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"
