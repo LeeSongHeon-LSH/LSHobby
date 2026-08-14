@@ -1,7 +1,7 @@
 # 서버 세팅 & 재설치 가이드
 
 컴퓨터를 초기화하거나 새 컴퓨터로 옮길 때 이 문서대로 따라 하면 전체 환경이 복구된다.
-이 문서는 git에 포함되어 있으므로 GitHub(`LeeSongHeon-LSH/Spanish-Practice`)에 항상 남아 있다.
+이 문서는 git에 포함되어 있으므로 GitHub(`LeeSongHeon-LSH/LSHobby`)에 항상 남아 있다.
 
 ## 시스템 개요
 
@@ -49,7 +49,7 @@ sudo apt install -y git python3 python3-venv curl
 
 ```bash
 mkdir -p ~/projects && cd ~/projects
-git clone https://github.com/LeeSongHeon-LSH/Spanish-Practice.git
+git clone https://github.com/LeeSongHeon-LSH/LSHobby.git Spanish-Practice
 cd Spanish-Practice
 
 # 가상환경 + 의존성
