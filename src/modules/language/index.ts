@@ -4,6 +4,9 @@ export { esConfig } from "./es";
 export { gradeAnswer, answerAlternatives, type GradeResult } from "./grading";
 export { addWord, countWords, deleteWord, findByNorm, listWords, updateWord, type Word } from "./words";
 export { countNewStartedToday, todayPool } from "./session";
+export { reviewStats, todayReviewSummary, type WordStat } from "./review-stats";
+export { answerWord } from "./answer";
+export { pickSentence, type Sentence } from "./sentences";
 export { articleFor, stateLabel } from "./display";
 export {
   applyAnswer,

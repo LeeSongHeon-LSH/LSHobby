@@ -8,6 +8,7 @@ export interface LanguageConfig {
   code: string;
   wordTable: string;
   reviewLogTable: string;
+  sentenceTable: string;
   /** 중복 차단용 정규화 — DB norm 컬럼 값 */
   normalize(word: string): string;
   /** 채점 관대 비교용 변형. null이면 정확 일치만 */

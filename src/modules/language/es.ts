@@ -12,6 +12,7 @@ export const esConfig: LanguageConfig = {
   code: "es",
   wordTable: "es_words",
   reviewLogTable: "es_review_log",
+  sentenceTable: "es_sentences",
   normalize: (word) => stripAccentsKeepTilde(word.trim().toLowerCase()),
   gradeLenient: stripAccentsKeepTilde,
 };
