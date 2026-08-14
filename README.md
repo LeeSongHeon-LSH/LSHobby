@@ -1,122 +1,19 @@
-# Spanish Practice
+# LSHobby
 
-스페인어 단어를 저장하고 퀴즈로 학습하는 프로그램입니다.
+개인 지식·취미 관리 웹앱 — 책 · 언어 · CS 세 세션을 한곳에서. 핵심 가치는 **"시간에 따라 생각이 변하는 과정"의 기록**(reflection).
 
-## 기능
+- **프로덕션**: https://lshobby.vercel.app (main 푸시 = 자동 배포)
+- **스택**: Next.js + Tailwind + Supabase + Vercel — 근거는 [docs/02](docs/02-tech-stack.md)
+- **설계 문서**: [docs/](docs/README.md) — 아키텍처·모듈 설계·ERD/DDL·요구사항 명세(SRS)·인프라 해설(§16)
 
-### 단어 관리
-- 스페인어 단어, 한국어 뜻, 성별을 함께 저장
-- 성별: 남성(`m`), 여성(`f`), 양성(`n`), 없음(`none` — 동사 등)
-- 단어와 뜻은 필수 입력, 성별은 선택 (미선택 시 `none` 자동 지정)
-
-### 퀴즈
-- 스페인어 → 한국어 / 한국어 → 스페인어 방향을 매 문제마다 랜덤 선택
-- 카드에 단어와 성별 표시, 텍스트 입력으로 정답 비교
-- 정답률이 낮은 단어에 가중치를 부여해 더 자주 출제 (Laplace smoothing)
-- 간격 반복(SRS, Leitner 박스): 정답 시 복습 간격이 1 → 2 → 4 → 8 → 16일로 늘어나고,
-  오답 시 즉시 복습 대상으로 리셋. 복습 예정 단어를 우선 출제하며,
-  복습할 단어가 없으면 자유 연습 모드로 전환
-
-### UI
-- 브라우저에서 실행되는 단일 HTML 파일 (`index.html`)
-- 표시 언어 전환: 한국어 / Español / English (우측 상단 ⚙)
-- 스페인어 특수문자 단축키 (단어 입력창 / 퀴즈 답 입력창):
-  - `Alt + N` → ñ
-  - `Alt + /` → ¿
-  - `Alt + 1` → ¡
-- PWA 지원: https 또는 localhost 접속 시 휴대폰/데스크톱 홈 화면에 앱으로 설치 가능
-- 홈 화면에 오늘 복습할 단어 수 표시
-
-## 프로젝트 구조
-
-```
-Spanish-Practice/
-├── main.py        # FastAPI 서버
-├── db.py          # SQLite 데이터베이스 모듈
-├── quiz.py        # 퀴즈 로직 (가중치 랜덤 출제 + SRS)
-├── index.html     # 웹 UI
-├── static/        # PWA 리소스 (manifest, 서비스워커, 아이콘)
-├── requirements.txt
-├── spanish.db     # SQLite DB 파일 (자동 생성)
-└── tests/
-    ├── conftest.py
-    ├── test_db.py
-    └── test_quiz.py
-```
-
-## 서버 운영 / 재설치
-
-상시 실행(systemd), CI/CD, Tailscale 외부 접속, 컴퓨터 초기화 후 복구 절차는
-**[SETUP.md](SETUP.md)** 참고.
-
-## 실행 방법
-
-### 요구 사항
-
-- Python 3.10 이상
-- 웹 브라우저
-
-### 설치
+## 개발
 
 ```bash
-pip install -r requirements.txt
+npm install
+npm run dev     # localhost:3000 (.env 필요 — docs/16 §16.4)
+npm test        # vitest
 ```
 
-### 서버 실행
+DB 스키마 변경은 `supabase/migrations/`가 원본 — 절차는 [docs/16 §16.6](docs/16-infra.md).
 
-```bash
-uvicorn main:app --reload
-```
-
-브라우저에서 `http://localhost:8000` 으로 접속합니다.
-
-`spanish.db`는 최초 실행 시 자동으로 생성되며, 이전 버전 DB가 있으면 스키마가 자동 마이그레이션됩니다.
-
-### Python 모듈 직접 사용
-
-```python
-import db
-from db import Gender
-
-db.init_db()
-
-# 단어 추가
-db.add_word("casa", Gender.FEMININE, "집")
-db.add_word("hablar", Gender.NONE, "말하다")
-
-# 전체 단어 조회
-db.get_all_words()
-
-# 출제 결과 기록
-db.record_attempt("casa", correct=True)
-```
-
-```python
-import quiz
-
-# 가중치 기반 랜덤 출제
-word = quiz.pick_word()
-
-# 정답 기록
-quiz.submit_answer(word["word"], correct=True)
-```
-
-### 테스트 실행
-
-```bash
-pip install pytest
-python -m pytest tests/ -v
-```
-
-## 데이터베이스 스키마
-
-```sql
-CREATE TABLE words (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    word          TEXT    NOT NULL UNIQUE,
-    gender        TEXT    NOT NULL CHECK(gender IN ('m', 'f', 'n', 'none')),
-    meaning       TEXT    NOT NULL CHECK(length(meaning) > 0),
-    test_count    INTEGER NOT NULL DEFAULT 0,
-    correct_count INTEGER NOT NULL DEFAULT 0
-);
-```
+> 구 스페인어 학습 앱(FastAPI + SQLite)은 2026-08-15 컷오버로 종료·삭제됨 (git 히스토리에 보존, `spanish.db` 백업은 홈 디렉터리).

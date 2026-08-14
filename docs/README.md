@@ -2,8 +2,8 @@
 
 > **작성일**: 2026-08-14 (모듈·ERD/DDL·와이어프레임 확정: 2026-08-14)
 > **앱 이름**: **LSHobby** — GitHub 리포 `LeeSongHeon-LSH/LSHobby` (구 Spanish-Practice에서 개명 완료)
-> **상태**: 설계 확정 + **인프라 세팅 완료** — Supabase(스키마·보안)·Next.js 스캐폴드·Vercel 자동 배포 ([§16](16-infra.md) 참조, 프로덕션 https://lshobby.vercel.app)
-> **다음 작업**: 언어 모듈 구현 (로드맵은 [06-language-srs.md](06-language-srs.md) §6.6, 컷오버 기준 §6.5)
+> **상태**: **언어 모듈 완성 + 컷오버 완료 (2026-08-15)** — 구 파이썬 앱 삭제, 프로덕션 https://lshobby.vercel.app 단일 운영. UI 재디자인은 전 기능 구현 후 1회(#48)
+> **다음 작업**: 책 모듈 구현 (§7) → CS 모듈 (§8) — 로드맵은 [06-language-srs.md](06-language-srs.md) §6.6
 
 ## 1. 프로젝트 개요
 

@@ -118,7 +118,9 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 로컬 개발도 프로덕션 DB를 직접 쓴다 — 1인 프로젝트라 dev/prod DB 분리를 하지 않았다(단순성 우선). 파괴적인 실험이 필요하면 그때 `supabase start`(로컬 Docker DB)를 검토.
 
-### 16.8 구 파이썬 앱과의 공존 (컷오버 전 한시적)
+### 16.8 구 파이썬 앱과의 공존 — **종료됨 (2026-08-15 컷오버, #49)**
+
+> 아래는 기록용. 파이썬 앱·systemd 유닛·pytest CI는 삭제됐고(git 히스토리 보존), `spanish.db`는 `~/spanish.db.bak-cutover-20260815`로 백업됨. Tailscale serve 프록시 해제만 sudo 필요로 남음.
 
 ```
 같은 리포 안:
