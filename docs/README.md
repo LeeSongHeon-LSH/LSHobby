@@ -33,7 +33,7 @@
 | §6 | [06-language-srs.md](06-language-srs.md) | 언어 모듈 + **SRS(FSRS)** — 언어별 테이블, 빅뱅 컷오버, 로드맵(§6.6) |
 | §7 | [07-library.md](07-library.md) | 책 모듈 — 완독 후 일괄 기록, 회독·인용구·노트 |
 | §8 | [08-knowledge.md](08-knowledge.md) | CS 모듈 — 개념 문서, 태그 + 위키링크·백링크 |
-| §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 13개 테이블, RLS (컷오버 시 마이그레이션 원본) |
+| §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 14개 테이블, RLS (컷오버 시 마이그레이션 원본) |
 | §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~41 |
 | §11 | [11-wireframes.md](11-wireframes.md) | 화면 와이어프레임 — 내비 문법, 전 세션 화면 인벤토리 |
 | §12 | [12-requirements.md](12-requirements.md) | **요구사항 명세(SRS)** — FR/NFR/SEC 통합, 보안·백업 신규 확정, 수용 기준 |
