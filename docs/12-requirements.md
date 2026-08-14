@@ -79,6 +79,21 @@
 | SEC-05 | P | 마크다운 렌더 시 HTML sanitize(rehype-sanitize 등) — 입력자가 본인뿐이어도 저장 XSS를 습관적으로 차단, 비용 0 |
 | SEC-06 | C | HTTPS 전제(Vercel 기본). 커스텀 보안 헤더·CSP 튜닝은 스코프 외 |
 | SEC-07 | — | **명시적 비채택**: 레이트리밋·감사 로그·2FA·세션 정책 커스텀 — SEC-01이 성립하면 1인 규모에서 실익 없음 |
+| SEC-08 | C | **비밀번호 분실 복구 = 운영 절차** (아래 런북). 앱 내 "비밀번호 찾기" 플로우는 비채택 — 재설정 페이지·이메일 설정이 필요해지는데, 프로젝트 소유자 본인이라 대시보드/admin API로 즉시 재설정 가능하므로 코드 0줄이 이김. 다중 사용자 확장 시에만 앱 내 플로우 추가 |
+
+**SEC-08 복구 런북** — 앱 비밀번호를 잊었을 때:
+
+1. Supabase 대시보드에 로그인한다 (앱 비밀번호와 무관한 별도 인증). **이 대시보드 계정이 진짜 최상위 복구 수단**이므로 이쪽 로그인 수단(GitHub 계정 등)을 잃지 않는 것이 중요
+2. Authentication → Users에서 유저의 UUID 확인. 대시보드가 비밀번호 직접 변경 UI를 제공하면 그걸로 끝
+3. 아니면 admin API 한 줄 (service_role 키는 서버 환경변수에 이미 보유, SEC-03):
+
+```bash
+curl -X PUT "https://<project-ref>.supabase.co/auth/v1/admin/users/<user-uuid>" \
+  -H "apikey: $SERVICE_ROLE_KEY" -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+  -H "Content-Type: application/json" -d '{"password":"새 비밀번호"}'
+```
+
+이메일 발송이 없으므로 SMTP 설정·재설정 페이지가 전혀 필요 없다. 세팅 단계(§12.6)에서 이 절차를 1회 실제로 리허설해 검증한다.
 
 ### 12.5 공백 점검 결과 (기능·비기능 완성도 확인)
 
@@ -101,3 +116,4 @@
 2. anon key로 REST 직접 호출 시 전 테이블 거부 확인 (RLS 동작 검증)
 3. `service_role` 키가 클라이언트 번들·리포에 없음 확인
 4. Storage 버킷 private 확인
+5. 비밀번호 재설정 런북(SEC-08) 1회 리허설 — admin API로 실제 변경해 보고 새 비밀번호로 로그인 확인
