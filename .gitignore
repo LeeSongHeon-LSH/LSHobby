@@ -4,3 +4,7 @@ __pycache__/
 spanish.db
 # deploy.sh가 마지막으로 배포한 리비전 기록 (추적되면 dirty 판정에 걸려 배포가 멈춤)
 .deployed-rev
+
+# Supabase/Next.js 환경변수 — 키 커밋 금지 (docs/12 SEC-03)
+.env
+.env.*
