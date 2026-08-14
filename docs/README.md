@@ -2,8 +2,8 @@
 
 > **작성일**: 2026-08-14 (모듈·ERD/DDL·와이어프레임 확정: 2026-08-14)
 > **앱 이름**: **LSHobby** — GitHub 리포 `LeeSongHeon-LSH/LSHobby` (구 Spanish-Practice에서 개명 완료)
-> **상태**: 설계 단계 전부 확정 — 아키텍처·화면구조·세 모듈·ERD/DDL·와이어프레임
-> **다음 작업**: 프로젝트 초기 세팅 — Next.js + Supabase 연결 (로드맵은 [06-language-srs.md](06-language-srs.md) §6.6)
+> **상태**: 설계 단계 전부 확정 — 아키텍처·화면구조·세 모듈·ERD/DDL·와이어프레임·요구사항 명세(§12)
+> **다음 작업**: 프로젝트 초기 세팅 — Next.js + Supabase 연결 (로드맵은 [06-language-srs.md](06-language-srs.md) §6.6, 세팅 직후 보안 체크리스트는 [§12.6](12-requirements.md))
 
 ## 1. 프로젝트 개요
 
@@ -36,3 +36,4 @@
 | §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 13개 테이블, RLS (컷오버 시 마이그레이션 원본) |
 | §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~41 |
 | §11 | [11-wireframes.md](11-wireframes.md) | 화면 와이어프레임 — 내비 문법, 전 세션 화면 인벤토리 |
+| §12 | [12-requirements.md](12-requirements.md) | **요구사항 명세(SRS)** — FR/NFR/SEC 통합, 보안·백업 신규 확정, 수용 기준 |
