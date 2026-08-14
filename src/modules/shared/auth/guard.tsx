@@ -26,3 +26,9 @@ export async function signIn(email: string, password: string): Promise<string | 
 export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
+
+/** 로그인 상태에서의 비밀번호 변경 (결정 #50) — 분실 복구는 여전히 SEC-08 런북 */
+export async function updatePassword(newPassword: string): Promise<string | null> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return error ? error.message : null;
+}
