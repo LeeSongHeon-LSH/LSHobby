@@ -11,6 +11,7 @@ const stripAccentsKeepTilde = (s: string) =>
 export const esConfig: LanguageConfig = {
   code: "es",
   wordTable: "es_words",
+  reviewLogTable: "es_review_log",
   normalize: (word) => stripAccentsKeepTilde(word.trim().toLowerCase()),
   gradeLenient: stripAccentsKeepTilde,
 };

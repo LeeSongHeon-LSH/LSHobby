@@ -2,6 +2,9 @@
 export type { Gender, LanguageConfig } from "./types";
 export { esConfig } from "./es";
 export { gradeAnswer, answerAlternatives, type GradeResult } from "./grading";
+export { addWord, countWords, deleteWord, findByNorm, listWords, updateWord, type Word } from "./words";
+export { countNewStartedToday, todayPool } from "./session";
+export { articleFor, stateLabel } from "./display";
 export {
   applyAnswer,
   duePool,

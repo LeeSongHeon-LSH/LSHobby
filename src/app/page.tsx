@@ -1,69 +1,87 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AuthGuard, signOut } from "@/modules/shared/auth";
+import { getFeed, type FeedItem } from "@/modules/shared/activity";
+import { countWords, esConfig } from "@/modules/language";
+
+// §11.3 홈(허브) — 세션 카드 + 도메인 횡단 타임라인. 탭바 없음 (§11.1)
+const relTime = (iso: string): string => {
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (d <= 0) return "오늘";
+  if (d === 1) return "어제";
+  return `${d}일 전`;
+};
+
+function Hub() {
+  const router = useRouter();
+  const [wordCount, setWordCount] = useState<number | null>(null);
+  const [feed, setFeed] = useState<FeedItem[]>([]);
+
+  useEffect(() => {
+    countWords(esConfig).then(setWordCount).catch(() => setWordCount(null));
+    getFeed(30).then(setFeed).catch(() => setFeed([]));
+  }, []);
+
+  const logout = async () => {
+    await signOut();
+    router.replace("/login");
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="mx-auto w-full max-w-md flex-1 p-4 pb-10">
+      <header className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">LSHobby</h1>
+        <button onClick={logout} aria-label="로그아웃" className="rounded p-2 text-neutral-500">
+          ⚙
+        </button>
+      </header>
+
+      <nav className="space-y-3">
+        <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 opacity-50">
+          <span className="text-lg font-semibold">📚 책</span>
+          <span className="text-sm text-neutral-500">준비 중</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <Link
+          href="/language"
+          className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"
+        >
+          <span className="text-lg font-semibold">🗣 언어</span>
+          <span className="text-sm text-neutral-500">
+            {wordCount === null ? "" : `단어 ${wordCount}개`}
+          </span>
+        </Link>
+        <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-5 opacity-50">
+          <span className="text-lg font-semibold">💻 CS</span>
+          <span className="text-sm text-neutral-500">준비 중</span>
         </div>
-      </main>
-    </div>
+      </nav>
+
+      <section className="mt-8">
+        <h2 className="mb-3 text-sm font-medium text-neutral-500">최근 기록</h2>
+        {feed.length === 0 ? (
+          <p className="text-sm text-neutral-400">아직 기록이 없습니다</p>
+        ) : (
+          <ul className="space-y-2">
+            {feed.map((f) => (
+              <li key={f.id} className="flex gap-3 text-sm">
+                <span className="w-14 shrink-0 text-neutral-400">{relTime(f.occurred_at)}</span>
+                <span>{f.summary}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </main>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <AuthGuard>
+      <Hub />
+    </AuthGuard>
   );
 }
