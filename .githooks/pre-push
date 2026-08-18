@@ -1,0 +1,17 @@
+#!/bin/sh
+# 테스트 전체 통과 없이는 push 불가 (docs/12 NFR-06)
+# 설치: npm install 시 prepare 스크립트가 core.hooksPath를 이 디렉토리로 지정
+
+echo "pre-push: lint 실행 중..."
+npm run lint || {
+  echo ""
+  echo "✗ lint 실패 — push가 차단되었습니다. 수정 후 다시 시도하세요."
+  exit 1
+}
+
+echo "pre-push: vitest 실행 중..."
+npm test || {
+  echo ""
+  echo "✗ 테스트 실패 — push가 차단되었습니다. 수정 후 다시 시도하세요."
+  exit 1
+}

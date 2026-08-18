@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { esConfig } from "./es";
 import { enConfig } from "./en";
+import { configFor, languageConfigs } from "./registry";
+import { articleFor, stateLabel } from "./display";
 import { answerAlternatives, gradeAnswer } from "./grading";
 import {
   applyAnswer,
@@ -59,6 +61,37 @@ describe("enConfig (§6.2 — 대소문자·앞뒤 공백 무시 정확 일치)"
   });
   it("성별 필드 없음", () => {
     expect(enConfig.hasGender).toBe(false);
+  });
+});
+
+describe("언어 레지스트리 (FR-18·§6.2 — 언어 추가 = config 등록만)", () => {
+  it("es·en이 등록돼 있고 미지원 코드는 null", () => {
+    expect(configFor("es")).toBe(esConfig);
+    expect(configFor("en")).toBe(enConfig);
+    expect(configFor("jp")).toBeNull();
+  });
+  it("언어별 테이블명이 서로 겹치지 않는다", () => {
+    const tables = Object.values(languageConfigs).flatMap((c) => [
+      c.wordTable,
+      c.reviewLogTable,
+      c.sentenceTable,
+      c.sentenceFetchTable,
+    ]);
+    expect(new Set(tables).size).toBe(tables.length);
+  });
+});
+
+describe("표시 규칙 (§11.4.3)", () => {
+  it("articleFor: m=el, f=la, n=el/la, none·성별 없는 언어=빈 문자열", () => {
+    expect(articleFor("m")).toBe("el");
+    expect(articleFor("f")).toBe("la");
+    expect(articleFor("n")).toBe("el/la");
+    expect(articleFor("none")).toBe("");
+    expect(articleFor(undefined)).toBe("");
+  });
+  it("stateLabel: FSRS 상태 0~3 라벨, 범위 밖은 ?", () => {
+    expect([0, 1, 2, 3].map(stateLabel)).toEqual(["신규", "학습중", "복습", "재학습"]);
+    expect(stateLabel(9)).toBe("?");
   });
 });
 
