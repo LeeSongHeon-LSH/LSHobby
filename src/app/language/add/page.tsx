@@ -16,18 +16,19 @@ export default function AddPage() {
   const [word, setWord] = useState("");
   const [meaning, setMeaning] = useState("");
   const [gender, setGender] = useState<Gender>("none");
-  const [dup, setDup] = useState<string | null>(null);
+  // dup은 어느 입력(query)에 대한 결과인지 함께 저장 — 입력이 바뀌면 렌더에서 무효화
+  const [dup, setDup] = useState<{ query: string; word: string } | null>(null);
   const [done, setDone] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const dupWord = dup && dup.query === word.trim() ? dup.word : null;
 
   // 입력 멈춘 뒤 중복 조회 (디바운스 300ms)
   useEffect(() => {
-    setDup(null);
     const w = word.trim();
     if (!w) return;
     const t = setTimeout(() => {
       findByNorm(config, w)
-        .then((hit) => setDup(hit ? hit.word : null))
+        .then((hit) => setDup(hit ? { query: w, word: hit.word } : null))
         .catch(() => setDup(null));
     }, 300);
     return () => clearTimeout(t);
@@ -40,7 +41,7 @@ export default function AddPage() {
     try {
       const { added, duplicate } = await addWord(config, { word, meaning, gender });
       if (duplicate) {
-        setDup(duplicate.word);
+        setDup({ query: word.trim(), word: duplicate.word });
       } else if (added) {
         setDone(`추가됨: ${added.word}`);
         setWord("");
@@ -69,7 +70,7 @@ export default function AddPage() {
             lang={config.code}
             autoCapitalize="off"
           />
-          {dup && <p className="mt-1 text-sm text-err">⚠ 이미 있는 단어: {dup}</p>}
+          {dupWord && <p className="mt-1 text-sm text-err">⚠ 이미 있는 단어: {dupWord}</p>}
         </div>
         <div>
           <label className="mb-1 block text-sm text-faint">뜻</label>
@@ -103,7 +104,7 @@ export default function AddPage() {
         )}
         <button
           type="submit"
-          disabled={busy || !word.trim() || !meaning.trim() || dup !== null}
+          disabled={busy || !word.trim() || !meaning.trim() || dupWord !== null}
           className="w-full rounded-md bg-lang py-3 font-medium text-white disabled:opacity-40"
         >
           추가하기

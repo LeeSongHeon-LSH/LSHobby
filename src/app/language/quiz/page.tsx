@@ -48,6 +48,7 @@ export default function QuizPage() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [mode, setMode] = useState<"due" | "free" | "hard">("due");
   const [total, setTotal] = useState(0);
+  const [remaining, setRemaining] = useState(0); // pool.current.length 미러 — 렌더용 (ref 직접 읽기 금지)
   const [q, setQ] = useState<Question | null>(null);
   const [input, setInput] = useState("");
   const [result, setResult] = useState<GradeResult | null>(null);
@@ -109,6 +110,7 @@ export default function QuizPage() {
         pool.current = [...words];
       }
       setTotal(pool.current.length);
+      setRemaining(pool.current.length);
       if (pool.current.length === 0) setPhase("empty");
       else next();
     })();
@@ -129,6 +131,7 @@ export default function QuizPage() {
     // 정답이면 풀에서 제거, 오답은 남겨 재출제 (자유 연습은 계속 순환)
     if (res.ok && mode !== "free") {
       pool.current = pool.current.filter((w) => w.id !== q.word.id);
+      setRemaining(pool.current.length);
     }
     answerWord(config, q.word, res.ok).catch(() => {});
   };
@@ -154,7 +157,7 @@ export default function QuizPage() {
     }
   };
 
-  const progress = mode === "free" ? "자유 연습" : `진행 ${total - pool.current.length}/${total}`;
+  const progress = mode === "free" ? "자유 연습" : `진행 ${total - remaining}/${total}`;
 
   if (phase === "loading") return <main className="p-4" />;
 

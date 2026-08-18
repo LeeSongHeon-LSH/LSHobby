@@ -36,13 +36,14 @@ export async function addEntry(
   content: string,
   context?: string,
 ): Promise<void> {
-  let { data: thread, error } = await supabase
+  const { data: found, error } = await supabase
     .from("reflection_thread")
     .select("id")
     .eq("subject_type", subjectType)
     .eq("subject_id", subjectId)
     .maybeSingle();
   if (error) throw error;
+  let thread = found;
   if (!thread) {
     const { data: created, error: cErr } = await supabase
       .from("reflection_thread")

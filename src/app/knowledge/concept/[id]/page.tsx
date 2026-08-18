@@ -67,7 +67,9 @@ export default function ConceptDetailPage({ params }: PageProps<"/knowledge/conc
   }, [id]);
 
   useEffect(() => {
-    reload();
+    void (async () => {
+      await reload();
+    })();
   }, [reload]);
 
   if (missing)

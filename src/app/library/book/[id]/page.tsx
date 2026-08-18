@@ -57,7 +57,9 @@ export default function BookDetailPage({ params }: PageProps<"/library/book/[id]
   }, [id]);
 
   useEffect(() => {
-    reload();
+    void (async () => {
+      await reload();
+    })();
   }, [reload]);
 
   if (missing)
