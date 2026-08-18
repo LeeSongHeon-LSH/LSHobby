@@ -12,6 +12,7 @@ flowchart TD
         LIB[library]
         LANG[language]
         KNOW[knowledge]
+        CV[cv]
     end
     subgraph shared["shared"]
         REF[reflection]
@@ -28,6 +29,7 @@ flowchart TD
 - 화살표 = 허용된 의존. **역방향(shared → 도메인)·도메인 간 직접 의존은 금지**(§3.4)
 - 도메인 간 정보 전달은 `activity` 이벤트 발행이 유일한 통로 — 홈은 activity만 읽는다(§5.3)
 - language가 reflection을 안 쓰는 것은 현재 화면에 단어 상세가 없어서일 뿐 — 추후 단어 상세 추가 시 허용 방향(§11.7)
+- cv는 shared 중 auth(편집 가드)와 markdown 렌더만 사용 — reflection·activity·tag 미사용 (§17.7)
 
 ### 15.2 shared 모듈
 
@@ -155,6 +157,7 @@ classDiagram
 | language | `es_words` · `es_review_log` · `es_sentences` · `es_sentence_fetch` | 영어 확장 시 `en_*` 4종 추가 |
 | library | `book` · `reading` · `quote` | |
 | knowledge | `concept` · `concept_link` | |
+| cv | `cv_document` | 유일한 anon SELECT 테이블 (§17, #51) |
 
 **각 모듈은 자기 테이블만 쿼리한다**(§3.4-2). 이 표가 코드 리뷰 때의 경계 판정 기준.
 

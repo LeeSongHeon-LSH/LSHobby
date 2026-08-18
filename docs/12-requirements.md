@@ -73,7 +73,7 @@
 | ID | 우선 | 요구 |
 |---|---|---|
 | SEC-01 | C | **신규 가입 서버 차단** — Supabase Auth 설정에서 "Allow new users to sign up" **off**, 본인 계정은 대시보드에서 수동 생성. 회원가입 UI가 없어도 Auth API로 직접 가입이 가능하므로 UI 부재만으로는 불충분. RLS가 "authenticated 전부 허용"(#33)이라 **이 설정이 사실상 유일한 접근 통제선** |
-| SEC-02 | C | RLS 전 테이블 활성 + anon 전부 거부 (§9.2 그대로) |
+| SEC-02 | C | RLS 전 테이블 활성 + anon 전부 거부 (§9.2 그대로). **예외 (2026-08-18, #51)**: `cv_document`만 anon SELECT 허용 — 공개 CV(§17), 쓰기는 여전히 authenticated 전용 |
 | SEC-03 | C | 키 관리 — `service_role` 키는 서버 환경변수 전용, 클라이언트 번들·리포 커밋 금지. 브라우저에는 anon key만. `.env*`는 gitignore |
 | SEC-04 | C | Storage 버킷 **private**(공개 버킷 금지) + authenticated 정책. 이미지 표시는 signed URL 또는 인증 경유 |
 | SEC-05 | P | 마크다운 렌더 시 HTML sanitize(rehype-sanitize 등) — 입력자가 본인뿐이어도 저장 XSS를 습관적으로 차단, 비용 0 |

@@ -30,6 +30,8 @@ FK 없는 다형 참조(그림에 없는 연결, §4.5):
 - `tagging(subject_type, subject_id)` ⇢ book · concept
 - `activity_feed(entity_type, entity_id)` ⇢ 전 도메인 (summary 비정규화라 원본 참조 자체가 불필요)
 
+관계 없는 독립 테이블: `cv_document` (§17 — 1행 운용, FK·다형 참조 없음)
+
 ### 9.2 DDL
 
 ```sql
@@ -173,6 +175,14 @@ create table es_sentence_fetch (
   fetched_at timestamptz not null default now()
 );
 
+-- ============ cv (§17) ============
+
+create table cv_document (
+  id         bigint generated always as identity primary key,
+  content    text not null default '',   -- CV 전문 마크다운 (1행 운용)
+  updated_at timestamptz not null default now()
+);
+
 -- ============ RLS: 전 테이블 "authenticated 전부 허용" ============
 -- anon은 기본 거부(RLS 기본값), 로그인 = 본인 (1계정 전제 — §9.3)
 
@@ -186,12 +196,15 @@ begin
       t);
   end loop;
 end $$;
+
+-- §17: cv_document만 공개 읽기 허용 — 전 스키마에서 유일한 anon 정책 (#51, SEC-02 개정)
+create policy anon_read_cv on cv_document for select to anon using (true);
 ```
 
 ### 9.3 DDL 수준 결정 사항
 
 - **PK**: 전 테이블 `bigint generated always as identity`. uuid 기각 — 분산·오프라인 생성이 없는 1인 서버 생성 구조에서 정수가 모든 면에서 가벼움
-- **RLS**: 켜되 정책은 "authenticated 전부 허용", **`user_id` 컬럼 없음** — 계정이 본인 하나뿐이라 "로그인함 = 본인". 다중 사용자로 확장하면 그때 컬럼 추가 마이그레이션. Supabase Storage 버킷 정책도 동일(authenticated만 읽기/쓰기)
+- **RLS**: 켜되 정책은 "authenticated 전부 허용", **`user_id` 컬럼 없음** — 계정이 본인 하나뿐이라 "로그인함 = 본인". 다중 사용자로 확장하면 그때 컬럼 추가 마이그레이션. Supabase Storage 버킷 정책도 동일(authenticated만 읽기/쓰기). **예외**: `cv_document`만 anon SELECT 허용 — 공개 CV (§17, #51)
 - **다형 참조 값 규칙**: `subject_type`/`entity_type`은 테이블을 특정하는 값(`'es_word'`, 영어 추가 시 `'en_word'`) — §4.4 초안의 `'vocab'` 정정. 컬럼 하나로 대상 테이블까지 식별
 - **학습 카운터 컬럼 없음**: 현행 앱의 `test_count`/`correct_count` 이중 저장을 제거 — 통계·스트릭·하루 신규 20개 한도·어려운 단어 판정 전부 `es_review_log`에서 파생 집계
 - **cascade 이원화**: 진짜 FK는 DB `on delete cascade`, 다형 참조 행(reflection·tagging)은 앱 레이어가 삭제 (§4.5 "무결성은 앱 레이어" 결정의 귀결. 트리거는 숨은 로직이 되기 쉬워 배제)
