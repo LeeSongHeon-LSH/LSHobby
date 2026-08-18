@@ -116,11 +116,11 @@ export default function ConceptEditPage() {
   return (
     <main className="p-4">
       <div className="mb-3 flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-neutral-500">← 취소</button>
+        <button onClick={() => router.back()} className="text-sm text-faint">← 취소</button>
         <button
           onClick={save}
           disabled={busy || !title.trim()}
-          className="rounded-lg bg-neutral-900 px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
+          className="rounded-md bg-cs px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
         >
           저장
         </button>
@@ -130,13 +130,13 @@ export default function ConceptEditPage() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="제목"
-        className="mb-2 w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 font-medium"
+        className="mb-2 w-full rounded-md border border-line bg-card px-4 py-2.5 font-medium"
       />
       <input
         value={tags}
         onChange={(e) => setTags(e.target.value)}
         placeholder="태그 (쉼표 구분 — 예: 분산시스템, 합의)"
-        className="mb-2 w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm"
+        className="mb-2 w-full rounded-md border border-line bg-card px-4 py-2.5 text-sm"
       />
       <div className="relative">
         <textarea
@@ -149,10 +149,10 @@ export default function ConceptEditPage() {
           onClick={(e) => updateSuggest(body, e.currentTarget.selectionStart)}
           rows={16}
           placeholder={"마크다운 본문…\n[[다른 개념]] 으로 연결"}
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-sm"
+          className="w-full rounded-md border border-line bg-card px-3 py-2 font-mono text-sm"
         />
         {suggest.length > 0 && (
-          <ul className="absolute left-3 top-full z-10 -mt-1 w-56 rounded-lg border border-neutral-200 bg-white shadow-lg">
+          <ul className="absolute left-3 top-full z-10 -mt-1 w-56 rounded-md border border-line bg-card shadow-lg">
             {suggest.map((t) => (
               <li key={t}>
                 <button
@@ -168,7 +168,7 @@ export default function ConceptEditPage() {
       </div>
 
       <div className="mt-2 flex items-center justify-between">
-        <label className="cursor-pointer rounded-lg border border-neutral-300 px-4 py-2 text-sm text-neutral-600">
+        <label className="cursor-pointer rounded-md border border-line px-4 py-2 text-sm text-faint">
           🖼 이미지 첨부
           <input
             type="file"
@@ -178,7 +178,7 @@ export default function ConceptEditPage() {
           />
         </label>
         {id !== null && (
-          <button onClick={remove} disabled={busy} className="text-sm text-red-600">
+          <button onClick={remove} disabled={busy} className="text-sm text-err">
             삭제
           </button>
         )}

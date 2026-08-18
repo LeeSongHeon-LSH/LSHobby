@@ -29,18 +29,21 @@ export default function LibraryPage() {
 
   return (
     <main className="p-4">
-      <h1 className="mb-3 text-lg font-semibold">서재</h1>
+      <header className="mb-4">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+        <h1 className="font-display text-2xl font-bold">서재</h1>
+      </header>
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="🔍 제목·저자 검색"
-        className="mb-2 w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5"
+        className="mb-2 w-full rounded-md border border-line bg-card px-4 py-2.5"
       />
       {allTags.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
             onClick={() => setTag(null)}
-            className={`rounded-full border px-3 py-1 text-xs ${!tag ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 text-neutral-600"}`}
+            className={`rounded-full border px-3 py-1 text-xs ${!tag ? "border-lib bg-lib text-white" : "border-line text-faint"}`}
           >
             전체
           </button>
@@ -48,7 +51,7 @@ export default function LibraryPage() {
             <button
               key={t}
               onClick={() => setTag(tag === t ? null : t)}
-              className={`rounded-full border px-3 py-1 text-xs ${tag === t ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 text-neutral-600"}`}
+              className={`rounded-full border px-3 py-1 text-xs ${tag === t ? "border-lib bg-lib text-white" : "border-line text-faint"}`}
             >
               {t}
             </button>
@@ -61,11 +64,11 @@ export default function LibraryPage() {
           <Link
             key={b.id}
             href={`/library/book/${b.id}`}
-            className="block rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"
+            className="block border-l-2 border-l-lib rounded-md border border-line bg-card p-5"
           >
-            <p className="text-lg font-semibold leading-snug">{b.title}</p>
-            <p className="mt-0.5 text-sm text-neutral-500">{b.author}</p>
-            <p className="mt-2 text-xs text-neutral-400">
+            <p className="font-display text-lg font-bold leading-snug">{b.title}</p>
+            <p className="mt-0.5 text-sm text-faint">{b.author}</p>
+            <p className="mt-2 font-mono text-[11px] text-faint">
               {b.readCount}회독
               {b.lastRating ? ` · ${stars(b.lastRating)}` : ""}
               {b.tags.length > 0 ? ` · ${b.tags.map((t) => `#${t}`).join(" ")}` : ""}
@@ -73,7 +76,7 @@ export default function LibraryPage() {
           </Link>
         ))}
         {filtered.length === 0 && (
-          <p className="py-10 text-center text-sm text-neutral-400">
+          <p className="py-10 text-center text-sm text-faint">
             {books.length === 0 ? "완독한 책을 기록해 보세요" : "검색 결과가 없습니다"}
           </p>
         )}
@@ -81,7 +84,7 @@ export default function LibraryPage() {
 
       <Link
         href="/library/record"
-        className="mt-5 block w-full rounded-lg bg-neutral-900 py-3 text-center font-medium text-white"
+        className="mt-5 block w-full rounded-md bg-lib py-3 text-center font-medium text-white"
       >
         ＋ 완독 기록
       </Link>

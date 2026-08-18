@@ -161,7 +161,7 @@ export default function QuizPage() {
   if (phase === "empty")
     return (
       <main className="p-4 text-center">
-        <p className="mt-16 text-neutral-500">출제할 단어가 없습니다</p>
+        <p className="mt-16 text-faint">출제할 단어가 없습니다</p>
         <Link href="/language" className="mt-4 inline-block text-sm underline">
           덱으로 돌아가기
         </Link>
@@ -171,15 +171,15 @@ export default function QuizPage() {
   if (phase === "done")
     return (
       <main className="p-4 text-center">
-        <p className="mt-16 text-2xl font-bold">오늘 학습 끝 🎉</p>
+        <p className="mt-16 font-display text-2xl font-bold">오늘 학습 끝 🎉</p>
         {summary && summary.count > 0 && (
-          <p className="mt-3 text-neutral-500">
+          <p className="mt-3 font-mono text-sm text-faint">
             오늘 {summary.count}회 복습 · 정답률 {Math.round((summary.correct / summary.count) * 100)}%
           </p>
         )}
         <Link
           href="/language"
-          className="mt-8 inline-block rounded-lg bg-neutral-900 px-6 py-3 font-medium text-white"
+          className="mt-8 inline-block rounded-md bg-lang px-6 py-3 font-medium text-white"
         >
           덱으로
         </Link>
@@ -192,39 +192,39 @@ export default function QuizPage() {
 
   return (
     <main className="p-4">
-      <header className="mb-6 flex items-center justify-between text-sm text-neutral-500">
+      <header className="mb-6 flex items-center justify-between text-sm text-faint">
         <Link href="/language">←</Link>
-        <span>{mode === "hard" ? `🔥 ${progress}` : progress}</span>
+        <span className="font-mono text-xs">{mode === "hard" ? `🔥 ${progress}` : progress}</span>
       </header>
 
       <div
-        className={`rounded-2xl border bg-white p-6 shadow-sm ${
-          answered ? (result?.ok ? "border-green-300" : "border-red-300") : "border-neutral-200"
+        className={`rounded-lg border bg-card p-6 ${
+          answered ? (result?.ok ? "border-ok" : "border-err") : "border-line"
         }`}
       >
         {/* 문제 영역 */}
         {q.dir === "cloze" && q.sentence ? (
           <div className="mb-4">
-            <p className="text-lg leading-relaxed">
+            <p className="font-display text-lg leading-relaxed">
               {q.sentence.text.slice(0, q.blankAt)}
               {answered ? (
-                <span className="font-bold text-green-700">{q.word.word}</span>
+                <span className="font-bold text-ok">{q.word.word}</span>
               ) : (
-                <span className="inline-block w-20 border-b-2 border-neutral-400" />
+                <span className="inline-block w-20 border-b-2 border-lang" />
               )}
               {q.sentence.text.slice(q.blankAt + q.word.word.length)}
             </p>
-            <p className="mt-2 text-sm text-neutral-500">뜻: {q.word.meaning}</p>
+            <p className="mt-2 text-sm text-faint">뜻: {q.word.meaning}</p>
             {answered && (q.sentence.ko_text || q.sentence.en_text) && (
-              <p className="mt-2 text-sm text-neutral-400">{q.sentence.ko_text ?? q.sentence.en_text}</p>
+              <p className="mt-2 text-sm text-faint">{q.sentence.ko_text ?? q.sentence.en_text}</p>
             )}
           </div>
         ) : (
-          <p className="mb-4 text-center text-3xl font-bold">
+          <p className="mb-4 text-center font-display text-3xl font-bold">
             {q.dir === "sk" ? (
               <>
                 {articleFor(q.word.gender) && (
-                  <span className="mr-2 text-neutral-400">{articleFor(q.word.gender)}</span>
+                  <span className="mr-2 text-faint">{articleFor(q.word.gender)}</span>
                 )}
                 {q.word.word}
               </>
@@ -246,7 +246,7 @@ export default function QuizPage() {
                 if (e.key === "Enter") submit();
               }}
               placeholder={showTargetInput ? config.inputPlaceholder : "한국어 뜻..."}
-              className="w-full rounded-lg border border-neutral-300 px-4 py-3"
+              className="w-full rounded-md border border-line bg-card px-4 py-3"
               lang={showTargetInput ? config.code : "ko"}
               autoCapitalize="off"
               autoComplete="off"
@@ -258,42 +258,42 @@ export default function QuizPage() {
                     key={c}
                     type="button"
                     onClick={() => insertChar(c)}
-                    className="rounded border border-neutral-200 px-2 py-1 text-sm text-neutral-600"
+                    className="rounded border border-line bg-card px-2 py-1 font-mono text-sm text-lang"
                   >
                     {c}
                   </button>
                 ))}
-                <span className="ml-1 text-xs text-neutral-400">alt+모음→á · alt+n→ñ</span>
+                <span className="ml-1 font-mono text-[11px] text-faint">alt+모음→á · alt+n→ñ</span>
               </div>
             )}
             <button
               onClick={submit}
               disabled={!input.trim()}
-              className="mt-4 w-full rounded-lg bg-neutral-900 py-3 font-medium text-white disabled:opacity-40"
+              className="mt-4 w-full rounded-md bg-lang py-3 font-medium text-white disabled:opacity-40"
             >
               확인
             </button>
           </>
         ) : (
           <div className="text-center">
-            <p className={`font-semibold ${result?.ok ? "text-green-700" : "text-red-600"}`}>
+            <p className={`font-semibold ${result?.ok ? "text-ok" : "text-err"}`}>
               {result?.accentCorrected
                 ? `✓ 정답 — 악센트 표기: ${result.accentCorrected}`
                 : result?.ok
                   ? "✓ 정답"
                   : "✗ 오답"}
             </p>
-            <p className="mt-3 text-2xl font-bold">
+            <p className="mt-3 font-display text-2xl font-bold">
               {articleFor(q.word.gender) && (
-                <span className="mr-2 text-neutral-400">{articleFor(q.word.gender)}</span>
+                <span className="mr-2 text-faint">{articleFor(q.word.gender)}</span>
               )}
               {q.word.word}
             </p>
-            <p className="mt-1 text-neutral-600">{q.word.meaning}</p>
+            <p className="mt-1 text-faint">{q.word.meaning}</p>
             <button
               onClick={next}
               autoFocus
-              className="mt-5 w-full rounded-lg bg-neutral-900 py-3 font-medium text-white"
+              className="mt-5 w-full rounded-md bg-lang py-3 font-medium text-white"
             >
               다음
             </button>

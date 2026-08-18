@@ -34,21 +34,24 @@ export default function KnowledgePage() {
 
   return (
     <main className="p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">개념</h1>
-        <Link href="/knowledge/edit" className="px-2 text-lg text-neutral-500">＋</Link>
+      <div className="mb-4 flex items-end justify-between">
+        <header>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-cs">Knowledge</p>
+          <h1 className="font-display text-2xl font-bold">개념</h1>
+        </header>
+        <Link href="/knowledge/edit" className="px-2 text-lg text-cs">＋</Link>
       </div>
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="🔍 제목·본문 검색"
-        className="mb-2 w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5"
+        className="mb-2 w-full rounded-md border border-line bg-card px-4 py-2.5"
       />
       {allTags.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           <button
             onClick={() => setTag(null)}
-            className={`rounded-full border px-3 py-1 text-xs ${!tag ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 text-neutral-600"}`}
+            className={`rounded-full border px-3 py-1 text-xs ${!tag ? "border-cs bg-cs text-white" : "border-line text-faint"}`}
           >
             전체
           </button>
@@ -56,31 +59,31 @@ export default function KnowledgePage() {
             <button
               key={t}
               onClick={() => setTag(tag === t ? null : t)}
-              className={`rounded-full border px-3 py-1 text-xs ${tag === t ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 text-neutral-600"}`}
+              className={`rounded-full border px-3 py-1 text-xs ${tag === t ? "border-cs bg-cs text-white" : "border-line text-faint"}`}
             >
               {t}
             </button>
           ))}
         </div>
       )}
-      <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white">
+      <ul className="divide-y divide-line rounded-md border border-line bg-card">
         {filtered.map((c) => (
           <li key={c.id}>
             <Link href={`/knowledge/concept/${c.id}`} className="block px-4 py-3">
               <p className="font-medium">{c.title}</p>
-              <p className="mt-0.5 text-xs text-neutral-400">
+              <p className="mt-0.5 font-mono text-[11px] text-faint">
                 {c.tags.map((t) => `#${t}`).join(" ")}
                 {c.tags.length > 0 ? " · " : ""}
                 {fmtDate(c.updated_at)} 수정
               </p>
               {excerpt(c.body) && (
-                <p className="mt-1 truncate text-sm text-neutral-500">{excerpt(c.body)}</p>
+                <p className="mt-1 truncate text-sm text-faint">{excerpt(c.body)}</p>
               )}
             </Link>
           </li>
         ))}
         {filtered.length === 0 && (
-          <li className="px-4 py-10 text-center text-sm text-neutral-400">
+          <li className="px-4 py-10 text-center text-sm text-faint">
             {concepts.length === 0 ? "첫 개념을 정리해 보세요" : "검색 결과가 없습니다"}
           </li>
         )}

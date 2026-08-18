@@ -26,31 +26,34 @@ export default function QuotesPage() {
 
   return (
     <main className="p-4">
-      <h1 className="mb-3 text-lg font-semibold">인용구</h1>
+      <header className="mb-4">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+        <h1 className="font-display text-2xl font-bold">인용구</h1>
+      </header>
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="🔍 인용구 검색"
-        className="mb-3 w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5"
+        className="mb-3 w-full rounded-md border border-line bg-card px-4 py-2.5"
       />
       <ul className="space-y-2">
         {filtered.map((q) => (
           <li key={q.id}>
             <Link
               href={`/library/book/${q.book_id}`}
-              className="block rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+              className="block rounded-md border border-line bg-card p-4 text-sm"
             >
-              <p className="leading-relaxed">“{q.content}”</p>
-              <p className="mt-1.5 text-xs text-neutral-400">
+              <p className="font-display leading-relaxed">“{q.content}”</p>
+              <p className="mt-1.5 font-mono text-[11px] text-faint">
                 {q.bookTitle}
                 {q.page ? ` p.${q.page}` : ""}
               </p>
-              {q.comment && <p className="mt-0.5 text-xs text-neutral-500">└ {q.comment}</p>}
+              {q.comment && <p className="mt-0.5 text-xs text-faint">└ {q.comment}</p>}
             </Link>
           </li>
         ))}
         {filtered.length === 0 && (
-          <li className="py-10 text-center text-sm text-neutral-400">
+          <li className="py-10 text-center text-sm text-faint">
             {quotes.length === 0 ? "아직 인용구가 없습니다" : "검색 결과가 없습니다"}
           </li>
         )}

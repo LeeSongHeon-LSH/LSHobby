@@ -33,11 +33,11 @@ function CvEdit() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-neutral-500">← 취소</button>
+        <button onClick={() => router.back()} className="text-sm text-faint">← 취소</button>
         <button
           onClick={save}
           disabled={busy}
-          className="rounded-lg bg-neutral-900 px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
+          className="rounded-md bg-cv px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
         >
           저장
         </button>
@@ -47,7 +47,7 @@ function CvEdit() {
         onChange={(e) => setContent(e.target.value)}
         rows={24}
         placeholder="CV 전문 마크다운 — 이름·이메일·학위 등 기본 정보 포함 (§17.1)"
-        className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-sm"
+        className="w-full rounded-md border border-line bg-card px-3 py-2 font-mono text-sm"
       />
     </main>
   );

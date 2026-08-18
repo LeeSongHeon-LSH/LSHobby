@@ -79,17 +79,20 @@ export default function WordsPage() {
 
   return (
     <main className="p-4">
-      <h1 className="mb-3 text-lg font-semibold">단어장</h1>
+      <header className="mb-4">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
+        <h1 className="font-display text-2xl font-bold">단어장</h1>
+      </header>
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="🔍 단어·뜻 검색"
-        className="mb-2 w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5"
+        className="mb-2 w-full rounded-md border border-line bg-card px-4 py-2.5"
       />
-      <p className="mb-3 text-sm text-neutral-400">
+      <p className="mb-3 font-mono text-xs text-faint">
         {query ? `${filtered.length} / ${words.length}단어` : `${words.length}단어`}
       </p>
-      <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white">
+      <ul className="divide-y divide-line rounded-md border border-line bg-card">
         {filtered.map((w) => (
           <li key={w.id}>
             <button
@@ -98,38 +101,38 @@ export default function WordsPage() {
             >
               <span className="flex-1 truncate">
                 {articleFor(w.gender) && (
-                  <span className="mr-1 text-neutral-400">{articleFor(w.gender)}</span>
+                  <span className="mr-1 text-lang">{articleFor(w.gender)}</span>
                 )}
                 {w.word}
               </span>
-              <span className="flex-1 truncate text-neutral-500">{w.meaning}</span>
-              <span className="shrink-0 rounded bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
+              <span className="flex-1 truncate text-faint">{w.meaning}</span>
+              <span className="shrink-0 rounded-sm bg-lang-soft px-2 py-0.5 font-mono text-[11px] text-lang">
                 {stateLabel(w.state)}
               </span>
             </button>
           </li>
         ))}
         {filtered.length === 0 && (
-          <li className="px-4 py-8 text-center text-sm text-neutral-400">단어가 없습니다</li>
+          <li className="px-4 py-8 text-center text-sm text-faint">단어가 없습니다</li>
         )}
       </ul>
 
       {editing && (
         <div className="fixed inset-0 z-10 flex items-end bg-black/30" onClick={() => setEditing(null)}>
           <div
-            className="mx-auto w-full max-w-md space-y-3 rounded-t-2xl bg-white p-5 pb-8"
+            className="mx-auto w-full max-w-md space-y-3 rounded-t-xl bg-card p-5 pb-8"
             onClick={(e) => e.stopPropagation()}
           >
             <input
               value={form.word}
               onChange={(e) => setForm({ ...form, word: e.target.value })}
-              className="w-full rounded-lg border border-neutral-300 px-4 py-2.5"
+              className="w-full rounded-md border border-line px-4 py-2.5"
               placeholder="단어"
             />
             <input
               value={form.meaning}
               onChange={(e) => setForm({ ...form, meaning: e.target.value })}
-              className="w-full rounded-lg border border-neutral-300 px-4 py-2.5"
+              className="w-full rounded-md border border-line px-4 py-2.5"
               placeholder="뜻"
             />
             {config.hasGender && (
@@ -138,10 +141,10 @@ export default function WordsPage() {
                   <button
                     key={g.value}
                     onClick={() => setForm({ ...form, gender: g.value })}
-                    className={`flex-1 rounded-lg border py-2 text-sm ${
+                    className={`flex-1 rounded-md border py-2 text-sm ${
                       form.gender === g.value
-                        ? "border-neutral-900 bg-neutral-900 text-white"
-                        : "border-neutral-300 text-neutral-600"
+                        ? "border-lang bg-lang text-white"
+                        : "border-line text-faint"
                     }`}
                   >
                     {g.label}
@@ -153,14 +156,14 @@ export default function WordsPage() {
               <button
                 onClick={removeEditing}
                 disabled={busy}
-                className="rounded-lg border border-red-300 px-4 py-2.5 text-sm text-red-600 disabled:opacity-50"
+                className="rounded-md border border-err/40 px-4 py-2.5 text-sm text-err disabled:opacity-50"
               >
                 삭제
               </button>
               <button
                 onClick={saveEdit}
                 disabled={busy || !form.word.trim() || !form.meaning.trim()}
-                className="flex-1 rounded-lg bg-neutral-900 py-2.5 font-medium text-white disabled:opacity-50"
+                className="flex-1 rounded-md bg-lang py-2.5 font-medium text-white disabled:opacity-50"
               >
                 저장
               </button>

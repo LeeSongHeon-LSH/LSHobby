@@ -67,25 +67,28 @@ export default function RecordPage() {
   if (picked)
     return (
       <main className="p-4">
-        <h1 className="mb-6 text-lg font-semibold">{picked.title}</h1>
-        <div className="space-y-4 rounded-xl border border-neutral-200 bg-white p-5">
+        <header className="mb-6">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+          <h1 className="font-display text-2xl font-bold leading-snug">{picked.title}</h1>
+        </header>
+        <div className="space-y-4 rounded-md border border-line bg-card p-5">
           <div>
-            <label className="mb-1 block text-sm text-neutral-500">완독일</label>
+            <label className="mb-1 block text-sm text-faint">완독일</label>
             <input
               type="date"
               value={finishedOn}
               onChange={(e) => setFinishedOn(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 px-4 py-2.5"
+              className="w-full rounded-md border border-line px-4 py-2.5"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-neutral-500">별점 (선택)</label>
+            <label className="mb-1 block text-sm text-faint">별점 (선택)</label>
             <div className="flex gap-1 text-2xl">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   onClick={() => setRating(rating === n ? null : n)}
-                  className={rating && n <= rating ? "text-amber-500" : "text-neutral-300"}
+                  className={rating && n <= rating ? "text-cs" : "text-line"}
                 >
                   ★
                 </button>
@@ -95,12 +98,12 @@ export default function RecordPage() {
           <button
             onClick={complete}
             disabled={busy || !finishedOn}
-            className="w-full rounded-lg bg-neutral-900 py-3 font-medium text-white disabled:opacity-40"
+            className="w-full rounded-md bg-lib py-3 font-medium text-white disabled:opacity-40"
           >
             기록 완료
           </button>
         </div>
-        <p className="mt-4 text-center text-xs text-neutral-400">
+        <p className="mt-4 text-center text-xs text-faint">
           인용구·노트·생각은 기록 후 책 상세에서 자유롭게
         </p>
       </main>
@@ -109,21 +112,24 @@ export default function RecordPage() {
   // 1단계: 책 선택 / 신규 등록
   return (
     <main className="p-4">
-      <h1 className="mb-3 text-lg font-semibold">완독 기록</h1>
+      <header className="mb-4">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+        <h1 className="font-display text-2xl font-bold">완독 기록</h1>
+      </header>
       {!creating ? (
         <>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="🔍 제목 검색"
-            className="mb-3 w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5"
+            className="mb-3 w-full rounded-md border border-line bg-card px-4 py-2.5"
           />
-          <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white">
+          <ul className="divide-y divide-line rounded-md border border-line bg-card">
             {matches.map((b) => (
               <li key={b.id}>
                 <button onClick={() => setPicked(b)} className="w-full px-4 py-3 text-left">
                   <span className="font-medium">{b.title}</span>
-                  <span className="ml-2 text-sm text-neutral-400">
+                  <span className="ml-2 text-sm text-faint">
                     {b.author} · {b.readCount}회독 → +1
                   </span>
                 </button>
@@ -135,7 +141,7 @@ export default function RecordPage() {
                   setCreating(true);
                   setForm({ ...EMPTY, title: query.trim() });
                 }}
-                className="w-full px-4 py-3 text-left text-neutral-600"
+                className="w-full px-4 py-3 text-left text-lib"
               >
                 ＋ 새 책 등록{q ? `: "${query.trim()}"` : ""}
               </button>
@@ -143,7 +149,7 @@ export default function RecordPage() {
           </ul>
         </>
       ) : (
-        <div className="space-y-3 rounded-xl border border-neutral-200 bg-white p-5">
+        <div className="space-y-3 rounded-md border border-line bg-card p-5">
           {(
             [
               ["title", "제목", true],
@@ -158,13 +164,13 @@ export default function RecordPage() {
               value={form[key]}
               onChange={(e) => setForm({ ...form, [key]: e.target.value })}
               placeholder={label}
-              className="w-full rounded-lg border border-neutral-300 px-4 py-2.5"
+              className="w-full rounded-md border border-line px-4 py-2.5"
             />
           ))}
           <div className="flex gap-2">
             <button
               onClick={() => setCreating(false)}
-              className="rounded-lg border border-neutral-300 px-4 py-2.5 text-sm"
+              className="rounded-md border border-line px-4 py-2.5 text-sm"
             >
               뒤로
             </button>
@@ -177,7 +183,7 @@ export default function RecordPage() {
                 !form.publisher.trim() ||
                 !form.pub_year.trim()
               }
-              className="flex-1 rounded-lg bg-neutral-900 py-2.5 font-medium text-white disabled:opacity-40"
+              className="flex-1 rounded-md bg-lib py-2.5 font-medium text-white disabled:opacity-40"
             >
               등록하고 계속
             </button>

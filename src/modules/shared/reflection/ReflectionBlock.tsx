@@ -56,12 +56,12 @@ export function ReflectionBlock({
 
   return (
     <section>
-      <h2 className="mb-2 text-sm font-medium text-neutral-500">생각 타임라인</h2>
+      <h2 className="mb-2 text-sm font-medium text-faint">생각 타임라인</h2>
       {entries.length > 0 && (
-        <ul className="mb-3 divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white">
+        <ul className="mb-3 divide-y divide-line rounded-md border border-line bg-card">
           {entries.map((e) => (
             <li key={e.id} className="p-4">
-              <p className="mb-1 text-xs text-neutral-400">
+              <p className="mb-1 font-mono text-[11px] text-faint">
                 {fmtDate(e.created_at)}
                 {e.context ? ` · ${e.context}` : ""}
               </p>
@@ -71,29 +71,29 @@ export function ReflectionBlock({
         </ul>
       )}
       {open ? (
-        <div className="space-y-2 rounded-xl border border-neutral-200 bg-white p-4">
+        <div className="space-y-2 rounded-md border border-line bg-card p-4">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="지금의 생각…"
             rows={4}
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-line px-3 py-2 text-sm"
             autoFocus
           />
           <input
             value={context}
             onChange={(e) => setContext(e.target.value)}
             placeholder="계기 (선택 — 예: 재독, 3개월 후)"
-            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-line px-3 py-2 text-sm"
           />
           <div className="flex gap-2">
-            <button onClick={() => setOpen(false)} className="rounded-lg border border-neutral-300 px-4 py-2 text-sm">
+            <button onClick={() => setOpen(false)} className="rounded-md border border-line px-4 py-2 text-sm">
               취소
             </button>
             <button
               onClick={submit}
               disabled={busy || !content.trim()}
-              className="flex-1 rounded-lg bg-neutral-900 py-2 text-sm font-medium text-white disabled:opacity-40"
+              className="flex-1 rounded-md bg-ink py-2 text-sm font-medium text-white disabled:opacity-40"
             >
               추가
             </button>
@@ -102,7 +102,7 @@ export function ReflectionBlock({
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="w-full rounded-lg border border-dashed border-neutral-300 py-2.5 text-sm text-neutral-500"
+          className="w-full rounded-md border border-dashed border-line py-2.5 text-sm text-faint"
         >
           ＋ 지금 생각 추가
         </button>

@@ -1,26 +1,54 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* #48 전면 재디자인 — "네 서랍" 시스템: 종이+먹 위에 도메인 4색 인덱스 (docs/10 #53·#55) */
+@theme {
+  --color-paper: #f5f4ef; /* 바탕 종이 */
+  --color-card: #ffffff;
+  --color-ink: #211f1a; /* 먹 */
+  --color-faint: #8a8779; /* 보조 텍스트 */
+  --color-line: #dcd9cd; /* 괘선 */
+  --color-lib: #3e6b4e; /* 책 — 서가 초록 */
+  --color-lib-soft: #edf3ee;
+  --color-lang: #2b5bb7; /* 언어 — 파란펜 */
+  --color-lang-soft: #ebf0fa;
+  --color-cs: #9c5c05; /* CS — 터미널 앰버 */
+  --color-cs-soft: #f7efdf;
+  --color-cv: #6d28d9; /* CV — 마법사 보라 (도트 고양이 모자색) */
+  --color-cv-soft: #f1ebfb;
+  --color-ok: #2e7d46;
+  --color-err: #c23b3b;
+  --font-display: var(--font-gowun), "Gowun Batang", serif;
+  --font-sans: var(--font-plex), "IBM Plex Sans KR", sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* 홈 서랍 스태거 등장 — 1회성, 감속 곡선 */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.anim-rise {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise {
+    animation: none;
+  }
 }

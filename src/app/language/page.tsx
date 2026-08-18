@@ -59,28 +59,31 @@ export default function LanguageHome() {
   const free = dueCount === 0;
   return (
     <main className="p-4">
-      <h1 className="mb-8 text-lg font-semibold">
-        언어 ·{" "}
-        <select
-          value={config.code}
-          onChange={(e) => switchLang(e.target.value)}
-          aria-label="언어 전환"
-          className="appearance-none bg-transparent font-semibold"
-        >
-          {Object.values(languageConfigs).map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-        <span className="text-neutral-400">▾</span>
-      </h1>
-      <div className="mx-auto max-w-xs rounded-2xl border border-neutral-200 bg-white p-8 text-center shadow-sm">
-        <p className="text-sm text-neutral-500">{free ? "자유 연습" : "오늘 복습"}</p>
-        <p className="my-3 text-5xl font-bold tabular-nums">{free ? "∞" : (dueCount ?? "–")}</p>
+      <header className="mb-8">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">Language</p>
+        <h1 className="font-display text-2xl font-bold">
+          <select
+            value={config.code}
+            onChange={(e) => switchLang(e.target.value)}
+            aria-label="언어 전환"
+            className="appearance-none bg-transparent font-display font-bold"
+          >
+            {Object.values(languageConfigs).map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <span className="ml-1 text-base text-faint">▾</span>
+        </h1>
+      </header>
+      <div className="relative mx-auto max-w-xs overflow-hidden rounded-lg border border-line bg-card p-8 text-center">
+        <span className="absolute left-4 top-0 h-1 w-10 bg-lang" aria-hidden="true" />
+        <p className="text-sm text-faint">{free ? "자유 연습" : "오늘 복습"}</p>
+        <p className="my-3 font-mono text-5xl font-medium tabular-nums">{free ? "∞" : (dueCount ?? "–")}</p>
         <Link
           href="/language/quiz"
-          className="block w-full rounded-lg bg-neutral-900 py-3 font-medium text-white"
+          className="block w-full rounded-md bg-lang py-3 font-medium text-white"
         >
           시작하기
         </Link>
@@ -90,14 +93,14 @@ export default function LanguageHome() {
         <div className="mt-5 text-center">
           <Link
             href="/language/quiz?hard=1"
-            className="inline-block rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-700"
+            className="inline-block rounded-full border border-err/30 bg-err/5 px-4 py-2 text-sm text-err"
           >
             🔥 어려운 단어 {hardCount}개
           </Link>
         </div>
       )}
 
-      <p className="mt-6 text-center text-sm text-neutral-400">
+      <p className="mt-6 text-center font-mono text-xs text-faint">
         {today && today.count > 0
           ? `오늘 ${today.count}회 복습 · 정답률 ${Math.round((today.correct / today.count) * 100)}% · `
           : ""}

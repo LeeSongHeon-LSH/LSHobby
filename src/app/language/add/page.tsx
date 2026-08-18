@@ -54,42 +54,45 @@ export default function AddPage() {
 
   return (
     <main className="p-4">
-      <h1 className="mb-4 text-lg font-semibold">단어 추가</h1>
+      <header className="mb-4">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
+        <h1 className="font-display text-2xl font-bold">단어 추가</h1>
+      </header>
       <form onSubmit={submit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm text-neutral-500">단어</label>
+          <label className="mb-1 block text-sm text-faint">단어</label>
           <input
             value={word}
             onChange={(e) => setWord(e.target.value)}
             placeholder={config.inputPlaceholder}
-            className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3"
+            className="w-full rounded-md border border-line bg-card px-4 py-3"
             lang={config.code}
             autoCapitalize="off"
           />
-          {dup && <p className="mt-1 text-sm text-amber-600">⚠ 이미 있는 단어: {dup}</p>}
+          {dup && <p className="mt-1 text-sm text-err">⚠ 이미 있는 단어: {dup}</p>}
         </div>
         <div>
-          <label className="mb-1 block text-sm text-neutral-500">뜻</label>
+          <label className="mb-1 block text-sm text-faint">뜻</label>
           <input
             value={meaning}
             onChange={(e) => setMeaning(e.target.value)}
             placeholder="한국어 뜻..."
-            className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3"
+            className="w-full rounded-md border border-line bg-card px-4 py-3"
           />
         </div>
         {config.hasGender && (
           <div>
-            <label className="mb-1 block text-sm text-neutral-500">성별 (선택)</label>
+            <label className="mb-1 block text-sm text-faint">성별 (선택)</label>
             <div className="flex gap-2">
               {GENDERS.map((g) => (
                 <button
                   type="button"
                   key={g.value}
                   onClick={() => setGender(gender === g.value ? "none" : g.value)}
-                  className={`flex-1 rounded-lg border py-2.5 text-sm ${
+                  className={`flex-1 rounded-md border py-2.5 text-sm ${
                     gender === g.value
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-300 text-neutral-600"
+                      ? "border-lang bg-lang text-white"
+                      : "border-line text-faint"
                   }`}
                 >
                   {g.label}
@@ -101,11 +104,11 @@ export default function AddPage() {
         <button
           type="submit"
           disabled={busy || !word.trim() || !meaning.trim() || dup !== null}
-          className="w-full rounded-lg bg-neutral-900 py-3 font-medium text-white disabled:opacity-40"
+          className="w-full rounded-md bg-lang py-3 font-medium text-white disabled:opacity-40"
         >
           추가하기
         </button>
-        {done && <p className="text-center text-sm text-green-700">{done}</p>}
+        {done && <p className="text-center text-sm text-ok">{done}</p>}
       </form>
     </main>
   );
