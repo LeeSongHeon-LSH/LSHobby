@@ -34,7 +34,7 @@
 | §7 | [07-library.md](07-library.md) | 책 모듈 — 완독 후 일괄 기록, 회독·인용구·노트 |
 | §8 | [08-knowledge.md](08-knowledge.md) | CS 모듈 — 개념 문서, 태그 + 위키링크·백링크 |
 | §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 19개 테이블, RLS (마이그레이션 원본) |
-| §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~55 |
+| §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~56 |
 | §11 | [11-wireframes.md](11-wireframes.md) | 화면 와이어프레임 — 내비 문법, 전 세션 화면 인벤토리 |
 | §12 | [12-requirements.md](12-requirements.md) | **요구사항 명세(SRS)** — FR/NFR/SEC 통합, 보안·백업 신규 확정, 수용 기준 |
 | §13 | [13-user-stories.md](13-user-stories.md) | 유저 스토리 — 에픽 E1~E8, US↔FR 추적 매트릭스 |
