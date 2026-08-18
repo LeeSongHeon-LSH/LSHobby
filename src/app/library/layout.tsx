@@ -6,7 +6,7 @@ import { AuthGuard } from "@/modules/shared/auth";
 
 // §11.1 — 책 세션 탭: [홈][서재][인용구]
 const TABS = [
-  { href: "/", label: "홈", exact: true },
+  { href: "/home", label: "홈", exact: true },
   { href: "/library", label: "서재", exact: true },
   { href: "/library/quotes", label: "인용구", exact: false },
 ];

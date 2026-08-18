@@ -6,7 +6,7 @@ import { AuthGuard } from "@/modules/shared/auth";
 
 // §11.1 — CS 세션 탭: [홈][개념]
 const TABS = [
-  { href: "/", label: "홈", exact: true },
+  { href: "/home", label: "홈", exact: true },
   { href: "/knowledge", label: "개념", exact: false },
 ];
 
