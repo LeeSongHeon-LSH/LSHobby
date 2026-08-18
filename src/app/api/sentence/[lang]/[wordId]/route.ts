@@ -34,7 +34,7 @@ export async function GET(
       .maybeSingle();
     if (wErr || !word) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-    const drafts = await fetchFromTatoeba(word.word, config.tatoebaLang);
+    const drafts = await fetchFromTatoeba(word.word, config.tatoebaLang, config.transLangs);
     if (drafts.length > 0) {
       const { error } = await db
         .from(config.sentenceTable)

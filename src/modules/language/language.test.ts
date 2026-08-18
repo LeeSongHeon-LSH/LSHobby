@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { esConfig } from "./es";
+import { enConfig } from "./en";
 import { answerAlternatives, gradeAnswer } from "./grading";
 import {
   applyAnswer,
@@ -42,6 +43,22 @@ describe("esConfig.normalize (중복 차단 norm — 구 db.py normalize_word)",
   });
   it("trim + 소문자화한다", () => {
     expect(esConfig.normalize("  Casa  ")).toBe("casa");
+  });
+});
+
+describe("enConfig (§6.2 — 대소문자·앞뒤 공백 무시 정확 일치)", () => {
+  it("normalize: trim + 소문자화만 한다", () => {
+    expect(enConfig.normalize("  Apple ")).toBe("apple");
+  });
+  it("채점: 대소문자·공백 차이는 정답", () => {
+    expect(gradeAnswer(" APPLE ", "apple", "toWord", enConfig).ok).toBe(true);
+  });
+  it("채점: 관대 비교 없음 — 철자가 다르면 오답", () => {
+    expect(enConfig.gradeLenient).toBeNull();
+    expect(gradeAnswer("aple", "apple", "toWord", enConfig).ok).toBe(false);
+  });
+  it("성별 필드 없음", () => {
+    expect(enConfig.hasGender).toBe(false);
   });
 });
 
@@ -191,7 +208,7 @@ describe("Tatoeba 추출 (구 _extract 이식)", () => {
       { id: 4, text: "¿Vamos a casa?", translations: [[{ lang: "eng", text: "Shall we go home?" }]] },
     ];
     const out = extractSentences(results, "casa", "kor");
-    expect(out.map((s) => s.es_text)).toEqual(["Mi casa es grande.", "¿Vamos a casa?"]);
+    expect(out.map((s) => s.text)).toEqual(["Mi casa es grande.", "¿Vamos a casa?"]);
     expect(out[0].ko_text).toBe("우리 집은 크다.");
     expect(out[0].en_text).toBeNull();
     expect(out[1].ko_text).toBeNull(); // kor 모드에선 eng 번역 무시

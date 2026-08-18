@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { getFeed, type FeedItem } from "@/modules/shared/activity";
-import { countWords, esConfig } from "@/modules/language";
+import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
 import { countConcepts } from "@/modules/knowledge";
 
@@ -25,7 +25,9 @@ function Hub() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
 
   useEffect(() => {
-    countWords(esConfig).then(setWordCount).catch(() => setWordCount(null));
+    Promise.all(Object.values(languageConfigs).map((c) => countWords(c)))
+      .then((counts) => setWordCount(counts.reduce((a, b) => a + b, 0)))
+      .catch(() => setWordCount(null));
     countBooks().then(setBookCount).catch(() => setBookCount(null));
     countConcepts().then(setConceptCount).catch(() => setConceptCount(null));
     getFeed(30).then(setFeed).catch(() => setFeed([]));

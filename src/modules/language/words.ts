@@ -6,7 +6,8 @@ import type { SrsFields } from "./srs";
 export interface Word extends SrsFields {
   id: number;
   word: string;
-  gender: Gender;
+  /** 성별 언어(es)에만 존재 — en_words엔 컬럼 없음 (§6.2) */
+  gender?: Gender;
   meaning: string;
   norm: string;
   created_at: string;
@@ -47,7 +48,7 @@ export async function findByNorm(config: LanguageConfig, word: string): Promise<
 /** 단어 추가 — norm 중복이면 에러 대신 기존 단어 반환 {duplicate} */
 export async function addWord(
   config: LanguageConfig,
-  input: { word: string; meaning: string; gender: Gender },
+  input: { word: string; meaning: string; gender?: Gender },
 ): Promise<{ added: Word | null; duplicate: Word | null }> {
   const word = input.word.trim();
   const meaning = input.meaning.trim();
@@ -55,7 +56,12 @@ export async function addWord(
   if (dup) return { added: null, duplicate: dup };
   const { data, error } = await supabase
     .from(config.wordTable)
-    .insert({ word, meaning, gender: input.gender, norm: config.normalize(word) })
+    .insert({
+      word,
+      meaning,
+      norm: config.normalize(word),
+      ...(config.hasGender ? { gender: input.gender ?? "none" } : {}),
+    })
     .select()
     .single();
   if (error) throw error;
@@ -68,12 +74,17 @@ export async function addWord(
 export async function updateWord(
   config: LanguageConfig,
   id: number,
-  input: { word: string; meaning: string; gender: Gender },
+  input: { word: string; meaning: string; gender?: Gender },
 ): Promise<void> {
   const word = input.word.trim();
   const { error } = await supabase
     .from(config.wordTable)
-    .update({ word, meaning: input.meaning.trim(), gender: input.gender, norm: config.normalize(word) })
+    .update({
+      word,
+      meaning: input.meaning.trim(),
+      norm: config.normalize(word),
+      ...(config.hasGender ? { gender: input.gender ?? "none" } : {}),
+    })
     .eq("id", id);
   if (error) throw error;
 }

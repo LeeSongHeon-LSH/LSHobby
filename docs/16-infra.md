@@ -21,7 +21,7 @@ flowchart LR
     subgraph supa["Supabase (백엔드, 서울 리전)"]
         AUTH["Auth (GoTrue)<br/>로그인·JWT 발급"]
         REST["PostgREST<br/>테이블 자동 REST API"]
-        DB[("PostgreSQL 17<br/>14개 테이블 + RLS")]
+        DB[("PostgreSQL 17<br/>19개 테이블 + RLS")]
         STG["Storage<br/>(버킷 아직 없음)"]
     end
     U["브라우저 (모바일/PC)"]

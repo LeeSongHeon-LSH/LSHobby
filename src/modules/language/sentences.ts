@@ -4,7 +4,8 @@ import type { LanguageConfig } from "./types";
 export interface Sentence {
   id: number;
   word_id: number;
-  es_text: string;
+  /** 해당 언어 원문 (구 es_text — 영어 확장 때 일반화, #54) */
+  text: string;
   ko_text: string | null;
   en_text: string | null;
   source_url: string | null;

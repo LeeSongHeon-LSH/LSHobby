@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   answerWord,
   articleFor,
-  esConfig,
+  useCurrentConfig,
   gradeAnswer,
   isHard,
   ensureSentences,
@@ -30,16 +30,13 @@ interface Question {
   word: Word;
   dir: Dir;
   sentence: Sentence | null;
-  blankAt: number; // cloze에서 es_text 안 단어 위치
+  blankAt: number; // cloze에서 원문(text) 안 단어 위치
 }
 
-const ACCENT_CHARS = ["á", "é", "í", "ó", "ú", "ñ"];
-const ALT_MAP: Record<string, string> = { a: "á", e: "é", i: "í", o: "ó", u: "ú", n: "ñ" };
-
-const speak = (text: string) => {
+const speak = (text: string, lang: string) => {
   try {
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "es-ES";
+    u.lang = lang;
     speechSynthesis.speak(u);
   } catch {
     /* 음성 미지원 무시 */
@@ -47,6 +44,7 @@ const speak = (text: string) => {
 };
 
 export default function QuizPage() {
+  const config = useCurrentConfig(); // 전환은 랜딩에서만 일어남 (#54)
   const [phase, setPhase] = useState<Phase>("loading");
   const [mode, setMode] = useState<"due" | "free" | "hard">("due");
   const [total, setTotal] = useState(0);
@@ -62,7 +60,7 @@ export default function QuizPage() {
   const next = async () => {
     const remaining = pool.current;
     if (remaining.length === 0) {
-      setSummary(await todayReviewSummary(esConfig));
+      setSummary(await todayReviewSummary(config));
       setPhase("done");
       return;
     }
@@ -74,10 +72,10 @@ export default function QuizPage() {
     let sentence: Sentence | null = null;
     let blankAt = -1;
     if (Math.random() < 0.3) {
-      const candidates = await ensureSentences(esConfig, word.id);
+      const candidates = await ensureSentences(config, word.id);
       if (candidates.length > 0) {
         sentence = candidates[Math.floor(Math.random() * candidates.length)];
-        blankAt = sentence.es_text.toLowerCase().indexOf(word.word.toLowerCase());
+        blankAt = sentence.text.toLowerCase().indexOf(word.word.toLowerCase());
         if (blankAt >= 0) dir = "cloze";
         else sentence = null;
       }
@@ -93,8 +91,8 @@ export default function QuizPage() {
     const hard = window.location.search.includes("hard=1");
     (async () => {
       const [{ words, pool: due }, st] = await Promise.all([
-        todayPool(esConfig),
-        reviewStats(esConfig),
+        todayPool(config),
+        reviewStats(config),
       ]);
       stats.current = st;
       if (hard) {
@@ -120,10 +118,10 @@ export default function QuizPage() {
   const submit = async () => {
     if (!q || phase !== "question" || !input.trim()) return;
     const expected = q.dir === "sk" ? q.word.meaning : q.word.word;
-    const res = gradeAnswer(input, expected, q.dir === "sk" ? "toMeaning" : "toWord", esConfig);
+    const res = gradeAnswer(input, expected, q.dir === "sk" ? "toMeaning" : "toWord", config);
     setResult(res);
     setPhase("answered");
-    if (q.dir !== "sk") speak(q.word.word);
+    if (q.dir !== "sk") speak(q.word.word, config.speechLang);
 
     // 로컬 통계 갱신 (가중치·어려운 단어 판정용)
     const s = stats.current.get(q.word.id) ?? { reviews: 0, correct: 0 };
@@ -132,7 +130,7 @@ export default function QuizPage() {
     if (res.ok && mode !== "free") {
       pool.current = pool.current.filter((w) => w.id !== q.word.id);
     }
-    answerWord(esConfig, q.word, res.ok).catch(() => {});
+    answerWord(config, q.word, res.ok).catch(() => {});
   };
 
   const insertChar = (ch: string) => {
@@ -150,9 +148,9 @@ export default function QuizPage() {
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.altKey && ALT_MAP[e.key]) {
+    if (e.altKey && config.altKeyMap[e.key]) {
       e.preventDefault();
-      insertChar(ALT_MAP[e.key]);
+      insertChar(config.altKeyMap[e.key]);
     }
   };
 
@@ -190,7 +188,7 @@ export default function QuizPage() {
 
   if (!q) return null;
   const answered = phase === "answered";
-  const showSpanishInput = q.dir !== "sk";
+  const showTargetInput = q.dir !== "sk"; // 대상 언어를 입력하는 방향
 
   return (
     <main className="p-4">
@@ -208,13 +206,13 @@ export default function QuizPage() {
         {q.dir === "cloze" && q.sentence ? (
           <div className="mb-4">
             <p className="text-lg leading-relaxed">
-              {q.sentence.es_text.slice(0, q.blankAt)}
+              {q.sentence.text.slice(0, q.blankAt)}
               {answered ? (
                 <span className="font-bold text-green-700">{q.word.word}</span>
               ) : (
                 <span className="inline-block w-20 border-b-2 border-neutral-400" />
               )}
-              {q.sentence.es_text.slice(q.blankAt + q.word.word.length)}
+              {q.sentence.text.slice(q.blankAt + q.word.word.length)}
             </p>
             <p className="mt-2 text-sm text-neutral-500">뜻: {q.word.meaning}</p>
             {answered && (q.sentence.ko_text || q.sentence.en_text) && (
@@ -247,15 +245,15 @@ export default function QuizPage() {
                 onKeyDown(e);
                 if (e.key === "Enter") submit();
               }}
-              placeholder={showSpanishInput ? "español..." : "한국어 뜻..."}
+              placeholder={showTargetInput ? config.inputPlaceholder : "한국어 뜻..."}
               className="w-full rounded-lg border border-neutral-300 px-4 py-3"
-              lang={showSpanishInput ? "es" : "ko"}
+              lang={showTargetInput ? config.code : "ko"}
               autoCapitalize="off"
               autoComplete="off"
             />
-            {showSpanishInput && (
+            {showTargetInput && config.accentChars.length > 0 && (
               <div className="mt-2 flex items-center gap-1.5">
-                {ACCENT_CHARS.map((c) => (
+                {config.accentChars.map((c) => (
                   <button
                     key={c}
                     type="button"

@@ -79,8 +79,10 @@ classDiagram
         +extraFields: gender
     }
     class EnConfig {
-        <<future>>
+        +code: en
+        +wordTable: en_words
         +grade: 대소문자·공백 무시 정확 일치
+        +extraFields: 없음
     }
     class WordService {
         +add(fields) word
@@ -154,7 +156,7 @@ classDiagram
 | 모듈 | 소유 테이블 | 비고 |
 |---|---|---|
 | shared | `reflection_thread` · `reflection_entry` · `activity_feed` · `tag` · `tagging` | 타 모듈은 서비스 경유로만 접근 |
-| language | `es_words` · `es_review_log` · `es_sentences` · `es_sentence_fetch` | 영어 확장 시 `en_*` 4종 추가 |
+| language | `es_words` · `es_review_log` · `es_sentences` · `es_sentence_fetch` · `en_*` 4종 | 언어 추가 = config + 테이블 복제 (#54) |
 | library | `book` · `reading` · `quote` | |
 | knowledge | `concept` · `concept_link` | |
 | cv | `cv_document` | 유일한 anon SELECT 테이블 (§17, #51) |

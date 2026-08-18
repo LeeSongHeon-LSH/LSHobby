@@ -4,7 +4,7 @@ const MAX_SENTENCES = 3;
 const MAX_LEN = 70;
 
 export interface SentenceDraft {
-  es_text: string;
+  text: string;
   ko_text: string | null;
   en_text: string | null;
   source_url: string | null;
@@ -38,7 +38,7 @@ export function extractSentences(
       }
     }
     out.push({
-      es_text: text,
+      text,
       ko_text: transLang === "kor" ? trans : null,
       en_text: transLang === "eng" ? trans : null,
       source_url: r.id ? `https://tatoeba.org/en/sentences/show/${r.id}` : null,
@@ -47,10 +47,14 @@ export function extractSentences(
   return out;
 }
 
-/** 한국어 번역 우선, 부족하면 영어로 보충 (구 fetch_for_word) */
-export async function fetchFromTatoeba(word: string, fromLang: string): Promise<SentenceDraft[]> {
+/** 번역 언어 우선순위(config.transLangs — 스페인어: 한국어 우선, 부족하면 영어 보충) 순으로 수집 */
+export async function fetchFromTatoeba(
+  word: string,
+  fromLang: string,
+  transLangs: readonly ("kor" | "eng")[],
+): Promise<SentenceDraft[]> {
   const found: SentenceDraft[] = [];
-  for (const lang of ["kor", "eng"] as const) {
+  for (const lang of transLangs) {
     if (found.length >= MAX_SENTENCES) break;
     const params = new URLSearchParams({
       from: fromLang,
@@ -69,7 +73,7 @@ export async function fetchFromTatoeba(word: string, fromLang: string): Promise<
       if (!res.ok) continue;
       const data = (await res.json()) as { results?: TatoebaResult[] };
       for (const s of extractSentences(data.results ?? [], word, lang)) {
-        if (found.some((f) => f.es_text === s.es_text)) continue;
+        if (found.some((f) => f.text === s.text)) continue;
         found.push(s);
         if (found.length >= MAX_SENTENCES) break;
       }

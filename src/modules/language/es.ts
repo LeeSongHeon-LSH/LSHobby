@@ -11,11 +11,18 @@ const stripAccentsKeepTilde = (s: string) =>
 export const esConfig: LanguageConfig = {
   // 언어 추가 시 이 객체를 복제해 규칙만 바꾼다 (§6.2)
   code: "es",
+  label: "스페인어",
   wordTable: "es_words",
   reviewLogTable: "es_review_log",
   sentenceTable: "es_sentences",
   sentenceFetchTable: "es_sentence_fetch",
   tatoebaLang: "spa",
+  transLangs: ["kor", "eng"],
   normalize: (word) => stripAccentsKeepTilde(word.trim().toLowerCase()),
   gradeLenient: stripAccentsKeepTilde,
+  hasGender: true,
+  speechLang: "es-ES",
+  inputPlaceholder: "español...",
+  accentChars: ["á", "é", "í", "ó", "ú", "ñ"],
+  altKeyMap: { a: "á", e: "é", i: "í", o: "ó", u: "ú", n: "ñ" },
 };

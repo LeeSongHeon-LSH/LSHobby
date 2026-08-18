@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addWord, esConfig, findByNorm } from "@/modules/language";
+import { addWord, findByNorm, useCurrentConfig } from "@/modules/language";
 import type { Gender } from "@/modules/language";
 
 const GENDERS: { value: Gender; label: string }[] = [
@@ -12,6 +12,7 @@ const GENDERS: { value: Gender; label: string }[] = [
 
 // §11.4.5 추가 — 3필드 + norm 중복 실시간 힌트 (구 앱 이식)
 export default function AddPage() {
+  const config = useCurrentConfig();
   const [word, setWord] = useState("");
   const [meaning, setMeaning] = useState("");
   const [gender, setGender] = useState<Gender>("none");
@@ -25,19 +26,19 @@ export default function AddPage() {
     const w = word.trim();
     if (!w) return;
     const t = setTimeout(() => {
-      findByNorm(esConfig, w)
+      findByNorm(config, w)
         .then((hit) => setDup(hit ? hit.word : null))
         .catch(() => setDup(null));
     }, 300);
     return () => clearTimeout(t);
-  }, [word]);
+  }, [word, config]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setDone(null);
     try {
-      const { added, duplicate } = await addWord(esConfig, { word, meaning, gender });
+      const { added, duplicate } = await addWord(config, { word, meaning, gender });
       if (duplicate) {
         setDup(duplicate.word);
       } else if (added) {
@@ -60,9 +61,9 @@ export default function AddPage() {
           <input
             value={word}
             onChange={(e) => setWord(e.target.value)}
-            placeholder="palabra..."
+            placeholder={config.inputPlaceholder}
             className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3"
-            lang="es"
+            lang={config.code}
             autoCapitalize="off"
           />
           {dup && <p className="mt-1 text-sm text-amber-600">⚠ 이미 있는 단어: {dup}</p>}
@@ -76,25 +77,27 @@ export default function AddPage() {
             className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3"
           />
         </div>
-        <div>
-          <label className="mb-1 block text-sm text-neutral-500">성별 (선택)</label>
-          <div className="flex gap-2">
-            {GENDERS.map((g) => (
-              <button
-                type="button"
-                key={g.value}
-                onClick={() => setGender(gender === g.value ? "none" : g.value)}
-                className={`flex-1 rounded-lg border py-2.5 text-sm ${
-                  gender === g.value
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-300 text-neutral-600"
-                }`}
-              >
-                {g.label}
-              </button>
-            ))}
+        {config.hasGender && (
+          <div>
+            <label className="mb-1 block text-sm text-neutral-500">성별 (선택)</label>
+            <div className="flex gap-2">
+              {GENDERS.map((g) => (
+                <button
+                  type="button"
+                  key={g.value}
+                  onClick={() => setGender(gender === g.value ? "none" : g.value)}
+                  className={`flex-1 rounded-lg border py-2.5 text-sm ${
+                    gender === g.value
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-300 text-neutral-600"
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         <button
           type="submit"
           disabled={busy || !word.trim() || !meaning.trim() || dup !== null}

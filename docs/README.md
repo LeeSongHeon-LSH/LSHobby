@@ -2,8 +2,8 @@
 
 > **작성일**: 2026-08-14 (모듈·ERD/DDL·와이어프레임 확정: 2026-08-14)
 > **앱 이름**: **LSHobby** — GitHub 리포 `LeeSongHeon-LSH/LSHobby` (구 Spanish-Practice에서 개명 완료)
-> **상태**: **언어·책·CS 모듈 구현 완료** (2026-08-15) — 프로덕션 https://lshobby.vercel.app 단일 운영. UI 재디자인은 1회(#48, 범위는 #53)
-> **다음 작업**: CV 공개 페이지 구현 (§17) → 영어 확장 → UI 전면 재디자인(#48) — 로드맵은 [06-language-srs.md](06-language-srs.md) §6.6
+> **상태**: **언어(스페인어·영어)·책·CS·CV 전 기능 구현 완료** (2026-08-18) — 프로덕션 https://lshobby.vercel.app 단일 운영
+> **다음 작업**: UI 전면 재디자인 1회 (#48, 범위는 #53 — 4등분 홈·CV 디자인 포함) — 로드맵은 [06-language-srs.md](06-language-srs.md) §6.6
 
 ## 1. 프로젝트 개요
 
@@ -33,8 +33,8 @@
 | §6 | [06-language-srs.md](06-language-srs.md) | 언어 모듈 + **SRS(FSRS)** — 언어별 테이블, 빅뱅 컷오버, 로드맵(§6.6) |
 | §7 | [07-library.md](07-library.md) | 책 모듈 — 완독 후 일괄 기록, 회독·인용구·노트 |
 | §8 | [08-knowledge.md](08-knowledge.md) | CS 모듈 — 개념 문서, 태그 + 위키링크·백링크 |
-| §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 14개 테이블, RLS (컷오버 시 마이그레이션 원본) |
-| §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~53 |
+| §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 19개 테이블, RLS (마이그레이션 원본) |
+| §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~54 |
 | §11 | [11-wireframes.md](11-wireframes.md) | 화면 와이어프레임 — 내비 문법, 전 세션 화면 인벤토리 |
 | §12 | [12-requirements.md](12-requirements.md) | **요구사항 명세(SRS)** — FR/NFR/SEC 통합, 보안·백업 신규 확정, 수용 기준 |
 | §13 | [13-user-stories.md](13-user-stories.md) | 유저 스토리 — 에픽 E1~E8, US↔FR 추적 매트릭스 |

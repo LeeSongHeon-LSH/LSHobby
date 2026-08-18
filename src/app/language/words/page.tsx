@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   articleFor,
+  useCurrentConfig,
   deleteWord,
-  esConfig,
   listWords,
   stateLabel,
   updateWord,
@@ -24,16 +24,20 @@ const GENDERS: { value: Gender; label: string }[] = [
 
 // §11.4.3 단어장 — 검색·상태 뱃지, 행 탭 → 편집/삭제
 export default function WordsPage() {
+  const config = useCurrentConfig();
   const [words, setWords] = useState<Word[]>([]);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Word | null>(null);
   const [form, setForm] = useState({ word: "", meaning: "", gender: "none" as Gender });
   const [busy, setBusy] = useState(false);
 
-  const reload = () => listWords(esConfig).then(setWords).catch(() => setWords([]));
+  const reload = useCallback(
+    () => listWords(config).then(setWords).catch(() => setWords([])),
+    [config],
+  );
   useEffect(() => {
     reload();
-  }, []);
+  }, [reload]);
 
   const filtered = useMemo(() => {
     const q = deaccent(query.trim().toLowerCase());
@@ -46,14 +50,14 @@ export default function WordsPage() {
 
   const openEdit = (w: Word) => {
     setEditing(w);
-    setForm({ word: w.word, meaning: w.meaning, gender: w.gender });
+    setForm({ word: w.word, meaning: w.meaning, gender: w.gender ?? "none" });
   };
 
   const saveEdit = async () => {
     if (!editing) return;
     setBusy(true);
     try {
-      await updateWord(esConfig, editing.id, form);
+      await updateWord(config, editing.id, form);
       setEditing(null);
       await reload();
     } finally {
@@ -65,7 +69,7 @@ export default function WordsPage() {
     if (!editing || !confirm(`"${editing.word}"를 삭제할까요?`)) return;
     setBusy(true);
     try {
-      await deleteWord(esConfig, editing.id);
+      await deleteWord(config, editing.id);
       setEditing(null);
       await reload();
     } finally {
@@ -128,21 +132,23 @@ export default function WordsPage() {
               className="w-full rounded-lg border border-neutral-300 px-4 py-2.5"
               placeholder="뜻"
             />
-            <div className="flex gap-2">
-              {GENDERS.map((g) => (
-                <button
-                  key={g.value}
-                  onClick={() => setForm({ ...form, gender: g.value })}
-                  className={`flex-1 rounded-lg border py-2 text-sm ${
-                    form.gender === g.value
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-300 text-neutral-600"
-                  }`}
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
+            {config.hasGender && (
+              <div className="flex gap-2">
+                {GENDERS.map((g) => (
+                  <button
+                    key={g.value}
+                    onClick={() => setForm({ ...form, gender: g.value })}
+                    className={`flex-1 rounded-lg border py-2 text-sm ${
+                      form.gender === g.value
+                        ? "border-neutral-900 bg-neutral-900 text-white"
+                        : "border-neutral-300 text-neutral-600"
+                    }`}
+                  >
+                    {g.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex gap-2 pt-1">
               <button
                 onClick={removeEditing}

@@ -3,7 +3,8 @@
 ## 9. 전체 ERD 및 DDL — 확정 (2026-08-14)
 
 컷오버 시 이 DDL이 Supabase 마이그레이션 파일의 원본이 된다.
-영어 확장 시에는 `es_*` 4개 테이블을 `en_*`으로 복제하고 언어 config를 등록하면 끝(§6.2).
+영어 확장(2026-08-18, #54)으로 `en_*` 4개 테이블이 추가됐다 — `es_*`와 동일 구조에서 `gender`(언어 특수 필드)만 제외.
+이때 예문 원문 컬럼을 일반화했다: `es_sentences.es_text` → `text` (언어가 늘어도 스키마가 자연스럽도록).
 
 ### 9.1 ERD
 
@@ -19,6 +20,9 @@ erDiagram
     es_words ||--o{ es_review_log : "복습 1회 = 1행"
     es_words ||--o{ es_sentences : "Tatoeba 예문"
     es_words ||--o| es_sentence_fetch : "조회 기록"
+    en_words ||--o{ en_review_log : "es와 동일 구조 (#54)"
+    en_words ||--o{ en_sentences : ""
+    en_words ||--o| en_sentence_fetch : ""
     %% shared
     reflection_thread ||--o{ reflection_entry : "append-only"
     tag ||--o{ tagging : ""
@@ -128,7 +132,7 @@ create table concept_link (
 );
 create index idx_concept_link_to on concept_link (to_id);   -- 백링크 조회
 
--- ============ language (스페인어 — 영어 확장 시 en_* 복제) ============
+-- ============ language (언어별 테이블 — es_* 원본, en_*은 동일 구조·gender 제외 #54) ============
 
 create table es_words (
   id             bigint generated always as identity primary key,
@@ -163,9 +167,9 @@ create index idx_es_review_log_at   on es_review_log (reviewed_at);
 create table es_sentences (
   id         bigint generated always as identity primary key,
   word_id    bigint not null references es_words(id) on delete cascade,
-  es_text    text not null,
+  text       text not null,       -- 해당 언어 원문 (구 es_text — #54에서 일반화)
   ko_text    text,
-  en_text    text,
+  en_text    text,                -- 원문이 영어인 언어에선 항상 null
   source_url text
 );
 create index idx_es_sentences_word on es_sentences (word_id);
@@ -174,6 +178,9 @@ create table es_sentence_fetch (
   word_id    bigint primary key references es_words(id) on delete cascade,
   fetched_at timestamptz not null default now()
 );
+
+-- en_words / en_review_log / en_sentences / en_sentence_fetch (#54):
+-- 위 es_* 4테이블과 동일 구조·인덱스·RLS. 차이는 en_words에 gender 컬럼이 없는 것뿐 (§6.2)
 
 -- ============ cv (§17) ============
 

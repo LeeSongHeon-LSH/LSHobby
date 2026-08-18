@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   buildCsv,
-  esConfig,
+  useCurrentConfig,
   fetchStats,
   listWords,
   reviewStats,
@@ -14,25 +14,26 @@ import {
 
 // §11.4.4 통계 — 전부 es_review_log 파생 집계 (결정 #36), 상태 분포는 FSRS state
 export default function StatsPage() {
+  const config = useCurrentConfig();
   const [stats, setStats] = useState<LangStats | null>(null);
   const [words, setWords] = useState<Word[]>([]);
 
   useEffect(() => {
     (async () => {
-      const ws = await listWords(esConfig);
+      const ws = await listWords(config);
       setWords(ws);
-      setStats(await fetchStats(esConfig, ws));
+      setStats(await fetchStats(config, ws));
     })().catch(() => {});
-  }, []);
+  }, [config]);
 
   const exportCsv = async () => {
-    const per = await reviewStats(esConfig);
+    const per = await reviewStats(config);
     const csv = buildCsv(words, per);
     const bom = String.fromCharCode(0xfeff); // 엑셀 한글 호환
     const url = URL.createObjectURL(new Blob([bom + csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "spanish-words.csv";
+    a.download = `${config.code}-words.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

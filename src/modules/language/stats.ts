@@ -93,7 +93,7 @@ export function buildCsv(words: Word[], perWord: Map<number, { reviews: number; 
   for (const w of words) {
     const s = perWord.get(w.id) ?? { reviews: 0, correct: 0 };
     lines.push(
-      [w.word, w.gender, w.meaning, s.reviews, s.correct, w.state, w.due ?? "", w.created_at]
+      [w.word, w.gender ?? "", w.meaning, s.reviews, s.correct, w.state, w.due ?? "", w.created_at]
         .map(esc)
         .join(","),
     );
