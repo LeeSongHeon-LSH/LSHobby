@@ -203,7 +203,7 @@ export default function LibraryJourneyPage() {
     };
 
     const navBtn =
-      "inline-flex min-h-11 w-[76px] items-center justify-center rounded-lg border border-line bg-card font-mono text-xs text-lib";
+      "inline-flex min-h-11 w-[76px] items-center justify-center rounded-lg border border-lib/40 bg-lib-soft font-mono text-xs text-lib";
 
     return (
       <main className="flex flex-1 flex-col p-4 md:p-6">

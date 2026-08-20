@@ -106,7 +106,7 @@ export default function RecordPage() {
           </div>
           <button
             onClick={() => setPicked(null)}
-            className="inline-flex min-h-11 items-center px-2 text-sm text-faint"
+            className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-xs text-lib"
           >
             ← 책 선택
           </button>
@@ -182,7 +182,10 @@ export default function RecordPage() {
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
           <h1 className="font-display text-2xl font-bold">완독 기록</h1>
         </div>
-        <Link href="/library" className="inline-flex min-h-11 items-center px-2 text-sm text-faint">
+        <Link
+          href="/library"
+          className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-xs text-lib"
+        >
           ← 책장
         </Link>
       </header>

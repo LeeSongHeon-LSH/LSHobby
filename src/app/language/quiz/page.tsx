@@ -177,7 +177,10 @@ export default function QuizPage() {
     return (
       <main className="p-4 text-center">
         <p className="mt-16 text-faint">출제할 단어가 없습니다</p>
-        <Link href="/language" className="mt-4 inline-block text-sm underline">
+        <Link
+          href="/language"
+          className="mt-4 inline-flex min-h-11 items-center rounded-md border border-lang/40 bg-lang-soft px-4 text-sm text-lang"
+        >
           덱으로 돌아가기
         </Link>
       </main>
@@ -208,7 +211,12 @@ export default function QuizPage() {
   return (
     <main className="p-4">
       <header className="mb-6 flex items-center justify-between text-sm text-faint">
-        <Link href="/language">←</Link>
+        <Link
+          href="/language"
+          className="inline-flex min-h-11 items-center rounded-lg border border-lang/40 bg-lang-soft px-3.5 font-mono text-xs text-lang"
+        >
+          ← 덱
+        </Link>
         <span className="inline-flex items-center gap-1 font-mono text-xs">{mode === "hard" && <PixelFlame size={11} />}{progress}</span>
       </header>
 
