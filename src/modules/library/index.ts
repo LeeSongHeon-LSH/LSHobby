@@ -15,6 +15,7 @@ export {
 } from "./books";
 export {
   VOL_CAP,
+  bookNav,
   chunkVolumes,
   journeyNumbers,
   noInVol,

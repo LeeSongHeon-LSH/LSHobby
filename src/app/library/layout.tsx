@@ -6,7 +6,7 @@ import { AuthGuard } from "@/modules/shared/auth";
 export default function LibraryLayout({ children }: LayoutProps<"/library">) {
   return (
     <AuthGuard>
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col">{children}</div>
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col md:max-w-4xl">{children}</div>
     </AuthGuard>
   );
 }

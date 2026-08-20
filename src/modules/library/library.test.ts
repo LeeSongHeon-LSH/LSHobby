@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { BookListItem } from "./books";
 import {
   VOL_CAP,
+  bookNav,
   chunkVolumes,
   journeyNumbers,
   noInVol,
@@ -94,6 +95,33 @@ describe("previewJourneyNo — 완독일까지 반영한 번호 미리보기", (
 
   it("재독을 기존 최초 완독일보다 이전으로 소급하면 번호가 앞당겨진다", () => {
     expect(previewJourneyNo(shelf, 3, "2026-01-01")).toBe(1);
+  });
+});
+
+describe("bookNav — 펼친 책 넘김 산술 (모바일 한 쪽 / 데스크톱 양면)", () => {
+  // 완결 보: 목차 2 + 여정 20 = 22쪽 / 진행중 보(4권): 목차 2 + 여정 4 + 빈 쪽 1 = 7쪽
+  const FULL = 22;
+  const PARTIAL = 7;
+
+  it("한 쪽 모드 — 첫 쪽은 이전 없음, 끝 쪽은 다음 없음", () => {
+    expect(bookNav(FULL, 0, false)).toMatchObject({ total: FULL, step: 1, base: 0, hasPrev: false, hasNext: true });
+    expect(bookNav(FULL, FULL - 1, false)).toMatchObject({ base: FULL - 1, hasPrev: true, hasNext: false });
+  });
+
+  it("양면 모드 — 홀수 쪽이면 빈 쪽을 덧대 짝수 펼침이 된다", () => {
+    expect(bookNav(PARTIAL, 0, true).total).toBe(PARTIAL + 1);
+    expect(bookNav(FULL, 0, true).total).toBe(FULL);
+  });
+
+  it("양면 모드 — 홀수 인덱스도 같은 펼침(짝수 base)으로 정렬된다", () => {
+    expect(bookNav(FULL, 3, true).base).toBe(2);
+    expect(bookNav(FULL, 4, true).base).toBe(4);
+  });
+
+  it("양면 모드 — 첫 펼침(목차 i·ii)은 이전 없음, 마지막 펼침은 다음 없음", () => {
+    expect(bookNav(FULL, 0, true)).toMatchObject({ step: 2, hasPrev: false, hasNext: true });
+    expect(bookNav(FULL, FULL - 2, true)).toMatchObject({ hasPrev: true, hasNext: false });
+    expect(bookNav(PARTIAL, PARTIAL - 1, true)).toMatchObject({ base: PARTIAL - 1, hasNext: false });
   });
 });
 

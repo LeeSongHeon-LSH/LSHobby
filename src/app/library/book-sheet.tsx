@@ -120,12 +120,20 @@ export function BookSheet({
   const title = book?.title ?? item.title;
 
   return (
-    <div className="fixed inset-0 z-10 flex items-end bg-black/30" onClick={onClose}>
+    // 모바일 = 바텀시트 / 데스크톱(md~) = 우측 종이 토스트 (목업 데스크톱 페이지 — 테이프·살짝 기운 종이)
+    <div
+      className="fixed inset-0 z-10 flex items-end bg-black/30 md:items-center md:justify-end md:p-10"
+      onClick={onClose}
+    >
       <div
-        className="anim-sheet-up mx-auto flex max-h-[82dvh] w-full max-w-md flex-col rounded-t-2xl border border-b-0 border-line bg-sheet shadow-[0_-16px_48px_rgba(34,38,43,0.3)]"
+        className="anim-sheet-up relative mx-auto flex max-h-[82dvh] w-full max-w-md flex-col rounded-t-2xl border border-b-0 border-line bg-sheet shadow-[0_-16px_48px_rgba(34,38,43,0.3)] md:mx-0 md:max-h-full md:w-[440px] md:-rotate-[0.6deg] md:rounded-lg md:border-b md:shadow-[0_24px_60px_rgba(34,38,43,0.35)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto mt-2.5 h-1 w-11 shrink-0 rounded-full bg-line" aria-hidden="true" />
+        <span
+          className="absolute -top-3 left-1/2 hidden h-6 w-24 -translate-x-1/2 rotate-[1.5deg] border-x border-dashed border-ink/10 bg-line/60 md:block"
+          aria-hidden="true"
+        />
+        <div className="mx-auto mt-2.5 h-1 w-11 shrink-0 rounded-full bg-line md:hidden" aria-hidden="true" />
         <header className="flex items-start justify-between gap-3 border-b border-line/70 px-5 pb-3.5 pt-3">
           <div>
             <p className="font-mono text-[11px] tracking-[0.18em] text-lib">MY NOTES · 여정 {journeyNo} / 20</p>

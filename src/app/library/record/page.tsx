@@ -95,7 +95,7 @@ export default function RecordPage() {
     const inVol = noInVol(no);
 
     return (
-      <main className="flex flex-1 flex-col p-4">
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4">
         <header className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
@@ -173,7 +173,7 @@ export default function RecordPage() {
 
   // 1단계: 책 선택(목차 문법) / 신규 등록
   return (
-    <main className="flex flex-1 flex-col p-4">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>

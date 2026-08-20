@@ -82,15 +82,18 @@ function Hub() {
   ];
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4 pb-6">
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold tracking-tight">LSHobby</h1>
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4 pb-6 md:max-w-4xl md:p-8">
+      <header className="mb-4 flex items-center justify-between md:mb-6">
+        <div className="flex items-end gap-2.5">
+          <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">LSHobby</h1>
+          <span className="hidden md:block"><PixelMascot size={30} /></span>
+        </div>
         <button onClick={() => setMenuOpen(true)} aria-label="설정" className="rounded p-2 text-faint">
           ⚙
         </button>
       </header>
 
-      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-3">
+      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-3 md:grid-cols-3 md:grid-rows-1 md:gap-5">
         {drawers.map((d, i) => (
           <Link
             key={d.href}

@@ -56,3 +56,18 @@ export function volOf(no: number): number {
 export function noInVol(no: number): number {
   return ((no - 1) % VOL_CAP) + 1;
 }
+
+/**
+ * 펼친 책 내비 산술 — wide(양면 스프레드)는 ±2쪽, 아니면 ±1쪽.
+ * pageCount = 목차 2쪽 + 권당 1쪽 (+ 진행중이면 빈 쪽 1). wide에서 홀수면 빈 쪽 하나를 덧대 짝수로.
+ */
+export function bookNav(
+  pageCount: number,
+  displayIndex: number,
+  wide: boolean,
+): { total: number; base: number; step: number; hasPrev: boolean; hasNext: boolean } {
+  const total = wide && pageCount % 2 ? pageCount + 1 : pageCount;
+  const step = wide ? 2 : 1;
+  const base = wide ? displayIndex - (displayIndex % 2) : displayIndex;
+  return { total, base, step, hasPrev: base > 0, hasNext: base + step < total };
+}
