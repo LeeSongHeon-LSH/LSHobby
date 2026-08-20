@@ -169,6 +169,7 @@ export function BookSheet({
                   key={key}
                   value={meta[key]}
                   onChange={(e) => setMeta({ ...meta, [key]: e.target.value })}
+                  onBlur={(e) => setMeta({ ...meta, [key]: e.target.value })}
                   placeholder={label}
                   className="w-full rounded-md border border-line bg-card px-4 py-2.5 text-sm"
                 />
@@ -219,6 +220,7 @@ export function BookSheet({
                     <textarea
                       value={noteDraft}
                       onChange={(e) => setNoteDraft(e.target.value)}
+                      onBlur={(e) => setNoteDraft(e.target.value)}
                       rows={8}
                       placeholder="마크다운 노트…"
                       className="w-full rounded-md border border-line bg-card px-3 py-2 font-mono text-sm"

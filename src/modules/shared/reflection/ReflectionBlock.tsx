@@ -75,6 +75,7 @@ export function ReflectionBlock({
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            onBlur={(e) => setContent(e.target.value)}
             placeholder="지금의 생각…"
             rows={4}
             className="w-full rounded-md border border-line px-3 py-2 text-sm"
@@ -83,6 +84,7 @@ export function ReflectionBlock({
           <input
             value={context}
             onChange={(e) => setContext(e.target.value)}
+            onBlur={(e) => setContext(e.target.value)}
             placeholder="계기 (선택 — 예: 재독, 3개월 후)"
             className="w-full rounded-md border border-line px-3 py-2 text-sm"
           />

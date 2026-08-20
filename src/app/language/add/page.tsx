@@ -71,6 +71,7 @@ export default function AddPage() {
           <input
             value={word}
             onChange={(e) => setWord(e.target.value)}
+            onBlur={(e) => setWord(e.target.value)}
             placeholder={config.inputPlaceholder}
             className="w-full rounded-md border border-line bg-card px-4 py-3"
             lang={config.code}
@@ -87,6 +88,7 @@ export default function AddPage() {
           <input
             value={meaning}
             onChange={(e) => setMeaning(e.target.value)}
+            onBlur={(e) => setMeaning(e.target.value)}
             placeholder="한국어 뜻..."
             className="w-full rounded-md border border-line bg-card px-4 py-3"
           />

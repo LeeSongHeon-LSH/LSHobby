@@ -35,6 +35,7 @@ function Ornament() {
   );
 }
 
+// 한글 IME: 조합 중 포커스 이동 시 마지막 글자 유실 방지 — blur에 확정값 동기화
 // §11.5.2 완독 기록 — 기록 = 여정에 속표지 한 쪽을 쓰는 것.
 // 1단계 책 선택(목차 문법) → 2단계 속표지 미리보기 + 완독일·별점 (#58)
 export default function RecordPage() {
@@ -193,6 +194,7 @@ export default function RecordPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onBlur={(e) => setQuery(e.target.value)}
               placeholder="제목 검색"
               className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
             />
@@ -255,6 +257,7 @@ export default function RecordPage() {
                 key={key}
                 value={form[key]}
                 onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                onBlur={(e) => setForm({ ...form, [key]: e.target.value })}
                 placeholder={label}
                 className="w-full rounded-md border border-line bg-card px-4 py-2.5"
               />

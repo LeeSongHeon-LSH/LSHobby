@@ -94,6 +94,7 @@ export default function WordsPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onBlur={(e) => setQuery(e.target.value)}
           placeholder="단어·뜻 검색"
           className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
         />
@@ -136,12 +137,14 @@ export default function WordsPage() {
             <input
               value={form.word}
               onChange={(e) => setForm({ ...form, word: e.target.value })}
+              onBlur={(e) => setForm({ ...form, word: e.target.value })}
               className="w-full rounded-md border border-line px-4 py-2.5"
               placeholder="단어"
             />
             <input
               value={form.meaning}
               onChange={(e) => setForm({ ...form, meaning: e.target.value })}
+              onBlur={(e) => setForm({ ...form, meaning: e.target.value })}
               className="w-full rounded-md border border-line px-4 py-2.5"
               placeholder="뜻"
             />

@@ -43,6 +43,7 @@ function CvEdit() {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        onBlur={(e) => setContent(e.target.value)}
         placeholder="CV 전문 마크다운 — 이름·이메일·학위 등 기본 정보 포함 (§17.1)"
         className="w-full flex-1 rounded-md border border-line bg-card px-3 py-2 font-mono text-sm"
       />
