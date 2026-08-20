@@ -1,5 +1,7 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
+> **개정 예고 (2026-08-20, 결정 #57~59)**: CS 세션 제거 · 인용구 기능 삭제 · 책 세션 = 독서 여정 책장(탭바 없음) · 탭바 [홈] 슬롯 폐지(우상단 홈 버튼). 본 문서의 관련 항목(CS/knowledge·concept·quote·인용구·구 내비 문법)은 §10 결정 로그가 우선하며, 코드·DB 반영 시 본문을 개정한다.
+
 ## 12. 요구사항 명세 (SRS) — 확정 (2026-08-14)
 
 > 여기서 SRS = **Software Requirements Specification**. §6의 SRS(Spaced Repetition System)와는 무관한 동음 약어.
