@@ -1,6 +1,6 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
-> **개정 예고 (2026-08-20, 결정 #57~59)**: CS 세션 제거 · 인용구 기능 삭제 · 책 세션 = 독서 여정 책장(탭바 없음) · 탭바 [홈] 슬롯 폐지(우상단 홈 버튼). 본 문서의 관련 항목(CS/knowledge·concept·quote·인용구·구 내비 문법)은 §10 결정 로그가 우선하며, 코드·DB 반영 시 본문을 개정한다.
+> **개정 (2026-08-20, 결정 #57~61 반영 완료)**: CS 세션 제거 · 인용구 삭제가 코드(커밋 6246582~)와 DB(마이그레이션 20260820090000 · 20260820100000)에 모두 반영됐다. 본문은 현행 상태로 개정됨 — CS/quote 관련 폐기 항목은 사료 표시.
 
 ## 15. 설계 클래스 다이어그램 (DCD) — 확정 (2026-08-14)
 
@@ -13,7 +13,6 @@ flowchart TD
     subgraph domain["도메인 모듈 (§3.2)"]
         LIB[library]
         LANG[language]
-        KNOW[knowledge]
         CV[cv]
     end
     subgraph shared["shared"]
@@ -24,7 +23,6 @@ flowchart TD
     end
     LIB --> REF & ACT & TAG
     LANG --> ACT
-    KNOW --> REF & ACT & TAG
     domain --> AUTH
 ```
 
@@ -55,7 +53,7 @@ classDiagram
         +requireSession() Session
     }
     note for ReflectionService "addEntry: 스레드 없으면 자동 생성 (엔티티당 1개)\nentry 수정·삭제 API 없음 — append-only (§4.2)"
-    note for ActivityService "upsertDaily: 언어 학습 요약·CS 본문 수정용\n당일 같은 키면 갱신 (§6.4·§8.4)"
+    note for ActivityService "upsertDaily: 언어 학습 일별 요약용\n당일 같은 키면 갱신 (§6.4)"
 ```
 
 - reflection 블록의 **렌더링도 shared 소유**(§11.7) — 도메인 화면은 subject만 넘긴다
@@ -125,7 +123,7 @@ classDiagram
 - **언어 추가 = config 구현 1개 + 테이블 복제** — 서비스 코드는 전 언어 공용 한 벌(FR-18의 구현 형태)
 - StatsService·SrsEngine의 신규 한도·어려운 단어 판정은 전부 `*_review_log` 파생 — 카운터 상태 없음(#36)
 
-### 15.4 library · knowledge 모듈
+### 15.4 library 모듈 (knowledge는 #57로 폐기)
 
 ```mermaid
 classDiagram
@@ -159,8 +157,7 @@ classDiagram
 |---|---|---|
 | shared | `reflection_thread` · `reflection_entry` · `activity_feed` · `tag` · `tagging` | 타 모듈은 서비스 경유로만 접근 |
 | language | `es_words` · `es_review_log` · `es_sentences` · `es_sentence_fetch` · `en_*` 4종 | 언어 추가 = config + 테이블 복제 (#54) |
-| library | `book` · `reading` · `quote` | |
-| knowledge | `concept` · `concept_link` | |
+| library | `book` · `reading` | |
 | cv | `cv_document` | 유일한 anon SELECT 테이블 (§17, #51) |
 
 **각 모듈은 자기 테이블만 쿼리한다**(§3.4-2). 이 표가 코드 리뷰 때의 경계 판정 기준.

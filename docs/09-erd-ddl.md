@@ -1,10 +1,11 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
-> **개정 예고 (2026-08-20, 결정 #57~59)**: CS 세션 제거 · 인용구 기능 삭제 · 책 세션 = 독서 여정 책장(탭바 없음) · 탭바 [홈] 슬롯 폐지(우상단 홈 버튼). 본 문서의 관련 항목(CS/knowledge·concept·quote·인용구·구 내비 문법)은 §10 결정 로그가 우선하며, 코드·DB 반영 시 본문을 개정한다.
+> **개정 (2026-08-20, 결정 #57~61 반영 완료)**: CS 세션 제거 · 인용구 삭제가 코드(커밋 6246582~)와 DB(마이그레이션 20260820090000 · 20260820100000)에 모두 반영됐다. 본문은 현행 상태로 개정됨 — CS/quote 관련 폐기 항목은 사료 표시.
 
-## 9. 전체 ERD 및 DDL — 확정 (2026-08-14)
+## 9. 전체 ERD 및 DDL — 확정 (2026-08-14) · 개정 (2026-08-20, #57·#58)
 
 컷오버 시 이 DDL이 Supabase 마이그레이션 파일의 원본이 된다.
+2026-08-20 구조 개편으로 `quote`·`concept`·`concept_link` 3테이블과 CS 이미지용 `attachments` Storage 버킷을 drop — 현행 **16테이블**.
 영어 확장(2026-08-18, #54)으로 `en_*` 4개 테이블이 추가됐다 — `es_*`와 동일 구조에서 `gender`(언어 특수 필드)만 제외.
 이때 예문 원문 컬럼을 일반화했다: `es_sentences.es_text` → `text` (언어가 늘어도 스키마가 자연스럽도록).
 
@@ -14,10 +15,6 @@
 erDiagram
     %% library
     book ||--o{ reading : "회독"
-    book ||--o{ quote : "인용구"
-    %% knowledge
-    concept ||--o{ concept_link : "참조 from"
-    concept ||--o{ concept_link : "피참조 to"
     %% language
     es_words ||--o{ es_review_log : "복습 1회 = 1행"
     es_words ||--o{ es_sentences : "Tatoeba 예문"
@@ -32,8 +29,8 @@ erDiagram
 
 FK 없는 다형 참조(그림에 없는 연결, §4.5):
 
-- `reflection_thread(subject_type, subject_id)` ⇢ book · es_words · concept
-- `tagging(subject_type, subject_id)` ⇢ book · concept
+- `reflection_thread(subject_type, subject_id)` ⇢ book · es_words
+- `tagging(subject_type, subject_id)` ⇢ book
 - `activity_feed(entity_type, entity_id)` ⇢ 전 도메인 (summary 비정규화라 원본 참조 자체가 불필요)
 
 관계 없는 독립 테이블: `cv_document` (§17 — 1행 운용, FK·다형 참조 없음)
@@ -51,7 +48,7 @@ create table tag (
 create table tagging (
   id           bigint generated always as identity primary key,
   tag_id       bigint not null references tag(id) on delete cascade,
-  subject_type text not null,      -- 'book' | 'concept' (태그 대상이 늘면 값 추가)
+  subject_type text not null,      -- 'book' (태그 대상이 늘면 값 추가)
   subject_id   bigint not null,    -- FK 없음: 다형 참조 (§4.5)
   unique (tag_id, subject_type, subject_id)
 );
@@ -59,7 +56,7 @@ create index idx_tagging_subject on tagging (subject_type, subject_id);
 
 create table reflection_thread (
   id           bigint generated always as identity primary key,
-  subject_type text not null,      -- 'book' | 'es_word' | 'concept'
+  subject_type text not null,      -- 'book' | 'es_word'
   subject_id   bigint not null,    -- FK 없음: 다형 참조
   created_at   timestamptz not null default now(),
   unique (subject_type, subject_id)   -- 엔티티당 스레드 1개
@@ -76,8 +73,8 @@ create index idx_reflection_entry_thread on reflection_entry (thread_id);
 
 create table activity_feed (
   id          bigint generated always as identity primary key,
-  domain      text not null,       -- 'library' | 'language' | 'knowledge'
-  entity_type text not null,       -- 'book' | 'es_word' | 'concept' | 'reflection' …
+  domain      text not null,       -- 'library' | 'language' ('knowledge'는 과거 이벤트에만)
+  entity_type text not null,       -- 'book' | 'es_word' | 'reflection' …
   entity_id   bigint not null,     -- FK 없음: 엔티티 삭제 후에도 이벤트는 남는다 (§9.3)
   action      text not null,       -- 'created' | 'updated' | 'reflected' | 'completed' …
   summary     text not null,       -- 타임라인 한 줄 (비정규화 — 홈은 이 테이블만 읽음)
@@ -107,32 +104,8 @@ create table reading (
 );
 create index idx_reading_book on reading (book_id);
 
-create table quote (
-  id         bigint generated always as identity primary key,
-  book_id    bigint not null references book(id) on delete cascade,
-  content    text not null,
-  page       int,                  -- 시작 페이지 (범위 인용은 코멘트에 부기)
-  comment    text,                 -- 한 줄 코멘트 (선택)
-  created_at timestamptz not null default now()
-);
-create index idx_quote_book on quote (book_id);
-
--- ============ knowledge ============
-
-create table concept (
-  id         bigint generated always as identity primary key,
-  title      text not null unique, -- 위키링크가 제목으로 resolve되므로 유일 필수 (§8.2)
-  body       text not null default '',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()   -- 목록 기본 정렬 = 최근 수정순
-);
-
-create table concept_link (
-  from_id bigint not null references concept(id) on delete cascade,
-  to_id   bigint not null references concept(id) on delete cascade,
-  primary key (from_id, to_id)     -- 본문 저장 시 [[...]] 추출로 전량 재기록
-);
-create index idx_concept_link_to on concept_link (to_id);   -- 백링크 조회
+-- quote는 #58(인용구 삭제), concept·concept_link는 #57(CS 제거)로 2026-08-20 drop —
+-- 마이그레이션 20260820090000_drop_knowledge · 20260820100000_drop_quote 참조
 
 -- ============ language (언어별 테이블 — es_* 원본, en_*은 동일 구조·gender 제외 #54) ============
 
@@ -213,7 +186,7 @@ create policy anon_read_cv on cv_document for select to anon using (true);
 ### 9.3 DDL 수준 결정 사항
 
 - **PK**: 전 테이블 `bigint generated always as identity`. uuid 기각 — 분산·오프라인 생성이 없는 1인 서버 생성 구조에서 정수가 모든 면에서 가벼움
-- **RLS**: 켜되 정책은 "authenticated 전부 허용", **`user_id` 컬럼 없음** — 계정이 본인 하나뿐이라 "로그인함 = 본인". 다중 사용자로 확장하면 그때 컬럼 추가 마이그레이션. Supabase Storage 버킷 정책도 동일(authenticated만 읽기/쓰기). **예외**: `cv_document`만 anon SELECT 허용 — 공개 CV (§17, #51)
+- **RLS**: 켜되 정책은 "authenticated 전부 허용", **`user_id` 컬럼 없음** — 계정이 본인 하나뿐이라 "로그인함 = 본인". 다중 사용자로 확장하면 그때 컬럼 추가 마이그레이션. Storage는 미사용(CS 이미지용 attachments 버킷은 #57로 삭제). **예외**: `cv_document`만 anon SELECT 허용 — 공개 CV (§17, #51)
 - **다형 참조 값 규칙**: `subject_type`/`entity_type`은 테이블을 특정하는 값(`'es_word'`, 영어 추가 시 `'en_word'`) — §4.4 초안의 `'vocab'` 정정. 컬럼 하나로 대상 테이블까지 식별
 - **학습 카운터 컬럼 없음**: 현행 앱의 `test_count`/`correct_count` 이중 저장을 제거 — 통계·스트릭·하루 신규 20개 한도·어려운 단어 판정 전부 `es_review_log`에서 파생 집계
 - **cascade 이원화**: 진짜 FK는 DB `on delete cascade`, 다형 참조 행(reflection·tagging)은 앱 레이어가 삭제 (§4.5 "무결성은 앱 레이어" 결정의 귀결. 트리거는 숨은 로직이 되기 쉬워 배제)

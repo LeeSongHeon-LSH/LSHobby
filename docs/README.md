@@ -2,8 +2,8 @@
 
 > **작성일**: 2026-08-14 (모듈·ERD/DDL·와이어프레임 확정: 2026-08-14)
 > **앱 이름**: **LSHobby** — GitHub 리포 `LeeSongHeon-LSH/LSHobby` (구 Spanish-Practice에서 개명 완료)
-> **상태**: **언어(스페인어·영어)·책·CS·CV 전 기능 구현 완료** (2026-08-18) — 프로덕션 https://lshobby.vercel.app 단일 운영
-> **다음 작업**: **2026-08-20 구조 개편(#57~61) 코드 반영** — CS 세션 제거 · 인용구 삭제 · 책 세션 = 독서 여정 책장 (목업 확정, 코드·DB 미반영)
+> **상태**: **2026-08-20 구조 개편(#57~61) 코드·DB 반영 완료** — 홈 3서랍(책/언어/CV) · 독서 여정 책장 · 펭귄 리테마 · CS/인용구 제거. 프로덕션 https://lshobby.vercel.app 단일 운영
+> **다음 작업**: PWA 아이콘 PNG 재제작(구 팔레트) · 데스크톱 레이아웃 — 이후는 사용하며 발견하는 개선
 
 ## 1. 프로젝트 개요
 
@@ -33,7 +33,7 @@
 | §6 | [06-language-srs.md](06-language-srs.md) | 언어 모듈 + **SRS(FSRS)** — 언어별 테이블, 빅뱅 컷오버, 로드맵(§6.6) |
 | §7 | [07-library.md](07-library.md) | 책 모듈 — 완독 후 일괄 기록, 회독·인용구·노트 |
 | §8 | [08-knowledge.md](08-knowledge.md) | CS 모듈 — **폐기 (#57)**, 사료 |
-| §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 19개 테이블, RLS (마이그레이션 원본) |
+| §9 | [09-erd-ddl.md](09-erd-ddl.md) | **전체 ERD + DDL** — 16개 테이블, RLS (마이그레이션 원본) |
 | §10 | [10-decisions.md](10-decisions.md) | 결정 사항 요약 #1~61 |
 | §11 | [11-wireframes.md](11-wireframes.md) | 화면 와이어프레임 — 내비 문법, 전 세션 화면 인벤토리 |
 | §12 | [12-requirements.md](12-requirements.md) | **요구사항 명세(SRS)** — FR/NFR/SEC 통합, 보안·백업 신규 확정, 수용 기준 |
