@@ -15,6 +15,7 @@ import {
   type Book,
   type BookListItem,
 } from "@/modules/library";
+import { setTags } from "@/modules/shared/tag";
 import { SearchIcon } from "../../ui/icons";
 import { PixelPenguinBook } from "../../ui/pixel";
 
@@ -23,7 +24,7 @@ const todayStr = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-const EMPTY = { title: "", author: "", translator: "", publisher: "", pub_year: "" };
+const EMPTY = { title: "", author: "", translator: "", publisher: "", pub_year: "", tags: "" };
 
 function Ornament() {
   return (
@@ -70,6 +71,7 @@ export default function RecordPage() {
         publisher: form.publisher.trim(),
         pub_year: form.pub_year.trim(),
       });
+      if (form.tags.trim()) await setTags("book", book.id, form.tags.split(","));
       setPicked(book);
     } finally {
       setBusy(false);
@@ -251,6 +253,7 @@ export default function RecordPage() {
                 ["translator", "옮긴이 (선택)"],
                 ["publisher", "출판사"],
                 ["pub_year", "원저 발표연도 (예: 1943, BC 380)"],
+                ["tags", "태그 (선택, 쉼표 구분 — 예: 철학, 역사)"],
               ] as const
             ).map(([key, label]) => (
               <input
