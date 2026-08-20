@@ -16,9 +16,9 @@ import { ReflectionBlock } from "@/modules/shared/reflection";
 import { Markdown } from "@/modules/shared/markdown";
 
 const stars = (n: number | null) => (n ? "★".repeat(n) : "");
-const fmtMonth = (iso: string) => {
+const fmtDate = (iso: string) => {
   const d = new Date(iso);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 };
 
 /**
@@ -193,7 +193,7 @@ export function BookSheet({
                 <ul className="rounded-md border border-line bg-card px-4 py-2 text-sm">
                   {readings.map((r, i) => (
                     <li key={r.id} className="flex justify-between py-1.5">
-                      <span className="font-mono text-xs">{readings.length - i}회독 · {fmtMonth(r.finished_on)}</span>
+                      <span className="font-mono text-xs">{readings.length - i}회독 · {fmtDate(r.finished_on)}</span>
                       <span className="text-star">{stars(r.rating)}</span>
                     </li>
                   ))}

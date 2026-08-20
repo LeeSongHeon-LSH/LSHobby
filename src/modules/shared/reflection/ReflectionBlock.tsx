@@ -5,7 +5,7 @@ import { addEntry, getTimeline, type ReflectionEntry } from "./service";
 
 const fmtDate = (iso: string): string => {
   const d = new Date(iso);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
 };
 
 /**
