@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HomeButton } from "../../ui/home-button";
+import { PixelPenguinBubble } from "../../ui/pixel";
 import {
   buildCsv,
   useCurrentConfig,
@@ -54,13 +56,16 @@ export default function StatsPage() {
   const maxState = Math.max(1, ...stats.stateCounts);
 
   return (
-    <main className="p-4">
-      <header className="mb-4">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
-        <h1 className="font-display text-2xl font-bold">학습 통계</h1>
+    <main className="flex flex-1 flex-col p-4">
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
+          <h1 className="font-display text-2xl font-bold">학습 통계</h1>
+        </div>
+        <HomeButton accent="lang" />
       </header>
 
-      <div className="mb-6 grid grid-cols-3 gap-2">
+      <div className="mb-7 grid grid-cols-3 gap-2">
         {[
           { v: stats.streak, l: "연속일" },
           { v: stats.todayTotal, l: "오늘" },
@@ -75,7 +80,7 @@ export default function StatsPage() {
 
       <section className="mb-6">
         <h2 className="mb-2 text-sm font-medium text-faint">최근 14일 학습량</h2>
-        <div className="flex h-20 items-end gap-1 rounded-md border border-line bg-card p-3">
+        <div className="flex h-28 items-end gap-1 rounded-md border border-line bg-card p-3">
           {stats.daily.map((d) => (
             <div
               key={d.date}
@@ -84,10 +89,11 @@ export default function StatsPage() {
               style={{ height: `${(d.total / maxDaily) * 100}%`, minHeight: d.total > 0 ? 3 : 0 }}
             />
           ))}
+          <div className="flex shrink-0 items-end pl-1"><PixelPenguinBubble size={26} /></div>
         </div>
       </section>
 
-      <section className="mb-8">
+      <section>
         <h2 className="mb-2 text-sm font-medium text-faint">FSRS 상태 분포</h2>
         <div className="space-y-2 rounded-md border border-line bg-card p-4">
           {stats.stateCounts.map((n, state) => (
@@ -100,6 +106,7 @@ export default function StatsPage() {
         </div>
       </section>
 
+      <div className="flex-1" />
       <button
         onClick={exportCsv}
         className="w-full rounded-md border border-line bg-card py-3 font-medium"

@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SearchIcon } from "../../ui/icons";
 import {
   createBook,
   listBooks,
@@ -57,7 +59,7 @@ export default function RecordPage() {
     setBusy(true);
     try {
       await recordCompletion(picked, finishedOn, rating);
-      router.replace(`/library/book/${picked.id}`);
+      router.replace(`/library?open=${picked.id}`); // #58 — 여정 자세히보기로
     } finally {
       setBusy(false);
     }
@@ -88,7 +90,7 @@ export default function RecordPage() {
                 <button
                   key={n}
                   onClick={() => setRating(rating === n ? null : n)}
-                  className={rating && n <= rating ? "text-cs" : "text-line"}
+                  className={rating && n <= rating ? "text-star" : "text-line"}
                 >
                   ★
                 </button>
@@ -104,7 +106,7 @@ export default function RecordPage() {
           </button>
         </div>
         <p className="mt-4 text-center text-xs text-faint">
-          인용구·노트·생각은 기록 후 책 상세에서 자유롭게
+          노트·감상은 기록 후 여정 자세히보기에서 자유롭게
         </p>
       </main>
     );
@@ -112,18 +114,24 @@ export default function RecordPage() {
   // 1단계: 책 선택 / 신규 등록
   return (
     <main className="p-4">
-      <header className="mb-4">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
-        <h1 className="font-display text-2xl font-bold">완독 기록</h1>
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+          <h1 className="font-display text-2xl font-bold">완독 기록</h1>
+        </div>
+        <Link href="/library" className="inline-flex min-h-11 items-center px-2 text-sm text-faint">← 책장</Link>
       </header>
       {!creating ? (
         <>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="🔍 제목 검색"
-            className="mb-3 w-full rounded-md border border-line bg-card px-4 py-2.5"
-          />
+          <div className="relative mb-3">
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint"><SearchIcon /></span>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="제목 검색"
+              className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
+            />
+          </div>
           <ul className="divide-y divide-line rounded-md border border-line bg-card">
             {matches.map((b) => (
               <li key={b.id}>

@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { addWord, findByNorm, useCurrentConfig } from "@/modules/language";
+import { HomeButton } from "../../ui/home-button";
+import { AlertIcon } from "../../ui/icons";
+import { PixelPenguinBubble } from "../../ui/pixel";
 import type { Gender } from "@/modules/language";
 
 const GENDERS: { value: Gender; label: string }[] = [
@@ -54,12 +57,15 @@ export default function AddPage() {
   };
 
   return (
-    <main className="p-4">
-      <header className="mb-4">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
-        <h1 className="font-display text-2xl font-bold">단어 추가</h1>
+    <main className="flex flex-1 flex-col p-4">
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
+          <h1 className="font-display text-2xl font-bold">단어 추가</h1>
+        </div>
+        <HomeButton accent="lang" />
       </header>
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-5">
         <div>
           <label className="mb-1 block text-sm text-faint">단어</label>
           <input
@@ -70,7 +76,11 @@ export default function AddPage() {
             lang={config.code}
             autoCapitalize="off"
           />
-          {dupWord && <p className="mt-1 text-sm text-err">⚠ 이미 있는 단어: {dupWord}</p>}
+          {dupWord && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-err">
+              <AlertIcon />이미 있는 단어: <b className="font-semibold">{dupWord}</b>
+            </p>
+          )}
         </div>
         <div>
           <label className="mb-1 block text-sm text-faint">뜻</label>
@@ -111,6 +121,8 @@ export default function AddPage() {
         </button>
         {done && <p className="text-center text-sm text-ok">{done}</p>}
       </form>
+      <div className="flex-1" />
+      <div className="mb-2 flex justify-center"><PixelPenguinBubble size={40} /></div>
     </main>
   );
 }

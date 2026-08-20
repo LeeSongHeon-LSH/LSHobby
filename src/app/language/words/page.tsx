@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { HomeButton } from "../../ui/home-button";
+import { SearchIcon } from "../../ui/icons";
+import { PixelPenguinBubble } from "../../ui/pixel";
 import {
   articleFor,
   useCurrentConfig,
@@ -79,17 +82,24 @@ export default function WordsPage() {
 
   return (
     <main className="p-4">
-      <header className="mb-4">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
-        <h1 className="font-display text-2xl font-bold">단어장</h1>
+      <header className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
+          <h1 className="font-display text-2xl font-bold">단어장</h1>
+        </div>
+        <HomeButton accent="lang" />
       </header>
-      <input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="🔍 단어·뜻 검색"
-        className="mb-2 w-full rounded-md border border-line bg-card px-4 py-2.5"
-      />
-      <p className="mb-3 font-mono text-xs text-faint">
+      <div className="relative mb-2">
+        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint"><SearchIcon /></span>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="단어·뜻 검색"
+          className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
+        />
+      </div>
+      <p className="mb-3 flex items-center gap-1.5 font-mono text-xs text-faint">
+        <PixelPenguinBubble size={20} />
         {query ? `${filtered.length} / ${words.length}단어` : `${words.length}단어`}
       </p>
       <ul className="divide-y divide-line rounded-md border border-line bg-card">

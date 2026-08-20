@@ -6,22 +6,19 @@ import { useRouter } from "next/navigation";
 import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
-import { countConcepts } from "@/modules/knowledge";
-import { PixelBooks, PixelCat, PixelSpeech, PixelTerminal } from "../ui/pixel";
+import { PixelMascot, PixelPenguinBook, PixelPenguinBubble } from "../ui/pixel";
 
-// #48·#53 홈(허브) — 화면을 4등분하는 "네 서랍": 책·언어·CS·CV. 타임라인 제거, 탭바 없음 (§11.1)
+// #57·#60 홈(허브) — 세로로 쌓인 세 서랍(책·언어·CV), 서랍마다 도메인 펭귄. 탭바 없음
 function Hub() {
   const router = useRouter();
   const [wordCount, setWordCount] = useState<number | null>(null);
   const [bookCount, setBookCount] = useState<number | null>(null);
-  const [conceptCount, setConceptCount] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all(Object.values(languageConfigs).map((c) => countWords(c)))
       .then((counts) => setWordCount(counts.reduce((a, b) => a + b, 0)))
       .catch(() => setWordCount(null));
     countBooks().then(setBookCount).catch(() => setBookCount(null));
-    countConcepts().then(setConceptCount).catch(() => setConceptCount(null));
   }, []);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,28 +62,21 @@ function Hub() {
       href: "/library",
       name: "책",
       count: bookCount === null ? "" : `완독 ${bookCount}권`,
-      icon: <PixelBooks size={44} />,
+      icon: <PixelPenguinBook size={48} />,
       tab: "bg-lib",
     },
     {
       href: "/language",
       name: "언어",
       count: wordCount === null ? "" : `단어 ${wordCount}개`,
-      icon: <PixelSpeech size={44} />,
+      icon: <PixelPenguinBubble size={48} />,
       tab: "bg-lang",
-    },
-    {
-      href: "/knowledge",
-      name: "CS",
-      count: conceptCount === null ? "" : `개념 ${conceptCount}개`,
-      icon: <PixelTerminal size={44} />,
-      tab: "bg-cs",
     },
     {
       href: "/cv/edit",
       name: "CV",
       count: "공개 이력서",
-      icon: <PixelCat size={44} />,
+      icon: <PixelMascot size={48} />,
       tab: "bg-cv",
     },
   ];
@@ -100,7 +90,7 @@ function Hub() {
         </button>
       </header>
 
-      <nav className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-3">
+      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-3">
         {drawers.map((d, i) => (
           <Link
             key={d.href}

@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/home", // 설치형 앱은 취미공간이 목적 — 공개 CV(`/`) 경유·리다이렉트 생략 (§17.2)
     scope: "/",
     display: "standalone",
-    background_color: "#f5f4ef",
-    theme_color: "#f5f4ef",
+    background_color: "#eef1f4",
+    theme_color: "#eef1f4",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },

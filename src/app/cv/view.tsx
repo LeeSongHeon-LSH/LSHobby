@@ -1,40 +1,39 @@
 import Link from "next/link";
-import type { Components } from "react-markdown";
 import { getCv } from "@/modules/cv";
-import { Markdown } from "@/modules/shared/markdown";
-import { PixelCat } from "../ui/pixel";
+import { PixelMascot } from "../ui/pixel";
+import { CvSections } from "./sections";
 
-// #48 CV 문서 타이포그래피 — 제목은 고운바탕, 링크·괘선은 마법사 보라 (§17.4)
-const cvComponents: Components = {
-  h1: ({ children }) => (
-    <h1 className="mt-2 font-display text-3xl font-bold leading-snug">{children}</h1>
-  ),
-  h2: ({ children }) => (
-    <h2 className="mt-8 border-b border-line pb-1.5 font-display text-xl font-bold">{children}</h2>
-  ),
-  h3: ({ children }) => <h3 className="mt-5 font-display text-base font-bold">{children}</h3>,
-  a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noreferrer" className="text-cv underline underline-offset-2">
-      {children}
-    </a>
-  ),
+const fmtMonth = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 
-// §17.4 공개 CV — 서버 렌더 공용 뷰 (`/`·`/cv`). 고양이 아이콘 = 로그인 이스터에그 (§17.6)
+/**
+ * #61 공개 CV — "이력서 = 종이 한 장": 눈밭 위 종이 시트, 위 모서리에 잠옷 펭귄.
+ * 펭귄 클릭 = 로그인 (§17.6 이스터에그 — 어떤 개편에서도 유지). 서버 렌더 공용 뷰 (`/`·`/cv`).
+ */
 export async function CvView() {
   const cv = await getCv().catch(() => null);
+  const content = cv?.content.trim() ?? "";
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-10 pb-20">
-      <header className="mb-10 flex justify-center">
-        <Link href="/login" aria-label="LSHobby">
-          <PixelCat size={44} />
+    <main className="relative mx-auto w-full max-w-2xl flex-1 px-4 pb-14 pt-14 sm:px-6">
+      <div className="absolute left-1/2 top-[26px] z-[2] -translate-x-1/2">
+        <Link href="/login" aria-label="LSHobby" className="inline-block">
+          <PixelMascot size={48} />
         </Link>
-      </header>
-      {cv && cv.content.trim() ? (
-        <Markdown components={cvComponents}>{cv.content}</Markdown>
-      ) : (
-        <p className="text-center text-sm text-faint">CV 준비 중입니다.</p>
-      )}
+      </div>
+      <div className="relative min-h-[70dvh] rounded-lg border border-line bg-sheet px-6 pb-12 pt-10 shadow-[0_10px_30px_rgba(34,38,43,0.08)] sm:px-10">
+        {content ? (
+          <CvSections content={content} />
+        ) : (
+          <p className="pt-16 text-center text-sm text-faint">CV 준비 중입니다.</p>
+        )}
+        {cv && content && (
+          <p className="absolute bottom-3.5 right-5 font-mono text-[10px] text-line">
+            마지막 수정 {fmtMonth(cv.updated_at)}
+          </p>
+        )}
+      </div>
     </main>
   );
 }

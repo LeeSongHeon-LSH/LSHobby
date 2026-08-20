@@ -22,17 +22,9 @@ export interface Reading {
   created_at: string;
 }
 
-export interface Quote {
-  id: number;
-  book_id: number;
-  content: string;
-  page: number | null;
-  comment: string | null;
-  created_at: string;
-}
-
 export interface BookListItem extends Book {
   readCount: number;
+  firstFinishedOn: string | null;
   lastFinishedOn: string | null;
   lastRating: number | null;
   tags: string[];
@@ -46,7 +38,7 @@ export interface BookFields {
   pub_year: string;
 }
 
-/** 서재 목록 — 최근 완독순 (§7.3) */
+/** 서재 목록 — 최근 완독순. 독서 여정 화면(#58)은 firstFinishedOn 오름차순으로 재정렬해 쓴다 */
 export async function listBooks(): Promise<BookListItem[]> {
   const [{ data: books, error: bErr }, { data: readings, error: rErr }, tags] = await Promise.all([
     supabase.from("book").select("*"),
@@ -55,12 +47,13 @@ export async function listBooks(): Promise<BookListItem[]> {
   ]);
   if (bErr) throw bErr;
   if (rErr) throw rErr;
-  const byBook = new Map<number, { count: number; last: string; rating: number | null }>();
+  const byBook = new Map<number, { count: number; first: string; last: string; rating: number | null }>();
   for (const r of readings as Pick<Reading, "book_id" | "finished_on" | "rating">[]) {
     const e = byBook.get(r.book_id);
     byBook.set(r.book_id, {
       count: (e?.count ?? 0) + 1,
-      last: r.finished_on, // finished_on 오름차순이라 마지막 값이 최신
+      first: e?.first ?? r.finished_on, // finished_on 오름차순이라 첫 값이 최초 완독
+      last: r.finished_on, // 마지막 값이 최신
       rating: r.rating ?? e?.rating ?? null,
     });
   }
@@ -68,6 +61,7 @@ export async function listBooks(): Promise<BookListItem[]> {
     .map((b) => ({
       ...b,
       readCount: byBook.get(b.id)?.count ?? 0,
+      firstFinishedOn: byBook.get(b.id)?.first ?? null,
       lastFinishedOn: byBook.get(b.id)?.last ?? null,
       lastRating: byBook.get(b.id)?.rating ?? null,
       tags: tags.get(b.id) ?? [],
@@ -75,20 +69,15 @@ export async function listBooks(): Promise<BookListItem[]> {
     .sort((a, b) => (b.lastFinishedOn ?? "").localeCompare(a.lastFinishedOn ?? ""));
 }
 
-export async function getBook(
-  id: number,
-): Promise<{ book: Book; readings: Reading[]; quotes: Quote[] } | null> {
-  const [{ data: book, error }, { data: readings, error: rErr }, { data: quotes, error: qErr }] =
-    await Promise.all([
-      supabase.from("book").select("*").eq("id", id).maybeSingle(),
-      supabase.from("reading").select("*").eq("book_id", id).order("finished_on", { ascending: false }),
-      supabase.from("quote").select("*").eq("book_id", id).order("created_at"),
-    ]);
+export async function getBook(id: number): Promise<{ book: Book; readings: Reading[] } | null> {
+  const [{ data: book, error }, { data: readings, error: rErr }] = await Promise.all([
+    supabase.from("book").select("*").eq("id", id).maybeSingle(),
+    supabase.from("reading").select("*").eq("book_id", id).order("finished_on", { ascending: false }),
+  ]);
   if (error) throw error;
   if (rErr) throw rErr;
-  if (qErr) throw qErr;
   if (!book) return null;
-  return { book: book as Book, readings: readings as Reading[], quotes: quotes as Quote[] };
+  return { book: book as Book, readings: readings as Reading[] };
 }
 
 export async function countBooks(): Promise<number> {
@@ -137,15 +126,6 @@ export async function recordCompletion(
   return n;
 }
 
-export async function addQuote(
-  book: Pick<Book, "id" | "title">,
-  input: { content: string; page: number | null; comment: string | null },
-): Promise<void> {
-  const { error } = await supabase.from("quote").insert({ book_id: book.id, ...input });
-  if (error) throw error;
-  await publish("library", "book", book.id, "quoted", `「${book.title}」 인용구 추가`);
-}
-
 export async function saveNote(book: Pick<Book, "id" | "title">, note: string): Promise<void> {
   const { error } = await supabase.from("book").update({ note: note || null }).eq("id", book.id);
   if (error) throw error;
@@ -154,24 +134,11 @@ export async function saveNote(book: Pick<Book, "id" | "title">, note: string): 
 
 /**
  * 책 삭제 — cascade 이원화 (§14.7):
- * reading·quote는 DB cascade, reflection·tagging 다형 행은 여기서. activity는 보존.
+ * reading은 DB cascade, reflection·tagging 다형 행은 여기서. activity는 보존.
  */
 export async function deleteBook(id: number): Promise<void> {
   await removeThread("book", id);
   await removeTaggings("book", id);
   const { error } = await supabase.from("book").delete().eq("id", id);
   if (error) throw error;
-}
-
-/** 인용구 횡단 목록 (§11.5.4) — 최신 등록순 */
-export async function listAllQuotes(): Promise<(Quote & { bookTitle: string })[]> {
-  const { data, error } = await supabase
-    .from("quote")
-    .select("*, book(title)")
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return (data as unknown as (Quote & { book: { title: string } })[]).map((q) => ({
-    ...q,
-    bookTitle: q.book.title,
-  }));
 }

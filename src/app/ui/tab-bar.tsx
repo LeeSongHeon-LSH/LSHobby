@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// #48 — 세션 탭바 공용 컴포넌트: 활성 탭에 도메인색 상단 인디케이터 (§11.1 내비 문법 불변)
+// #59 — 세션 탭바: 도메인 기능 탭만 (홈 복귀는 우상단 HomeButton). 활성 탭에 도메인색 인디케이터
 export interface Tab {
   href: string;
   label: string;
@@ -11,9 +11,7 @@ export interface Tab {
 }
 
 const ACCENT = {
-  lib: { text: "text-lib", bar: "bg-lib" },
   lang: { text: "text-lang", bar: "bg-lang" },
-  cs: { text: "text-cs", bar: "bg-cs" },
 } as const;
 
 export function TabBar({ tabs, accent }: { tabs: Tab[]; accent: keyof typeof ACCENT }) {

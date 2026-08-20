@@ -1,20 +1,22 @@
-// #48 픽셀 아이콘 세트 — CV 이스터에그 고양이(§17.6)와 같은 16×16 도트 문법으로
-// 도메인 아이콘(책 더미·말풍선·터미널)을 통일. 색은 globals.css 도메인 토큰과 일치.
+// #60 픽셀 아이콘 세트 — 마스코트 고양이를 잇는 16×16 도트 펭귄 가족.
+// 색은 globals.css 도메인 토큰과 일치: 책=빙하 파랑 / 언어=부리 주황 / CV=잠옷 로즈.
 
 function PixelArt({
   grid,
   palette,
   size,
+  cells = 16,
 }: {
   grid: string[];
   palette: Record<string, string>;
   size: number;
+  cells?: number;
 }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 16 16"
+      viewBox={`0 0 ${cells} ${cells}`}
       shapeRendering="crispEdges"
       aria-hidden="true"
     >
@@ -29,115 +31,134 @@ function PixelArt({
   );
 }
 
-// 책 — 서가에 쌓인 세 권 (초록 계열)
-const BOOKS_GRID = [
+// 책 — 파란 표지 책을 펼쳐 든 펭귄 (독서 여정 책등과 같은 자세)
+const PENGUIN_BOOK_GRID = [
   "................",
   "................",
-  "................",
-  "...AAAAAAAAAA...",
-  "...AAWWAAAAAA...",
-  "...AAAAAAAAAA...",
-  "..BBBBBBBBBBBB..",
-  "..BBBBWWBBBBBB..",
-  "..BBBBBBBBBBBB..",
-  "....CCCCCCCC....",
-  "....CCWWCCCC....",
-  "....CCCCCCCC....",
-  "..KKKKKKKKKKKK..",
-  "................",
-  "................",
-  "................",
-];
-const BOOKS_PALETTE = { A: "#578a68", B: "#3e6b4e", C: "#2c4f3a", W: "#f5f4ef", K: "#211f1a" };
-
-export const PixelBooks = ({ size = 40 }: { size?: number }) => (
-  <PixelArt grid={BOOKS_GRID} palette={BOOKS_PALETTE} size={size} />
-);
-
-// 언어 — 말줄임표가 든 말풍선 (파란펜)
-const SPEECH_GRID = [
-  "................",
-  "................",
-  "................",
-  "...BBBBBBBBBB...",
-  "..BBBBBBBBBBBB..",
-  "..BBBBBBBBBBBB..",
-  "..BBWWBWWBWWBB..",
-  "..BBBBBBBBBBBB..",
-  "...BBBBBBBBBB...",
-  "....BBB.........",
-  "....BB..........",
-  "....B...........",
-  "................",
-  "................",
-  "................",
-  "................",
-];
-const SPEECH_PALETTE = { B: "#2b5bb7", W: "#f5f4ef" };
-
-export const PixelSpeech = ({ size = 40 }: { size?: number }) => (
-  <PixelArt grid={SPEECH_GRID} palette={SPEECH_PALETTE} size={size} />
-);
-
-// CS — 프롬프트가 깜빡이는 브라운관 (앰버)
-const TERMINAL_GRID = [
-  "................",
-  "................",
-  "..KKKKKKKKKKKK..",
-  "..KSSSSSSSSSSK..",
-  "..KSASSSSSSSSK..",
-  "..KSSASAASSSSK..",
-  "..KSASSSSSSSSK..",
-  "..KSSSSSSSSSSK..",
-  "..KKKKKKKKKKKK..",
-  ".......KK.......",
   ".....KKKKKK.....",
-  "................",
-  "................",
-  "................",
+  "....KKKKKKKK....",
+  "....KKWKKWKK....",
+  "....KKKCCKKK....",
+  "...KKKWWWWKKK...",
+  "...KKWWWWWWKK...",
+  "...BDDDDDDDDB...",
+  "...BDDDDDDDDB...",
+  "....BBBBBBBB....",
+  "....KKWWWWKK....",
+  ".....KKKKKK.....",
+  ".....CC..CC.....",
   "................",
   "................",
 ];
-const TERMINAL_PALETTE = { K: "#211f1a", S: "#2a2620", A: "#e8a33d" };
-
-export const PixelTerminal = ({ size = 40 }: { size?: number }) => (
-  <PixelArt grid={TERMINAL_GRID} palette={TERMINAL_PALETTE} size={size} />
-);
-
-// CV — 마법사 모자 + 동그란 안경 + 책 읽는 고양이 (§17.6 이스터에그 원본)
-const CAT_GRID = [
-  ".......P........",
-  "......PPP.......",
-  "......PYP.......",
-  ".....PPPPP......",
-  "..ODDDDDDDDDDO..",
-  "..OOOOOOOOOOOO..",
-  "..OOOGOOOOGOOO..",
-  "..OOGEGGGGEGOO..",
-  "..OOOGOOOOGOOO..",
-  "..OOOCCNNCCOOO..",
-  "...OOOCCCCOOO...",
-  "...OWWWWWWWWO...",
-  "...WWWWSSWWWW.O.",
-  "...RRRRRRRRRR.O.",
-  "..OOoOOOOOOoOOO.",
-  "...OOO....OOO...",
-];
-const CAT_PALETTE = {
-  P: "#8b5cf6",
-  D: "#6d28d9",
-  Y: "#facc15",
-  O: "#f59e0b",
-  o: "#d97706",
-  G: "#18181b",
-  E: "#e0f2fe",
-  N: "#f472b6",
-  C: "#fde68a",
-  W: "#f8fafc",
-  S: "#64748b",
-  R: "#b91c1c",
+const PENGUIN_BOOK_PALETTE = {
+  K: "#22262b",
+  C: "#e2801f",
+  B: "#4d7fa3",
+  D: "#f1ead9",
+  W: "#fafbfc",
 };
 
-export const PixelCat = ({ size = 32 }: { size?: number }) => (
-  <PixelArt grid={CAT_GRID} palette={CAT_PALETTE} size={size} />
+export const PixelPenguinBook = ({ size = 44 }: { size?: number }) => (
+  <PixelArt grid={PENGUIN_BOOK_GRID} palette={PENGUIN_BOOK_PALETTE} size={size} />
+);
+
+// 언어 — 주황 말풍선으로 말하는 펭귄
+const PENGUIN_BUBBLE_GRID = [
+  "..........OOOO..",
+  ".........OWOWOO.",
+  "..........OOOO..",
+  "....KKKKKKO.....",
+  "...KKKKKKKK.....",
+  "...KKWKKWKK.....",
+  "...KKKCCKKK.....",
+  "...KKWWWWKK.....",
+  "..KKWWWWWWKK....",
+  "..KKWWWWWWKK....",
+  "..KKWWWWWWKK....",
+  "..KKWWWWWWKK....",
+  "...KKWWWWKK.....",
+  "....CC..CC......",
+  "................",
+  "................",
+];
+const PENGUIN_BUBBLE_PALETTE = {
+  K: "#22262b",
+  O: "#d9821f",
+  C: "#e2801f",
+  W: "#fafbfc",
+};
+
+export const PixelPenguinBubble = ({ size = 44 }: { size?: number }) => (
+  <PixelArt grid={PENGUIN_BUBBLE_GRID} palette={PENGUIN_BUBBLE_PALETTE} size={size} />
+);
+
+// 마스코트 — 잠옷 모자를 쓰고 펼쳐진 책 위에 앉은 펭귄 (§17.6 로그인 이스터에그, 구 고양이 승계 #60)
+const MASCOT_GRID = [
+  "......CCCC......",
+  ".....CCCCCC.....",
+  ".....FFFFFF.....",
+  "....CCCCCCCCWW..",
+  "....KKKKKKKK....",
+  "...KKKKKKKKKK...",
+  "...KKWKKKKWKK...",
+  "...KKKKEEKKKK...",
+  "...KKWWWWWWKK...",
+  "...KKWWWWWWKK...",
+  "...KKWWWWWWKK...",
+  "...KKKWWWWKKK...",
+  ".....EE..EE.....",
+  "BGGGGGGDDGGGGGGB",
+  "BGGGGGGDDGGGGGGB",
+  ".BBBBBBBBBBBBBB.",
+];
+const MASCOT_PALETTE = {
+  K: "#22262b",
+  B: "#8b6f47",
+  C: "#c05e7c",
+  D: "#cfc4a8",
+  E: "#e2801f",
+  F: "#e8b7c5",
+  G: "#f1ead9",
+  W: "#fafbfc",
+};
+
+export const PixelMascot = ({ size = 44 }: { size?: number }) => (
+  <PixelArt grid={MASCOT_GRID} palette={MASCOT_PALETTE} size={size} />
+);
+
+// 홈 버튼 — 손잡이 두 개짜리 서랍장 ("네 서랍"), 손잡이 색 = 도메인색
+const DRAWER_GRID = [
+  "KKKKKKKK",
+  "KWWWWWWK",
+  "KWWaaWWK",
+  "KKKKKKKK",
+  "KWWWWWWK",
+  "KWWaaWWK",
+  "KKKKKKKK",
+  "........",
+];
+
+export const PixelDrawer = ({ size = 14, accent }: { size?: number; accent: string }) => (
+  <PixelArt
+    grid={DRAWER_GRID}
+    palette={{ K: "#22262b", W: "#fafbfc", a: accent }}
+    size={size}
+    cells={8}
+  />
+);
+
+// 어려운 단어 칩 — 도트 불꽃
+const FLAME_GRID = [
+  "...R....",
+  "...RR...",
+  "..RRR...",
+  "..RRRR..",
+  ".RRORR..",
+  ".ROOORR.",
+  ".ROOOR..",
+  "..RRR...",
+];
+
+export const PixelFlame = ({ size = 12 }: { size?: number }) => (
+  <PixelArt grid={FLAME_GRID} palette={{ R: "#c23b3b", O: "#d9821f" }} size={size} cells={8} />
 );

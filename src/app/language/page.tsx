@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { HomeButton } from "../ui/home-button";
+import { PixelFlame, PixelPenguinBubble } from "../ui/pixel";
 import {
   isHard,
   languageConfigs,
@@ -58,8 +60,9 @@ export default function LanguageHome() {
 
   const free = dueCount === 0;
   return (
-    <main className="p-4">
-      <header className="mb-8">
+    <main className="flex flex-1 flex-col p-4">
+      <header className="mb-7 flex items-start justify-between gap-3">
+        <div>
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">Language</p>
         <h1 className="font-display text-2xl font-bold">
           <select
@@ -76,9 +79,13 @@ export default function LanguageHome() {
           </select>
           <span className="ml-1 text-base text-faint">▾</span>
         </h1>
+        </div>
+        <HomeButton accent="lang" />
       </header>
-      <div className="relative mx-auto max-w-xs overflow-hidden rounded-lg border border-line bg-card p-8 text-center">
+      <div className="flex flex-1 flex-col justify-center pb-9">
+      <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-lg border border-line bg-card p-8 text-center">
         <span className="absolute left-4 top-0 h-1 w-10 bg-lang" aria-hidden="true" />
+        <div className="mb-2.5 flex justify-center"><PixelPenguinBubble size={44} /></div>
         <p className="text-sm text-faint">{free ? "자유 연습" : "오늘 복습"}</p>
         <p className="my-3 font-mono text-5xl font-medium tabular-nums">{free ? "∞" : (dueCount ?? "–")}</p>
         <Link
@@ -93,9 +100,9 @@ export default function LanguageHome() {
         <div className="mt-5 text-center">
           <Link
             href="/language/quiz?hard=1"
-            className="inline-block rounded-full border border-err/30 bg-err/5 px-4 py-2 text-sm text-err"
+            className="inline-flex items-center gap-1.5 rounded-full border border-err/30 bg-err/5 px-4 py-2 text-sm text-err"
           >
-            🔥 어려운 단어 {hardCount}개
+            <PixelFlame size={12} />어려운 단어 {hardCount}개
           </Link>
         </div>
       )}
@@ -106,6 +113,7 @@ export default function LanguageHome() {
           : ""}
         전체 {total}단어
       </p>
+      </div>
     </main>
   );
 }

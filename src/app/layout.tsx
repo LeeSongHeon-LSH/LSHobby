@@ -10,13 +10,13 @@ const plexMono = IBM_Plex_Mono({ weight: ["400", "500"], subsets: ["latin"], var
 
 export const metadata: Metadata = {
   title: "LSHobby",
-  description: "개인 지식·취미 관리 — 책 · 언어 · CS",
+  description: "개인 지식·취미 기록 — 책 · 언어 · CV",
   appleWebApp: { capable: true, title: "LSHobby", statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f5f4ef",
+  themeColor: "#eef1f4",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

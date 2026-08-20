@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { PixelFlame } from "../../ui/pixel";
 import {
   answerWord,
   articleFor,
@@ -197,7 +198,7 @@ export default function QuizPage() {
     <main className="p-4">
       <header className="mb-6 flex items-center justify-between text-sm text-faint">
         <Link href="/language">←</Link>
-        <span className="font-mono text-xs">{mode === "hard" ? `🔥 ${progress}` : progress}</span>
+        <span className="inline-flex items-center gap-1 font-mono text-xs">{mode === "hard" && <PixelFlame size={11} />}{progress}</span>
       </header>
 
       <div
