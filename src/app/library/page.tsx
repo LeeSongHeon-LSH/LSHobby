@@ -178,7 +178,7 @@ export default function LibraryJourneyPage() {
               <p className="font-mono text-xs text-lib">{page.item.tags.map((t) => `#${t}`).join(" ")}</p>
             )}
             <p className="mt-3.5 font-mono text-[11px] text-faint">
-              완독 {fmtDate(page.item.firstFinishedOn)} · {page.item.readCount}회독
+              {fmtDate(page.item.firstFinishedOn)} · {page.item.readCount}회독
             </p>
             <button
               onClick={() => setSheet({ item: page.item, no: page.no })}
