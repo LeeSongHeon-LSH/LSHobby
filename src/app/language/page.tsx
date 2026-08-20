@@ -7,7 +7,6 @@ import { PixelFlame, PixelPenguinBubble } from "../ui/pixel";
 import {
   isHard,
   languageConfigs,
-  reviewStats,
   setCurrentLang,
   todayPool,
   todayReviewSummary,
@@ -26,9 +25,8 @@ export default function LanguageHome() {
     let stale = false;
     (async () => {
       try {
-        const [{ words, pool }, stats, summary] = await Promise.all([
+        const [{ words, pool, stats }, summary] = await Promise.all([
           todayPool(config),
-          reviewStats(config),
           todayReviewSummary(config),
         ]);
         if (stale) return;

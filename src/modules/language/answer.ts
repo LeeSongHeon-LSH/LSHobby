@@ -1,7 +1,7 @@
 import { supabase } from "../shared/auth";
 import { upsertDaily } from "../shared/activity";
 import { applyAnswer, type SrsFields } from "./srs";
-import { todayReviewSummary } from "./review-stats";
+import { todayReviewSummary } from "./stats";
 import type { LanguageConfig } from "./types";
 import type { Word } from "./words";
 

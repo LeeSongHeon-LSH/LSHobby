@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthGuard } from "@/modules/shared/auth";
+import { AuthGuard, supabase } from "@/modules/shared/auth";
 import { getCv, saveCv } from "@/modules/cv";
 import { HomeButton } from "../../ui/home-button";
 
@@ -23,6 +23,12 @@ function CvEdit() {
     setBusy(true);
     try {
       await saveCv(content);
+      // 정적 공개 페이지 캐시 무효화 — "수정 즉시 반영" 유지 (#51 개정, 성능 리뷰 P2)
+      const { data } = await supabase.auth.getSession();
+      await fetch("/api/revalidate-cv", {
+        method: "POST",
+        headers: { authorization: `Bearer ${data.session?.access_token ?? ""}` },
+      }).catch(() => {});
       router.replace("/cv");
     } finally {
       setBusy(false);

@@ -193,6 +193,35 @@ describe("통계 집계 (구 stats.py 이식)", () => {
     expect(computeStreak(["2026-08-13"], today)).toBe(0); // 이틀 전 = 끊김
     expect(computeStreak(["2026-08-15", "2026-08-13"], today)).toBe(1); // 중간 공백
   });
+  it("countNewStartedToday: 최초 복습이 오늘 자정 이후인 단어만 센다 (성능 P1)", async () => {
+    const { countNewStartedToday } = await import("./session");
+    const now = new Date("2026-08-14T12:00:00");
+    const stats = new Map([
+      [1, { reviews: 3, correct: 2, firstReviewedAt: "2026-08-14T01:00:00" }], // 오늘 시작
+      [2, { reviews: 5, correct: 5, firstReviewedAt: "2026-08-13T23:59:00" }], // 어제 시작
+      [3, { reviews: 1, correct: 1 }], // 로컬 갱신 객체 — 시각 없음
+    ]);
+    expect(countNewStartedToday(stats, now)).toBe(1);
+  });
+
+  it("aggregateDaily: 사전 집계 행에서 aggregate와 같은 결과 (성능 P1)", async () => {
+    const { aggregate, aggregateDaily, localDate } = await import("./stats");
+    const now = new Date("2026-08-14T12:00:00");
+    const words = [newRow({ state: 0 }), newRow({ state: 2 })].map(
+      (r, i) => ({ ...r, id: i + 1, word: "w", gender: "none" as const, meaning: "m", norm: `n${i}`, created_at: "" }),
+    );
+    const logs = [
+      { rating: 3, reviewed_at: "2026-08-14T01:00:00" },
+      { rating: 1, reviewed_at: "2026-08-14T02:00:00" },
+      { rating: 3, reviewed_at: "2026-08-13T01:00:00" },
+    ];
+    const rows = [
+      { day: localDate(new Date("2026-08-13T01:00:00")), total: 1, correct: 1 },
+      { day: localDate(new Date("2026-08-14T01:00:00")), total: 2, correct: 1 },
+    ];
+    expect(aggregateDaily(rows, words, now)).toEqual(aggregate(logs, words, now));
+  });
+
   it("aggregate: 일별 14칸·오늘 수·상태 분포", async () => {
     const { aggregate } = await import("./stats");
     const now = new Date("2026-08-15T12:00:00");

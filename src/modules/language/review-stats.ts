@@ -4,35 +4,20 @@ import type { LanguageConfig } from "./types";
 export interface WordStat {
   reviews: number;
   correct: number;
+  /** 최초 복습 시각 — "오늘 신규 시작" 판정용 (퀴즈의 로컬 갱신 객체엔 없음) */
+  firstReviewedAt?: string | null;
 }
 
-/** 단어별 복습 횟수·정답 수 — 전부 review_log 파생 (결정 #36). rating≥2 = 정답(Good) */
+/**
+ * 단어별 복습 횟수·정답 수 — review_log 파생 (결정 #36), 집계는 DB RPC.
+ * 클라이언트 전량 조회는 PostgREST 1000행 캡에서 조용히 틀려져 RPC로 대체 (성능 리뷰 P1).
+ * rating≥2 = 정답(Good) 판정은 RPC 안에 동일하게 산다.
+ */
 export async function reviewStats(config: LanguageConfig): Promise<Map<number, WordStat>> {
-  const { data, error } = await supabase.from(config.reviewLogTable).select("word_id, rating");
+  const { data, error } = await supabase.rpc(config.wordStatsFn);
   if (error) throw error;
-  const map = new Map<number, WordStat>();
-  for (const r of data as { word_id: number; rating: number }[]) {
-    const s = map.get(r.word_id) ?? { reviews: 0, correct: 0 };
-    s.reviews += 1;
-    if (r.rating >= 2) s.correct += 1;
-    map.set(r.word_id, s);
-  }
-  return map;
-}
-
-export const dayStartIso = (now: Date): string =>
-  new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-
-/** 오늘의 학습 요약 — 일별 activity 요약(§6.4)·덱 하단 표시용 */
-export async function todayReviewSummary(
-  config: LanguageConfig,
-  now: Date = new Date(),
-): Promise<{ count: number; correct: number }> {
-  const { data, error } = await supabase
-    .from(config.reviewLogTable)
-    .select("rating")
-    .gte("reviewed_at", dayStartIso(now));
-  if (error) throw error;
-  const ratings = data as { rating: number }[];
-  return { count: ratings.length, correct: ratings.filter((r) => r.rating >= 2).length };
+  const rows = data as { word_id: number; reviews: number; correct: number; first_reviewed_at: string | null }[];
+  return new Map(
+    rows.map((r) => [r.word_id, { reviews: r.reviews, correct: r.correct, firstReviewedAt: r.first_reviewed_at }]),
+  );
 }

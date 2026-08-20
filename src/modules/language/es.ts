@@ -14,6 +14,8 @@ export const esConfig: LanguageConfig = {
   label: "스페인어",
   wordTable: "es_words",
   reviewLogTable: "es_review_log",
+  wordStatsFn: "es_word_stats",
+  dailyStatsFn: "es_daily_stats",
   sentenceTable: "es_sentences",
   sentenceFetchTable: "es_sentence_fetch",
   tatoebaLang: "spa",

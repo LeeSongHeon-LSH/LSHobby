@@ -106,6 +106,7 @@ create index idx_reading_book on reading (book_id);
 
 -- quote는 #58(인용구 삭제), concept·concept_link는 #57(CS 제거)로 2026-08-20 drop —
 -- 마이그레이션 20260820090000_drop_knowledge · 20260820100000_drop_quote 참조
+-- 리뷰 집계 RPC 4종(es/en_word_stats · es/en_daily_stats)은 20260820120000 참조 (#62 — security invoker, RLS 적용)
 
 -- ============ language (언어별 테이블 — es_* 원본, en_*은 동일 구조·gender 제외 #54) ============
 

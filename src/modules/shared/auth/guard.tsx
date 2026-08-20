@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "./client";
 
-/** 로그인 세션 없으면 /login으로 — 보호가 목적이 아니라 UX (실제 접근 통제는 RLS, docs/16 §16.1) */
+/**
+ * 로그인 세션 없으면 /login으로 — 보호가 목적이 아니라 UX (실제 접근 통제는 RLS, docs/16 §16.1).
+ * 낙관적 렌더: 화면·데이터 페치를 먼저 시작하고, 세션이 없을 때만 되돌린다 (비로그인은 RLS가 빈 결과)
+ */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) router.replace("/login");
-      else setReady(true);
     });
   }, [router]);
-  if (!ready) return null;
   return <>{children}</>;
 }
 

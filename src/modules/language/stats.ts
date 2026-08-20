@@ -12,6 +12,13 @@ export interface DailyCount {
   correct: number;
 }
 
+/** 일별 집계 RPC 행 — day는 호출자 타임존 기준 YYYY-MM-DD */
+export interface DailyRow {
+  day: string;
+  total: number;
+  correct: number;
+}
+
 export interface LangStats {
   streak: number;
   todayTotal: number;
@@ -40,6 +47,38 @@ export function computeStreak(datesDesc: string[], today: string): number {
   return streak;
 }
 
+/** 일별 맵에서 통계 구성 — aggregate·aggregateDaily 공용 코어 */
+function fromByDay(
+  byDay: Map<string, { total: number; correct: number }>,
+  words: Word[],
+  now: Date,
+): LangStats {
+  const today = localDate(now);
+  const daily: DailyCount[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = localDate(new Date(now.getTime() - i * 86400000));
+    const e = byDay.get(d);
+    daily.push({ date: d, total: e?.total ?? 0, correct: e?.correct ?? 0 });
+  }
+  const datesDesc = [...byDay.keys()].sort().reverse();
+  const stateCounts: [number, number, number, number] = [0, 0, 0, 0];
+  for (const w of words) stateCounts[w.state] = (stateCounts[w.state] ?? 0) + 1;
+  let totalReviews = 0;
+  let totalCorrect = 0;
+  for (const e of byDay.values()) {
+    totalReviews += e.total;
+    totalCorrect += e.correct;
+  }
+  return {
+    streak: computeStreak(datesDesc, today),
+    todayTotal: byDay.get(today)?.total ?? 0,
+    totalReviews,
+    totalCorrect,
+    daily,
+    stateCounts,
+  };
+}
+
 /** 로그·단어에서 통계 집계 (전부 review_log 파생 — 결정 #36) */
 export function aggregate(
   logs: { rating: number; reviewed_at: string }[],
@@ -54,32 +93,34 @@ export function aggregate(
     if (l.rating >= 2) e.correct += 1;
     byDay.set(day, e);
   }
-  const today = localDate(now);
-  const daily: DailyCount[] = [];
-  for (let i = 13; i >= 0; i--) {
-    const d = localDate(new Date(now.getTime() - i * 86400000));
-    const e = byDay.get(d);
-    daily.push({ date: d, total: e?.total ?? 0, correct: e?.correct ?? 0 });
-  }
-  const datesDesc = [...byDay.keys()].sort().reverse();
-  const stateCounts: [number, number, number, number] = [0, 0, 0, 0];
-  for (const w of words) stateCounts[w.state] = (stateCounts[w.state] ?? 0) + 1;
-  return {
-    streak: computeStreak(datesDesc, today),
-    todayTotal: byDay.get(today)?.total ?? 0,
-    totalReviews: logs.length,
-    totalCorrect: logs.filter((l) => l.rating >= 2).length,
-    daily,
-    stateCounts,
-  };
+  return fromByDay(byDay, words, now);
+}
+
+/** 사전 집계된 일별 행에서 통계 구성 — aggregate와 동일 규칙 (성능 리뷰 P1) */
+export function aggregateDaily(rows: DailyRow[], words: Word[], now: Date = new Date()): LangStats {
+  return fromByDay(new Map(rows.map((r) => [r.day, { total: r.total, correct: r.correct }])), words, now);
+}
+
+/** 일별 집계 — DB RPC. 일 경계는 디바이스 타임존 (클라이언트 전량 집계 대체, 성능 리뷰 P1) */
+export async function dailyStats(config: LanguageConfig): Promise<DailyRow[]> {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const { data, error } = await supabase.rpc(config.dailyStatsFn, { tz });
+  if (error) throw error;
+  return data as DailyRow[];
 }
 
 export async function fetchStats(config: LanguageConfig, words: Word[]): Promise<LangStats> {
-  const { data, error } = await supabase
-    .from(config.reviewLogTable)
-    .select("rating, reviewed_at");
-  if (error) throw error;
-  return aggregate(data as { rating: number; reviewed_at: string }[], words);
+  return aggregateDaily(await dailyStats(config), words);
+}
+
+/** 오늘의 학습 요약 — 일별 집계의 오늘 행 (§6.4 일별 activity 요약·덱 하단 표시용) */
+export async function todayReviewSummary(
+  config: LanguageConfig,
+  now: Date = new Date(),
+): Promise<{ count: number; correct: number }> {
+  const rows = await dailyStats(config);
+  const t = rows.find((r) => r.day === localDate(now));
+  return { count: t?.total ?? 0, correct: t?.correct ?? 0 };
 }
 
 /** CSV export (§6.5 — 구 EXPORT_COLUMNS를 FSRS 체계로) */

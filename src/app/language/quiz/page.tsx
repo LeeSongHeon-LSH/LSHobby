@@ -11,7 +11,6 @@ import {
   isHard,
   ensureSentences,
   pickWeight,
-  reviewStats,
   todayPool,
   todayReviewSummary,
   weightedPick,
@@ -58,14 +57,12 @@ export default function QuizPage() {
   const pool = useRef<Word[]>([]);
   const stats = useRef<Map<number, WordStat>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
+  // 정답 화면에 머무는 동안 다음 문제(예문 페치 포함)를 미리 준비 — "다음" 탭이 즉시가 되게
+  const upcoming = useRef<Promise<Question | null> | null>(null);
 
-  const next = async () => {
+  const buildQuestion = async (): Promise<Question | null> => {
     const remaining = pool.current;
-    if (remaining.length === 0) {
-      setSummary(await todayReviewSummary(config));
-      setPhase("done");
-      return;
-    }
+    if (remaining.length === 0) return null;
     const word = weightedPick(remaining, (w) => {
       const s = stats.current.get(w.id);
       return s ? pickWeight(s.reviews, s.correct) : 1;
@@ -74,7 +71,7 @@ export default function QuizPage() {
     let sentence: Sentence | null = null;
     let blankAt = -1;
     if (Math.random() < 0.3) {
-      const candidates = await ensureSentences(config, word.id);
+      const candidates = await ensureSentences(config, word.id).catch(() => [] as Sentence[]);
       if (candidates.length > 0) {
         sentence = candidates[Math.floor(Math.random() * candidates.length)];
         blankAt = sentence.text.toLowerCase().indexOf(word.word.toLowerCase());
@@ -82,7 +79,18 @@ export default function QuizPage() {
         else sentence = null;
       }
     }
-    setQ({ word, dir, sentence, blankAt });
+    return { word, dir, sentence, blankAt };
+  };
+
+  const next = async () => {
+    const built = await (upcoming.current ?? buildQuestion());
+    upcoming.current = null;
+    if (!built) {
+      setSummary(await todayReviewSummary(config));
+      setPhase("done");
+      return;
+    }
+    setQ(built);
     setInput("");
     setResult(null);
     setPhase("question");
@@ -92,10 +100,7 @@ export default function QuizPage() {
   useEffect(() => {
     const hard = window.location.search.includes("hard=1");
     (async () => {
-      const [{ words, pool: due }, st] = await Promise.all([
-        todayPool(config),
-        reviewStats(config),
-      ]);
+      const { words, pool: due, stats: st } = await todayPool(config);
       stats.current = st;
       if (hard) {
         setMode("hard");
@@ -135,6 +140,7 @@ export default function QuizPage() {
       setRemaining(pool.current.length);
     }
     answerWord(config, q.word, res.ok).catch(() => {});
+    upcoming.current = buildQuestion(); // 프리페치 — 오답 재출제 확률도 그대로 반영됨
   };
 
   const insertChar = (ch: string) => {
@@ -160,7 +166,12 @@ export default function QuizPage() {
 
   const progress = mode === "free" ? "자유 연습" : `진행 ${total - remaining}/${total}`;
 
-  if (phase === "loading") return <main className="p-4" />;
+  if (phase === "loading")
+    return (
+      <main className="p-4">
+        <p className="mt-16 text-center text-sm text-faint">불러오는 중…</p>
+      </main>
+    );
 
   if (phase === "empty")
     return (

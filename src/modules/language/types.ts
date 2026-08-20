@@ -10,6 +10,10 @@ export interface LanguageConfig {
   label: string;
   wordTable: string;
   reviewLogTable: string;
+  /** 단어별 집계 RPC (reviews·correct·최초 복습 시각) — 성능 리뷰 P1 */
+  wordStatsFn: string;
+  /** 일별 집계 RPC (tz 인자) */
+  dailyStatsFn: string;
   sentenceTable: string;
   sentenceFetchTable: string;
   /** Tatoeba 검색 소스 언어 코드 (스페인어 'spa') */

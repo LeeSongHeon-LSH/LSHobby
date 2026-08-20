@@ -124,11 +124,17 @@ export default function LibraryJourneyPage() {
     const hasNext = !view.dir && nav.hasNext;
 
     const flip = (dir: "next" | "prev") => {
+      // 모션 축소 환경에선 애니메이션 오버레이가 정지 판이 되므로 즉시 점프
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setView({ t: "book", vol, p: dir === "next" ? p + step : p - step, dir: null });
+        return;
+      }
       setView({ t: "book", vol, p, dir });
-      setTimeout(
-        () => setView({ t: "book", vol, p: dir === "next" ? p + step : p - step, dir: null }),
-        620,
-      );
+    };
+    // 넘김 커밋은 오버레이의 animationend에서 — CSS 시간과 JS 상수의 이중 관리 제거
+    const commitFlip = () => {
+      if (!view.dir) return;
+      setView({ t: "book", vol, p: view.dir === "next" ? p + step : p - step, dir: null });
     };
     const jump = (idx: number) => {
       if (!view.dir) setView({ t: "book", vol, p: idx, dir: null });
@@ -244,6 +250,7 @@ export default function LibraryJourneyPage() {
               ))}
               {view.dir && (
                 <div
+                  onAnimationEnd={commitFlip}
                   className={`absolute bottom-0 right-0 top-0 w-1/2 origin-left rounded-r-lg border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.12)] ${
                     view.dir === "next" ? "jr-flip-out" : "jr-flip-in"
                   }`}
@@ -279,6 +286,7 @@ export default function LibraryJourneyPage() {
               </div>
               {view.dir && (
                 <div
+                  onAnimationEnd={commitFlip}
                   className={`absolute inset-0 origin-left rounded-lg border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.12)] ${
                     view.dir === "next" ? "jr-flip-out" : "jr-flip-in"
                   }`}
@@ -328,6 +336,16 @@ export default function LibraryJourneyPage() {
         <HomeButton accent="lib" />
       </header>
 
+      {!loaded ? (
+        <div className="md:mx-auto md:w-full md:max-w-[740px]">
+          <div className="flex min-h-[168px] items-end gap-2.5 px-1">
+            {[152, 144, 148].map((h, i) => (
+              <div key={i} className="w-[62px] animate-pulse rounded-md bg-line/60" style={{ height: h }} />
+            ))}
+          </div>
+          <ShelfBoard />
+        </div>
+      ) : (
       <div className="space-y-0 md:mx-auto md:w-full md:max-w-[740px]">
         {rows.map((row, ri) => (
           <div key={ri} className={ri > 0 ? "mt-8" : ""}>
@@ -373,6 +391,7 @@ export default function LibraryJourneyPage() {
           </div>
         ))}
       </div>
+      )}
 
       {loaded && books.length === 0 && (
         <p className="mt-8 text-center text-sm text-faint">완독한 책을 기록해 보세요 — 20권이 모이면 한 보(步)가 됩니다</p>

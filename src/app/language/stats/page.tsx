@@ -47,6 +47,7 @@ export default function StatsPage() {
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
           <h1 className="font-display text-2xl font-bold">학습 통계</h1>
         </header>
+        <p className="mt-16 text-center text-sm text-faint">불러오는 중…</p>
       </main>
     );
 

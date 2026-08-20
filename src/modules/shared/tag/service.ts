@@ -21,6 +21,17 @@ export async function tagsByType(subjectType: string): Promise<Map<number, strin
   return map;
 }
 
+/** 대상 하나의 태그 이름들 — 시트 단건 조회용 (전체 맵 재조회 대체, 성능 리뷰 P8) */
+export async function tagsOf(subjectType: string, subjectId: number): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("tagging")
+    .select("tag(name)")
+    .eq("subject_type", subjectType)
+    .eq("subject_id", subjectId);
+  if (error) throw error;
+  return (data as unknown as { tag: { name: string } }[]).map((r) => r.tag.name);
+}
+
 /** 대상의 태그를 이름 목록으로 동기화 — 없는 태그는 생성, 빠진 태깅은 삭제 (자유 태그, #22) */
 export async function setTags(
   subjectType: string,
@@ -28,15 +39,14 @@ export async function setTags(
   names: string[],
 ): Promise<void> {
   const clean = [...new Set(names.map((n) => n.trim()).filter(Boolean))];
-  const tagIds: number[] = [];
-  for (const name of clean) {
+  let tagIds: number[] = [];
+  if (clean.length > 0) {
     const { data: up, error } = await supabase
       .from("tag")
-      .upsert({ name }, { onConflict: "name" })
-      .select("id")
-      .single();
+      .upsert(clean.map((name) => ({ name })), { onConflict: "name" })
+      .select("id");
     if (error) throw error;
-    tagIds.push(up.id);
+    tagIds = up.map((t) => t.id);
   }
   const { data: existing, error: exErr } = await supabase
     .from("tagging")

@@ -118,7 +118,7 @@ body {
   }
 }
 .jr-flip-out {
-  animation: jr-flip-out 0.62s cubic-bezier(0.55, 0.06, 0.4, 0.95) both;
+  animation: jr-flip-out 0.45s cubic-bezier(0.55, 0.06, 0.4, 0.95) both;
   backface-visibility: hidden;
 }
 @keyframes jr-flip-in {
@@ -130,7 +130,7 @@ body {
   }
 }
 .jr-flip-in {
-  animation: jr-flip-in 0.62s cubic-bezier(0.3, 0.4, 0.2, 1) both;
+  animation: jr-flip-in 0.45s cubic-bezier(0.3, 0.4, 0.2, 1) both;
   backface-visibility: hidden;
 }
 @keyframes sheet-up {

@@ -6,11 +6,21 @@ export { setCurrentLang, useCurrentConfig } from "./current";
 export { gradeAnswer, answerAlternatives, type GradeResult } from "./grading";
 export { addWord, countWords, deleteWord, findByNorm, listWords, updateWord, type Word } from "./words";
 export { countNewStartedToday, todayPool } from "./session";
-export { reviewStats, todayReviewSummary, type WordStat } from "./review-stats";
+export { reviewStats, type WordStat } from "./review-stats";
 export { answerWord } from "./answer";
 export { ensureSentences, type Sentence } from "./sentences";
 export { configFor, languageConfigs } from "./registry";
-export { aggregate, buildCsv, computeStreak, fetchStats, localDate, type LangStats } from "./stats";
+export {
+  aggregate,
+  aggregateDaily,
+  buildCsv,
+  computeStreak,
+  fetchStats,
+  localDate,
+  todayReviewSummary,
+  type DailyRow,
+  type LangStats,
+} from "./stats";
 export { articleFor, stateLabel } from "./display";
 export {
   applyAnswer,

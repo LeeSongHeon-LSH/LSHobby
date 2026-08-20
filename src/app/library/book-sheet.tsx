@@ -11,7 +11,7 @@ import {
   type BookListItem,
   type Reading,
 } from "@/modules/library";
-import { setTags, tagsByType } from "@/modules/shared/tag";
+import { setTags, tagsOf } from "@/modules/shared/tag";
 import { ReflectionBlock } from "@/modules/shared/reflection";
 import { Markdown } from "@/modules/shared/markdown";
 
@@ -47,12 +47,14 @@ export function BookSheet({
   const [busy, setBusy] = useState(false);
 
   const reload = useCallback(async () => {
-    const data = await getBook(item.id).catch(() => null);
+    const [data, t] = await Promise.all([
+      getBook(item.id).catch(() => null),
+      tagsOf("book", item.id).catch(() => null),
+    ]);
     if (!data) return;
     setBook(data.book);
     setReadings(data.readings);
-    const t = await tagsByType("book").catch(() => new Map<number, string[]>());
-    setTagsState(t.get(item.id) ?? []);
+    if (t) setTagsState(t);
   }, [item.id]);
 
   useEffect(() => {

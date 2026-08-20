@@ -6,6 +6,8 @@ export const enConfig: LanguageConfig = {
   label: "영어",
   wordTable: "en_words",
   reviewLogTable: "en_review_log",
+  wordStatsFn: "en_word_stats",
+  dailyStatsFn: "en_daily_stats",
   sentenceTable: "en_sentences",
   sentenceFetchTable: "en_sentence_fetch",
   tatoebaLang: "eng",
