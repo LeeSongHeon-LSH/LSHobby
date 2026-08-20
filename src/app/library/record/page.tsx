@@ -219,7 +219,7 @@ export default function RecordPage() {
                   <span className="truncate font-display">{b.title}</span>
                   <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
                   <span className="shrink-0 font-mono text-[10px] text-faint">
-                    {b.readCount}회독 → +1
+                    {b.readCount}회독 → {b.readCount + 1}회독
                   </span>
                 </button>
               );

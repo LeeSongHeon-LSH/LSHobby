@@ -323,9 +323,6 @@ export default function LibraryJourneyPage() {
   const spineColor = (v: number) =>
     vols[v].length < VOL_CAP ? "#6b93b8" : v % 2 === 0 ? "#39536b" : "#4d7fa3";
   const spineHeight = (v: number) => 142 + ((v * 29) % 15);
-  // 제(N+1)보는 N*20+1번째 기록에서 태어난다
-  const nextNo = vols.length * VOL_CAP + 1;
-
   return (
     <main className="flex flex-1 flex-col p-4 md:p-6">
       <header className="mb-5 flex items-start justify-between gap-3 md:mb-8">
@@ -373,16 +370,9 @@ export default function LibraryJourneyPage() {
                 );
               })}
               {ri === rows.length - 1 && (
-                <div className="flex h-[132px] w-[62px] flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-line text-center">
+                <div className="flex h-[132px] w-[62px] flex-col items-center justify-center rounded-md border-2 border-dashed border-line text-center">
                   <span className="font-mono text-[10px] tracking-[0.12em] text-faint [writing-mode:vertical-rl]">
                     제{vols.length + 1}보
-                  </span>
-                  <span className="font-mono text-[8px] leading-relaxed text-line">
-                    {nextNo}번째
-                    <br />
-                    기록에서
-                    <br />
-                    태어납니다
                   </span>
                 </div>
               )}
