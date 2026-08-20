@@ -40,9 +40,9 @@ describe("activity 발행 규칙 (FR-03 · §6.4)", () => {
 
   it("publish: activity_feed에 건별 이벤트 1행 insert", async () => {
     const { publish } = await import("./activity");
-    await publish("library", "quote", 7, "created", "인용구 저장");
+    await publish("library", "book", 7, "created", "책 등록");
     expect(of("activity_feed", "insert").map((c) => c.args[0])).toEqual([
-      { domain: "library", entity_type: "quote", entity_id: 7, action: "created", summary: "인용구 저장" },
+      { domain: "library", entity_type: "book", entity_id: 7, action: "created", summary: "책 등록" },
     ]);
   });
 

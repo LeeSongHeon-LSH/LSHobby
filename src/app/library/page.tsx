@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { listBooks, type BookListItem } from "@/modules/library";
+import {
+  VOL_CAP,
+  chunkVolumes,
+  listBooks,
+  sortJourney,
+  type BookListItem,
+} from "@/modules/library";
 import { HomeButton } from "../ui/home-button";
 import { PixelPenguinBook } from "../ui/pixel";
 import { BookSheet } from "./book-sheet";
@@ -10,7 +16,6 @@ import { BookSheet } from "./book-sheet";
 // #58 서재 = 독서 여정 책장 — 완독 20권 = 한 보(步) = 책등 하나.
 // 책등을 펼치면 목차 2쪽 + 권당 속표지 1쪽(한 쪽 넘김), 자세히보기는 바텀시트.
 
-const VOL_CAP = 20;
 const PER_ROW = 5;
 
 const fmtDate = (iso: string | null) => {
@@ -67,9 +72,7 @@ export default function LibraryJourneyPage() {
         setBooks(bs);
         const id = Number(new URLSearchParams(window.location.search).get("open"));
         if (id) {
-          const j = [...bs].sort((a, b) =>
-            (a.firstFinishedOn ?? "9999").localeCompare(b.firstFinishedOn ?? "9999"),
-          );
+          const j = sortJourney(bs);
           const idx = j.findIndex((b) => b.id === id);
           if (idx >= 0) {
             window.history.replaceState(null, "", "/library");
@@ -82,19 +85,9 @@ export default function LibraryJourneyPage() {
       .finally(() => setLoaded(true));
   }, []);
 
-  // 여정 순서 = 최초 완독 오름차순 (완독 기록 없는 책은 끝에)
-  const journey = useMemo(
-    () =>
-      [...books].sort((a, b) =>
-        (a.firstFinishedOn ?? "9999").localeCompare(b.firstFinishedOn ?? "9999"),
-      ),
-    [books],
-  );
-  const vols = useMemo(() => {
-    const out: BookListItem[][] = [];
-    for (let i = 0; i < journey.length; i += VOL_CAP) out.push(journey.slice(i, i + VOL_CAP));
-    return out;
-  }, [journey]);
+  // 여정 순서·보 분할 규칙은 modules/library/journey.ts가 원본
+  const journey = useMemo(() => sortJourney(books), [books]);
+  const vols = useMemo(() => chunkVolumes(journey), [journey]);
 
   // ── 펼친 책 ──
   if (view.t === "book") {
