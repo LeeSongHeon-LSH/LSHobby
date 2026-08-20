@@ -157,7 +157,7 @@ export default function WordsPage() {
                     className={`flex-1 rounded-md border py-2 text-sm ${
                       form.gender === g.value
                         ? "border-lang bg-lang text-white"
-                        : "border-line text-faint"
+                        : "border-lang/30 bg-lang-soft/40 text-faint"
                     }`}
                   >
                     {g.label}

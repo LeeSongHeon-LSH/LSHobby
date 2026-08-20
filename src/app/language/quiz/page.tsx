@@ -273,7 +273,7 @@ export default function QuizPage() {
                     key={c}
                     type="button"
                     onClick={() => insertChar(c)}
-                    className="rounded border border-line bg-card px-2 py-1 font-mono text-sm text-lang"
+                    className="rounded border border-lang/40 bg-lang-soft px-2 py-1 font-mono text-sm text-lang"
                   >
                     {c}
                   </button>

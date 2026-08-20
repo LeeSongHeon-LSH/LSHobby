@@ -89,13 +89,13 @@ export function ReflectionBlock({
             className="w-full rounded-md border border-line px-3 py-2 text-sm"
           />
           <div className="flex gap-2">
-            <button onClick={() => setOpen(false)} className="rounded-md border border-line px-4 py-2 text-sm">
+            <button onClick={() => setOpen(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2 text-sm">
               취소
             </button>
             <button
               onClick={submit}
               disabled={busy || !content.trim()}
-              className="flex-1 rounded-md bg-ink py-2 text-sm font-medium text-white disabled:opacity-40"
+              className="flex-1 rounded-md bg-lib py-2 text-sm font-medium text-white disabled:opacity-40"
             >
               추가
             </button>
@@ -104,7 +104,7 @@ export function ReflectionBlock({
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="w-full rounded-md border border-dashed border-line py-2.5 text-sm text-faint"
+          className="w-full rounded-md border border-dashed border-lib/50 bg-lib-soft/50 py-2.5 text-sm text-lib"
         >
           ＋ 지금 생각 추가
         </button>

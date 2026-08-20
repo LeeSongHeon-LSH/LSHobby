@@ -64,6 +64,7 @@ function Hub() {
       count: bookCount === null ? "" : `완독 ${bookCount}권`,
       icon: <PixelPenguinBook size={48} />,
       tab: "bg-lib",
+      card: "border-lib/40 bg-lib-soft",
     },
     {
       href: "/language",
@@ -71,6 +72,7 @@ function Hub() {
       count: wordCount === null ? "" : `단어 ${wordCount}개`,
       icon: <PixelPenguinBubble size={48} />,
       tab: "bg-lang",
+      card: "border-lang/40 bg-lang-soft",
     },
     {
       href: "/cv/edit",
@@ -78,6 +80,7 @@ function Hub() {
       count: "공개 이력서",
       icon: <PixelMascot size={48} />,
       tab: "bg-cv",
+      card: "border-cv/40 bg-cv-soft",
     },
   ];
 
@@ -98,7 +101,7 @@ function Hub() {
           <Link
             key={d.href}
             href={d.href}
-            className="anim-rise relative flex flex-col items-center justify-center gap-2.5 overflow-hidden rounded-md border border-line bg-card"
+            className={`anim-rise relative flex flex-col items-center justify-center gap-2.5 overflow-hidden rounded-md border ${d.card}`}
             style={{ animationDelay: `${i * 70}ms` }}
           >
             <span className={`absolute left-4 top-0 h-1 w-10 ${d.tab}`} aria-hidden="true" />

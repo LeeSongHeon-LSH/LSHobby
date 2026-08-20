@@ -188,7 +188,7 @@ export default function LibraryJourneyPage() {
             </p>
             <button
               onClick={() => setSheet({ item: page.item, no: page.no })}
-              className="relative z-[1] mt-4 inline-flex min-h-11 items-center rounded-md border border-lib px-4 text-[13px] font-medium text-lib"
+              className="relative z-[1] mt-4 inline-flex min-h-11 items-center rounded-md border border-lib/50 bg-lib-soft px-4 text-[13px] font-medium text-lib"
             >
               자세히보기 →
             </button>

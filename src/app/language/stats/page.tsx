@@ -110,7 +110,7 @@ export default function StatsPage() {
       <div className="flex-1" />
       <button
         onClick={exportCsv}
-        className="w-full rounded-md border border-line bg-card py-3 font-medium"
+        className="w-full rounded-md border border-lang/40 bg-lang-soft py-3 font-medium"
       >
         CSV 내보내기
       </button>

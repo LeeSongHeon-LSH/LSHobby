@@ -26,7 +26,7 @@ export function CvFilter({
               key={s.title}
               onClick={() => setActive(active === s.title ? null : s.title)}
               className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] ${
-                active === s.title ? "border-cv bg-cv text-sheet" : "border-line bg-card text-faint"
+                active === s.title ? "border-cv bg-cv text-sheet" : "border-cv/30 bg-cv-soft/40 text-faint"
               }`}
             >
               {s.title}

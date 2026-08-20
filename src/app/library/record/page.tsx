@@ -202,7 +202,7 @@ export default function RecordPage() {
             />
           </div>
           <div className="rounded-lg border border-line bg-sheet px-5 py-3 shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
-            <p className="mb-1 pt-1 text-center font-mono text-[11px] tracking-[0.2em] text-lib">
+            <p className="mb-2.5 pt-1 text-center font-mono text-[11px] tracking-[0.2em] text-lib">
               다시 읽은 책이라면
             </p>
             {matches.map((b) => {
@@ -211,7 +211,7 @@ export default function RecordPage() {
                 <button
                   key={b.id}
                   onClick={() => setPicked(b)}
-                  className="flex w-full items-baseline gap-2 border-b border-dotted border-line px-0.5 py-3 text-left text-[13px]"
+                  className="mb-2 flex w-full items-baseline gap-2 rounded-md border border-lib/35 bg-lib-soft/60 px-3.5 py-3 text-left text-[13px]"
                 >
                   <span className="w-5 shrink-0 font-mono text-[10px] text-lib">
                     {no ? String(no).padStart(2, "0") : "—"}
@@ -234,7 +234,7 @@ export default function RecordPage() {
                 setCreating(true);
                 setForm({ ...EMPTY, title: query.trim() });
               }}
-              className="my-3 flex min-h-11 w-full items-center justify-center rounded-md border border-dashed border-line text-sm text-lib"
+              className="my-3 flex min-h-11 w-full items-center justify-center rounded-md border border-dashed border-lib/50 bg-lib-soft/50 text-sm text-lib"
             >
               ＋ 새 책 등록{q ? `: "${query.trim()}"` : ""}
             </button>
@@ -268,7 +268,7 @@ export default function RecordPage() {
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setCreating(false)}
-                className="rounded-md border border-line px-4 py-2.5 text-sm"
+                className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2.5 text-sm"
               >
                 뒤로
               </button>

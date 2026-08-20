@@ -178,7 +178,7 @@ export function BookSheet({
               ))}
               <div className="flex gap-2 pt-1">
                 <button onClick={remove} disabled={busy} className="rounded-md border border-err/40 px-4 py-2.5 text-sm text-err disabled:opacity-50">삭제</button>
-                <button onClick={() => setEditingMeta(false)} className="rounded-md border border-line px-4 py-2.5 text-sm">취소</button>
+                <button onClick={() => setEditingMeta(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2.5 text-sm">취소</button>
                 <button
                   onClick={saveMeta}
                   disabled={busy || !meta.title.trim() || !meta.author.trim() || !meta.publisher.trim() || !meta.pub_year.trim()}
@@ -229,7 +229,7 @@ export function BookSheet({
                       autoFocus
                     />
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingNote(false)} className="rounded-md border border-line px-4 py-2 text-sm">취소</button>
+                      <button onClick={() => setEditingNote(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2 text-sm">취소</button>
                       <button onClick={submitNote} disabled={busy} className="flex-1 rounded-md bg-lib py-2 text-sm font-medium text-white disabled:opacity-40">저장</button>
                     </div>
                   </div>
@@ -254,7 +254,7 @@ export function BookSheet({
         <footer className="border-t border-line/70 px-5 py-3">
           <Link
             href="/library/record"
-            className="inline-flex min-h-11 items-center rounded-md border border-dashed border-line px-4 text-sm text-faint"
+            className="inline-flex min-h-11 items-center rounded-md border border-dashed border-lib/50 bg-lib-soft/50 px-4 text-sm text-lib"
           >
             ＋ 재독 기록 추가
           </Link>
