@@ -92,6 +92,36 @@ export const PixelPenguinBubble = ({ size = 44 }: { size?: number }) => (
   <PixelArt grid={PENGUIN_BUBBLE_GRID} palette={PENGUIN_BUBBLE_PALETTE} size={size} />
 );
 
+// 생각 — 보라 생각 구름을 띄운 펭귄 (생각 세션)
+const PENGUIN_THINK_GRID = [
+  "..........TTTT..",
+  ".........TWWWWT.",
+  "..........TTTT..",
+  "....KKKKKK..T...",
+  "...KKKKKKKK.....",
+  "...KKWKKWKK.....",
+  "...KKKCCKKK.....",
+  "...KKWWWWKK.....",
+  "..KKWWWWWWKK....",
+  "..KKWWWWWWKK....",
+  "..KKWWWWWWKK....",
+  "..KKWWWWWWKK....",
+  "...KKWWWWKK.....",
+  "....CC..CC......",
+  "................",
+  "................",
+];
+const PENGUIN_THINK_PALETTE = {
+  K: "#22262b",
+  T: "#6f66a8",
+  C: "#e2801f",
+  W: "#fafbfc",
+};
+
+export const PixelPenguinThink = ({ size = 44 }: { size?: number }) => (
+  <PixelArt grid={PENGUIN_THINK_GRID} palette={PENGUIN_THINK_PALETTE} size={size} />
+);
+
 // 마스코트 — 잠옷 모자를 쓰고 펼쳐진 책 위에 앉은 펭귄 (§17.6 로그인 이스터에그, 구 고양이 승계 #60)
 const MASCOT_GRID = [
   "......CCCC......",

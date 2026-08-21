@@ -6,19 +6,22 @@ import { useRouter } from "next/navigation";
 import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
-import { PixelMascot, PixelPenguinBook, PixelPenguinBubble } from "../ui/pixel";
+import { countThoughts } from "@/modules/thought";
+import { PixelMascot, PixelPenguinBook, PixelPenguinBubble, PixelPenguinThink } from "../ui/pixel";
 
-// #57·#60 홈(허브) — 세로로 쌓인 세 서랍(책·언어·CV), 서랍마다 도메인 펭귄. 탭바 없음
+// #57·#60 홈(허브) — 쌓인 네 서랍(책·언어·CV·생각), 서랍마다 도메인 펭귄. 탭바 없음
 function Hub() {
   const router = useRouter();
   const [wordCount, setWordCount] = useState<number | null>(null);
   const [bookCount, setBookCount] = useState<number | null>(null);
+  const [thoughtCount, setThoughtCount] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all(Object.values(languageConfigs).map((c) => countWords(c)))
       .then((counts) => setWordCount(counts.reduce((a, b) => a + b, 0)))
       .catch(() => setWordCount(null));
     countBooks().then(setBookCount).catch(() => setBookCount(null));
+    countThoughts().then(setThoughtCount).catch(() => setThoughtCount(null));
   }, []);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,6 +85,14 @@ function Hub() {
       tab: "bg-cv",
       card: "border-cv/40 bg-cv-soft",
     },
+    {
+      href: "/thoughts",
+      name: "생각",
+      count: thoughtCount === null ? "" : `기록 ${thoughtCount}개`,
+      icon: <PixelPenguinThink size={48} />,
+      tab: "bg-thought",
+      card: "border-thought/40 bg-thought-soft",
+    },
   ];
 
   return (
@@ -96,7 +107,7 @@ function Hub() {
         </button>
       </header>
 
-      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-3 md:grid-cols-3 md:grid-rows-1 md:gap-5">
+      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-4 gap-3 md:grid-cols-2 md:grid-rows-2 md:gap-5">
         {drawers.map((d, i) => (
           <Link
             key={d.href}

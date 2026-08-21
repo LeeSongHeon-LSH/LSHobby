@@ -8,6 +8,7 @@ const ACCENT = {
   lib: { text: "text-lib", pill: "border-lib/40 bg-lib-soft", hex: "#4d7fa3" },
   lang: { text: "text-lang", pill: "border-lang/40 bg-lang-soft", hex: "#d9821f" },
   cv: { text: "text-cv", pill: "border-cv/40 bg-cv-soft", hex: "#c05e7c" },
+  thought: { text: "text-thought", pill: "border-thought/40 bg-thought-soft", hex: "#6f66a8" },
 } as const;
 
 export function HomeButton({ accent }: { accent: keyof typeof ACCENT }) {
