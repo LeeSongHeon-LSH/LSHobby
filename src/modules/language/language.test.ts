@@ -110,6 +110,9 @@ describe("gradeAnswer (구 checkAnswer 이식)", () => {
     expect(answerAlternatives("나라, 국가")).toEqual(["나라", "국가"]);
     expect(gradeAnswer("국가", "나라, 국가", "toMeaning", esConfig).ok).toBe(true);
   });
+  it("콤마 뜻 전체를 그대로 입력해도 정답", () => {
+    expect(gradeAnswer("나라, 국가", "나라, 국가", "toMeaning", esConfig).ok).toBe(true);
+  });
   it("toWord: 모음 악센트만 틀리면 정답 + 올바른 표기 안내", () => {
     expect(gradeAnswer("pais", "país", "toWord", esConfig)).toEqual({
       ok: true,

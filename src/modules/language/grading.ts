@@ -28,6 +28,7 @@ export function gradeAnswer(
   config: LanguageConfig,
 ): GradeResult {
   const alts = answerAlternatives(expected);
+  if (alts.length > 1) alts.push(expected); // 뜻 전체를 콤마째 입력해도 정답
   const user = collapse(input);
   if (alts.some((a) => collapse(a) === user)) return { ok: true, accentCorrected: null };
   if (direction === "toWord" && config.gradeLenient) {

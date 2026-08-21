@@ -264,9 +264,10 @@ export default function QuizPage() {
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onBlur={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
                 onKeyDown(e);
-                if (e.key === "Enter") submit();
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) submit();
               }}
               placeholder={showTargetInput ? config.inputPlaceholder : "한국어 뜻..."}
               className="w-full rounded-md border border-line bg-card px-4 py-3"
