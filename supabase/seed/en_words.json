@@ -1,0 +1,1502 @@
+[
+ {
+  "word": "achieve",
+  "meaning": "달성하다, 이루다",
+  "norm": "achieve"
+ },
+ {
+  "word": "acquire",
+  "meaning": "습득하다, 얻다",
+  "norm": "acquire"
+ },
+ {
+  "word": "adapt",
+  "meaning": "적응하다, 각색하다",
+  "norm": "adapt"
+ },
+ {
+  "word": "adjust",
+  "meaning": "조절하다, 적응하다",
+  "norm": "adjust"
+ },
+ {
+  "word": "admit",
+  "meaning": "인정하다, 시인하다",
+  "norm": "admit"
+ },
+ {
+  "word": "afford",
+  "meaning": "여유가 되다, 감당하다",
+  "norm": "afford"
+ },
+ {
+  "word": "announce",
+  "meaning": "발표하다, 알리다",
+  "norm": "announce"
+ },
+ {
+  "word": "anticipate",
+  "meaning": "예상하다, 기대하다",
+  "norm": "anticipate"
+ },
+ {
+  "word": "appreciate",
+  "meaning": "감사하다, 진가를 알아보다",
+  "norm": "appreciate"
+ },
+ {
+  "word": "approach",
+  "meaning": "다가가다, 접근하다",
+  "norm": "approach"
+ },
+ {
+  "word": "argue",
+  "meaning": "논쟁하다, 주장하다",
+  "norm": "argue"
+ },
+ {
+  "word": "arrange",
+  "meaning": "준비하다, 배열하다",
+  "norm": "arrange"
+ },
+ {
+  "word": "assume",
+  "meaning": "가정하다, 추정하다",
+  "norm": "assume"
+ },
+ {
+  "word": "attach",
+  "meaning": "붙이다, 첨부하다",
+  "norm": "attach"
+ },
+ {
+  "word": "attract",
+  "meaning": "끌어들이다, 매혹하다",
+  "norm": "attract"
+ },
+ {
+  "word": "behave",
+  "meaning": "행동하다, 처신하다",
+  "norm": "behave"
+ },
+ {
+  "word": "blame",
+  "meaning": "탓하다, 비난하다",
+  "norm": "blame"
+ },
+ {
+  "word": "bother",
+  "meaning": "귀찮게 하다, 신경 쓰다",
+  "norm": "bother"
+ },
+ {
+  "word": "claim",
+  "meaning": "주장하다, 요구하다",
+  "norm": "claim"
+ },
+ {
+  "word": "combine",
+  "meaning": "결합하다, 합치다",
+  "norm": "combine"
+ },
+ {
+  "word": "compete",
+  "meaning": "경쟁하다",
+  "norm": "compete"
+ },
+ {
+  "word": "complain",
+  "meaning": "불평하다, 항의하다",
+  "norm": "complain"
+ },
+ {
+  "word": "concentrate",
+  "meaning": "집중하다",
+  "norm": "concentrate"
+ },
+ {
+  "word": "confuse",
+  "meaning": "혼란시키다, 헷갈리게 하다",
+  "norm": "confuse"
+ },
+ {
+  "word": "contribute",
+  "meaning": "기여하다, 공헌하다",
+  "norm": "contribute"
+ },
+ {
+  "word": "convince",
+  "meaning": "설득하다, 확신시키다",
+  "norm": "convince"
+ },
+ {
+  "word": "cope",
+  "meaning": "대처하다, 감당하다",
+  "norm": "cope"
+ },
+ {
+  "word": "criticize",
+  "meaning": "비판하다, 비난하다",
+  "norm": "criticize"
+ },
+ {
+  "word": "declare",
+  "meaning": "선언하다, 신고하다",
+  "norm": "declare"
+ },
+ {
+  "word": "deny",
+  "meaning": "부인하다, 거부하다",
+  "norm": "deny"
+ },
+ {
+  "word": "deserve",
+  "meaning": "받을 만하다, 자격이 있다",
+  "norm": "deserve"
+ },
+ {
+  "word": "determine",
+  "meaning": "결정하다, 알아내다",
+  "norm": "determine"
+ },
+ {
+  "word": "distinguish",
+  "meaning": "구별하다",
+  "norm": "distinguish"
+ },
+ {
+  "word": "disturb",
+  "meaning": "방해하다, 어지럽히다",
+  "norm": "disturb"
+ },
+ {
+  "word": "emphasize",
+  "meaning": "강조하다",
+  "norm": "emphasize"
+ },
+ {
+  "word": "establish",
+  "meaning": "설립하다, 확립하다",
+  "norm": "establish"
+ },
+ {
+  "word": "estimate",
+  "meaning": "추정하다, 어림잡다",
+  "norm": "estimate"
+ },
+ {
+  "word": "expand",
+  "meaning": "확장하다, 확대하다",
+  "norm": "expand"
+ },
+ {
+  "word": "expose",
+  "meaning": "드러내다, 노출시키다",
+  "norm": "expose"
+ },
+ {
+  "word": "generate",
+  "meaning": "발생시키다, 만들어 내다",
+  "norm": "generate"
+ },
+ {
+  "word": "hesitate",
+  "meaning": "망설이다, 주저하다",
+  "norm": "hesitate"
+ },
+ {
+  "word": "identify",
+  "meaning": "식별하다, 알아보다",
+  "norm": "identify"
+ },
+ {
+  "word": "imply",
+  "meaning": "암시하다, 내포하다",
+  "norm": "imply"
+ },
+ {
+  "word": "impress",
+  "meaning": "감명을 주다, 인상을 남기다",
+  "norm": "impress"
+ },
+ {
+  "word": "indicate",
+  "meaning": "나타내다, 가리키다",
+  "norm": "indicate"
+ },
+ {
+  "word": "insist",
+  "meaning": "고집하다, 주장하다",
+  "norm": "insist"
+ },
+ {
+  "word": "inspire",
+  "meaning": "영감을 주다, 고무하다",
+  "norm": "inspire"
+ },
+ {
+  "word": "intend",
+  "meaning": "의도하다, 작정하다",
+  "norm": "intend"
+ },
+ {
+  "word": "interrupt",
+  "meaning": "방해하다, 끼어들다",
+  "norm": "interrupt"
+ },
+ {
+  "word": "involve",
+  "meaning": "수반하다, 관련시키다",
+  "norm": "involve"
+ },
+ {
+  "word": "maintain",
+  "meaning": "유지하다, 주장하다",
+  "norm": "maintain"
+ },
+ {
+  "word": "negotiate",
+  "meaning": "협상하다",
+  "norm": "negotiate"
+ },
+ {
+  "word": "obtain",
+  "meaning": "얻다, 획득하다",
+  "norm": "obtain"
+ },
+ {
+  "word": "occur",
+  "meaning": "일어나다, 발생하다",
+  "norm": "occur"
+ },
+ {
+  "word": "oppose",
+  "meaning": "반대하다",
+  "norm": "oppose"
+ },
+ {
+  "word": "owe",
+  "meaning": "빚지다, 신세를 지다",
+  "norm": "owe"
+ },
+ {
+  "word": "perceive",
+  "meaning": "인지하다, 지각하다",
+  "norm": "perceive"
+ },
+ {
+  "word": "persuade",
+  "meaning": "설득하다",
+  "norm": "persuade"
+ },
+ {
+  "word": "postpone",
+  "meaning": "연기하다, 미루다",
+  "norm": "postpone"
+ },
+ {
+  "word": "predict",
+  "meaning": "예측하다",
+  "norm": "predict"
+ },
+ {
+  "word": "pretend",
+  "meaning": "가장하다, 척하다",
+  "norm": "pretend"
+ },
+ {
+  "word": "prevent",
+  "meaning": "막다, 예방하다",
+  "norm": "prevent"
+ },
+ {
+  "word": "promote",
+  "meaning": "홍보하다, 승진시키다",
+  "norm": "promote"
+ },
+ {
+  "word": "propose",
+  "meaning": "제안하다, 청혼하다",
+  "norm": "propose"
+ },
+ {
+  "word": "prove",
+  "meaning": "증명하다, 판명되다",
+  "norm": "prove"
+ },
+ {
+  "word": "pursue",
+  "meaning": "추구하다, 뒤쫓다",
+  "norm": "pursue"
+ },
+ {
+  "word": "recall",
+  "meaning": "기억해 내다, 회수하다",
+  "norm": "recall"
+ },
+ {
+  "word": "recognize",
+  "meaning": "알아보다, 인정하다",
+  "norm": "recognize"
+ },
+ {
+  "word": "refer",
+  "meaning": "언급하다, 참조하다",
+  "norm": "refer"
+ },
+ {
+  "word": "reflect",
+  "meaning": "반영하다, 반사하다",
+  "norm": "reflect"
+ },
+ {
+  "word": "regret",
+  "meaning": "후회하다",
+  "norm": "regret"
+ },
+ {
+  "word": "reject",
+  "meaning": "거부하다, 거절하다",
+  "norm": "reject"
+ },
+ {
+  "word": "rely",
+  "meaning": "의지하다, 신뢰하다",
+  "norm": "rely"
+ },
+ {
+  "word": "remain",
+  "meaning": "남다, 머무르다",
+  "norm": "remain"
+ },
+ {
+  "word": "replace",
+  "meaning": "대체하다, 교체하다",
+  "norm": "replace"
+ },
+ {
+  "word": "represent",
+  "meaning": "대표하다, 나타내다",
+  "norm": "represent"
+ },
+ {
+  "word": "require",
+  "meaning": "필요로 하다, 요구하다",
+  "norm": "require"
+ },
+ {
+  "word": "resolve",
+  "meaning": "해결하다, 결심하다",
+  "norm": "resolve"
+ },
+ {
+  "word": "restore",
+  "meaning": "복원하다, 회복시키다",
+  "norm": "restore"
+ },
+ {
+  "word": "retain",
+  "meaning": "유지하다, 보유하다",
+  "norm": "retain"
+ },
+ {
+  "word": "reveal",
+  "meaning": "드러내다, 폭로하다",
+  "norm": "reveal"
+ },
+ {
+  "word": "sacrifice",
+  "meaning": "희생하다",
+  "norm": "sacrifice"
+ },
+ {
+  "word": "seek",
+  "meaning": "찾다, 추구하다",
+  "norm": "seek"
+ },
+ {
+  "word": "settle",
+  "meaning": "해결하다, 정착하다",
+  "norm": "settle"
+ },
+ {
+  "word": "struggle",
+  "meaning": "분투하다, 애쓰다",
+  "norm": "struggle"
+ },
+ {
+  "word": "submit",
+  "meaning": "제출하다, 굴복하다",
+  "norm": "submit"
+ },
+ {
+  "word": "suffer",
+  "meaning": "고통받다, 겪다",
+  "norm": "suffer"
+ },
+ {
+  "word": "suppose",
+  "meaning": "가정하다, 추측하다",
+  "norm": "suppose"
+ },
+ {
+  "word": "suspect",
+  "meaning": "의심하다",
+  "norm": "suspect"
+ },
+ {
+  "word": "threaten",
+  "meaning": "위협하다",
+  "norm": "threaten"
+ },
+ {
+  "word": "transform",
+  "meaning": "변형시키다, 바꾸다",
+  "norm": "transform"
+ },
+ {
+  "word": "undergo",
+  "meaning": "겪다, 받다",
+  "norm": "undergo"
+ },
+ {
+  "word": "underestimate",
+  "meaning": "과소평가하다",
+  "norm": "underestimate"
+ },
+ {
+  "word": "urge",
+  "meaning": "촉구하다, 재촉하다",
+  "norm": "urge"
+ },
+ {
+  "word": "vanish",
+  "meaning": "사라지다",
+  "norm": "vanish"
+ },
+ {
+  "word": "witness",
+  "meaning": "목격하다",
+  "norm": "witness"
+ },
+ {
+  "word": "achievement",
+  "meaning": "성취, 업적",
+  "norm": "achievement"
+ },
+ {
+  "word": "ambition",
+  "meaning": "야망, 포부",
+  "norm": "ambition"
+ },
+ {
+  "word": "anxiety",
+  "meaning": "불안, 걱정",
+  "norm": "anxiety"
+ },
+ {
+  "word": "appointment",
+  "meaning": "약속, 예약",
+  "norm": "appointment"
+ },
+ {
+  "word": "assumption",
+  "meaning": "가정, 추정",
+  "norm": "assumption"
+ },
+ {
+  "word": "atmosphere",
+  "meaning": "분위기, 대기",
+  "norm": "atmosphere"
+ },
+ {
+  "word": "awareness",
+  "meaning": "인식, 의식",
+  "norm": "awareness"
+ },
+ {
+  "word": "boundary",
+  "meaning": "경계",
+  "norm": "boundary"
+ },
+ {
+  "word": "burden",
+  "meaning": "부담, 짐",
+  "norm": "burden"
+ },
+ {
+  "word": "candidate",
+  "meaning": "후보자, 지원자",
+  "norm": "candidate"
+ },
+ {
+  "word": "capacity",
+  "meaning": "수용력, 능력",
+  "norm": "capacity"
+ },
+ {
+  "word": "circumstance",
+  "meaning": "상황, 환경",
+  "norm": "circumstance"
+ },
+ {
+  "word": "commitment",
+  "meaning": "헌신, 약속",
+  "norm": "commitment"
+ },
+ {
+  "word": "consequence",
+  "meaning": "결과, 영향",
+  "norm": "consequence"
+ },
+ {
+  "word": "controversy",
+  "meaning": "논란, 논쟁",
+  "norm": "controversy"
+ },
+ {
+  "word": "crisis",
+  "meaning": "위기",
+  "norm": "crisis"
+ },
+ {
+  "word": "criticism",
+  "meaning": "비판, 비평",
+  "norm": "criticism"
+ },
+ {
+  "word": "curiosity",
+  "meaning": "호기심",
+  "norm": "curiosity"
+ },
+ {
+  "word": "decade",
+  "meaning": "10년",
+  "norm": "decade"
+ },
+ {
+  "word": "destination",
+  "meaning": "목적지",
+  "norm": "destination"
+ },
+ {
+  "word": "disaster",
+  "meaning": "재난, 참사",
+  "norm": "disaster"
+ },
+ {
+  "word": "evidence",
+  "meaning": "증거",
+  "norm": "evidence"
+ },
+ {
+  "word": "exception",
+  "meaning": "예외",
+  "norm": "exception"
+ },
+ {
+  "word": "expense",
+  "meaning": "비용, 지출",
+  "norm": "expense"
+ },
+ {
+  "word": "fault",
+  "meaning": "잘못, 결점",
+  "norm": "fault"
+ },
+ {
+  "word": "impact",
+  "meaning": "영향, 충격",
+  "norm": "impact"
+ },
+ {
+  "word": "impression",
+  "meaning": "인상",
+  "norm": "impression"
+ },
+ {
+  "word": "income",
+  "meaning": "수입, 소득",
+  "norm": "income"
+ },
+ {
+  "word": "insight",
+  "meaning": "통찰력",
+  "norm": "insight"
+ },
+ {
+  "word": "institution",
+  "meaning": "기관, 제도",
+  "norm": "institution"
+ },
+ {
+  "word": "insurance",
+  "meaning": "보험",
+  "norm": "insurance"
+ },
+ {
+  "word": "intention",
+  "meaning": "의도",
+  "norm": "intention"
+ },
+ {
+  "word": "lack",
+  "meaning": "부족, 결핍",
+  "norm": "lack"
+ },
+ {
+  "word": "landscape",
+  "meaning": "풍경, 지형",
+  "norm": "landscape"
+ },
+ {
+  "word": "luxury",
+  "meaning": "사치, 호화로움",
+  "norm": "luxury"
+ },
+ {
+  "word": "majority",
+  "meaning": "다수, 과반수",
+  "norm": "majority"
+ },
+ {
+  "word": "notion",
+  "meaning": "개념, 생각",
+  "norm": "notion"
+ },
+ {
+  "word": "obstacle",
+  "meaning": "장애물",
+  "norm": "obstacle"
+ },
+ {
+  "word": "opponent",
+  "meaning": "상대, 반대자",
+  "norm": "opponent"
+ },
+ {
+  "word": "outcome",
+  "meaning": "결과, 성과",
+  "norm": "outcome"
+ },
+ {
+  "word": "perspective",
+  "meaning": "관점, 시각",
+  "norm": "perspective"
+ },
+ {
+  "word": "phenomenon",
+  "meaning": "현상",
+  "norm": "phenomenon"
+ },
+ {
+  "word": "poverty",
+  "meaning": "가난, 빈곤",
+  "norm": "poverty"
+ },
+ {
+  "word": "priority",
+  "meaning": "우선순위",
+  "norm": "priority"
+ },
+ {
+  "word": "procedure",
+  "meaning": "절차",
+  "norm": "procedure"
+ },
+ {
+  "word": "profit",
+  "meaning": "이익, 수익",
+  "norm": "profit"
+ },
+ {
+  "word": "proportion",
+  "meaning": "비율, 부분",
+  "norm": "proportion"
+ },
+ {
+  "word": "reputation",
+  "meaning": "평판, 명성",
+  "norm": "reputation"
+ },
+ {
+  "word": "responsibility",
+  "meaning": "책임",
+  "norm": "responsibility"
+ },
+ {
+  "word": "routine",
+  "meaning": "일과, 습관",
+  "norm": "routine"
+ },
+ {
+  "word": "rumor",
+  "meaning": "소문",
+  "norm": "rumor"
+ },
+ {
+  "word": "strategy",
+  "meaning": "전략",
+  "norm": "strategy"
+ },
+ {
+  "word": "strength",
+  "meaning": "힘, 강점",
+  "norm": "strength"
+ },
+ {
+  "word": "suburb",
+  "meaning": "교외",
+  "norm": "suburb"
+ },
+ {
+  "word": "summary",
+  "meaning": "요약",
+  "norm": "summary"
+ },
+ {
+  "word": "surface",
+  "meaning": "표면",
+  "norm": "surface"
+ },
+ {
+  "word": "survey",
+  "meaning": "설문 조사",
+  "norm": "survey"
+ },
+ {
+  "word": "sympathy",
+  "meaning": "동정, 공감",
+  "norm": "sympathy"
+ },
+ {
+  "word": "tendency",
+  "meaning": "경향, 성향",
+  "norm": "tendency"
+ },
+ {
+  "word": "threat",
+  "meaning": "위협",
+  "norm": "threat"
+ },
+ {
+  "word": "trend",
+  "meaning": "경향, 유행",
+  "norm": "trend"
+ },
+ {
+  "word": "variety",
+  "meaning": "다양성, 종류",
+  "norm": "variety"
+ },
+ {
+  "word": "weakness",
+  "meaning": "약점",
+  "norm": "weakness"
+ },
+ {
+  "word": "wealth",
+  "meaning": "부, 재산",
+  "norm": "wealth"
+ },
+ {
+  "word": "accurate",
+  "meaning": "정확한",
+  "norm": "accurate"
+ },
+ {
+  "word": "adequate",
+  "meaning": "충분한, 적절한",
+  "norm": "adequate"
+ },
+ {
+  "word": "anxious",
+  "meaning": "불안한, 걱정하는",
+  "norm": "anxious"
+ },
+ {
+  "word": "appropriate",
+  "meaning": "적절한",
+  "norm": "appropriate"
+ },
+ {
+  "word": "artificial",
+  "meaning": "인공의, 인위적인",
+  "norm": "artificial"
+ },
+ {
+  "word": "casual",
+  "meaning": "격식 없는, 무심한",
+  "norm": "casual"
+ },
+ {
+  "word": "cautious",
+  "meaning": "조심스러운, 신중한",
+  "norm": "cautious"
+ },
+ {
+  "word": "considerable",
+  "meaning": "상당한",
+  "norm": "considerable"
+ },
+ {
+  "word": "constant",
+  "meaning": "끊임없는, 일정한",
+  "norm": "constant"
+ },
+ {
+  "word": "contemporary",
+  "meaning": "현대의, 동시대의",
+  "norm": "contemporary"
+ },
+ {
+  "word": "crucial",
+  "meaning": "결정적인, 중대한",
+  "norm": "crucial"
+ },
+ {
+  "word": "decent",
+  "meaning": "괜찮은, 예의 바른",
+  "norm": "decent"
+ },
+ {
+  "word": "delicate",
+  "meaning": "섬세한, 연약한",
+  "norm": "delicate"
+ },
+ {
+  "word": "dense",
+  "meaning": "밀집한, 빽빽한",
+  "norm": "dense"
+ },
+ {
+  "word": "desperate",
+  "meaning": "절박한, 필사적인",
+  "norm": "desperate"
+ },
+ {
+  "word": "distinct",
+  "meaning": "뚜렷한, 별개의",
+  "norm": "distinct"
+ },
+ {
+  "word": "embarrassed",
+  "meaning": "당황한, 창피한",
+  "norm": "embarrassed"
+ },
+ {
+  "word": "enormous",
+  "meaning": "거대한, 막대한",
+  "norm": "enormous"
+ },
+ {
+  "word": "essential",
+  "meaning": "필수적인, 본질적인",
+  "norm": "essential"
+ },
+ {
+  "word": "evident",
+  "meaning": "분명한, 명백한",
+  "norm": "evident"
+ },
+ {
+  "word": "exhausted",
+  "meaning": "지친, 기진맥진한",
+  "norm": "exhausted"
+ },
+ {
+  "word": "fascinating",
+  "meaning": "매혹적인",
+  "norm": "fascinating"
+ },
+ {
+  "word": "flexible",
+  "meaning": "유연한, 융통성 있는",
+  "norm": "flexible"
+ },
+ {
+  "word": "fragile",
+  "meaning": "부서지기 쉬운, 연약한",
+  "norm": "fragile"
+ },
+ {
+  "word": "frequent",
+  "meaning": "잦은, 빈번한",
+  "norm": "frequent"
+ },
+ {
+  "word": "generous",
+  "meaning": "관대한, 후한",
+  "norm": "generous"
+ },
+ {
+  "word": "genuine",
+  "meaning": "진짜의, 진실한",
+  "norm": "genuine"
+ },
+ {
+  "word": "gradual",
+  "meaning": "점진적인",
+  "norm": "gradual"
+ },
+ {
+  "word": "grateful",
+  "meaning": "감사하는, 고마워하는",
+  "norm": "grateful"
+ },
+ {
+  "word": "harsh",
+  "meaning": "가혹한, 거친",
+  "norm": "harsh"
+ },
+ {
+  "word": "hostile",
+  "meaning": "적대적인",
+  "norm": "hostile"
+ },
+ {
+  "word": "humble",
+  "meaning": "겸손한, 초라한",
+  "norm": "humble"
+ },
+ {
+  "word": "immense",
+  "meaning": "엄청난, 광대한",
+  "norm": "immense"
+ },
+ {
+  "word": "intense",
+  "meaning": "강렬한, 극심한",
+  "norm": "intense"
+ },
+ {
+  "word": "keen",
+  "meaning": "열망하는, 예리한",
+  "norm": "keen"
+ },
+ {
+  "word": "moderate",
+  "meaning": "적당한, 온건한",
+  "norm": "moderate"
+ },
+ {
+  "word": "modest",
+  "meaning": "겸손한, 적당한",
+  "norm": "modest"
+ },
+ {
+  "word": "mutual",
+  "meaning": "상호의, 서로의",
+  "norm": "mutual"
+ },
+ {
+  "word": "numerous",
+  "meaning": "수많은",
+  "norm": "numerous"
+ },
+ {
+  "word": "obvious",
+  "meaning": "명백한, 분명한",
+  "norm": "obvious"
+ },
+ {
+  "word": "occasional",
+  "meaning": "가끔의",
+  "norm": "occasional"
+ },
+ {
+  "word": "odd",
+  "meaning": "이상한, 홀수의",
+  "norm": "odd"
+ },
+ {
+  "word": "optimistic",
+  "meaning": "낙관적인",
+  "norm": "optimistic"
+ },
+ {
+  "word": "peculiar",
+  "meaning": "독특한, 기이한",
+  "norm": "peculiar"
+ },
+ {
+  "word": "permanent",
+  "meaning": "영구적인",
+  "norm": "permanent"
+ },
+ {
+  "word": "persistent",
+  "meaning": "끈질긴, 지속적인",
+  "norm": "persistent"
+ },
+ {
+  "word": "precise",
+  "meaning": "정확한, 정밀한",
+  "norm": "precise"
+ },
+ {
+  "word": "proper",
+  "meaning": "적절한, 제대로 된",
+  "norm": "proper"
+ },
+ {
+  "word": "raw",
+  "meaning": "날것의, 가공하지 않은",
+  "norm": "raw"
+ },
+ {
+  "word": "reasonable",
+  "meaning": "합리적인, 적당한",
+  "norm": "reasonable"
+ },
+ {
+  "word": "relevant",
+  "meaning": "관련 있는, 적절한",
+  "norm": "relevant"
+ },
+ {
+  "word": "remarkable",
+  "meaning": "놀라운, 주목할 만한",
+  "norm": "remarkable"
+ },
+ {
+  "word": "remote",
+  "meaning": "외딴, 먼",
+  "norm": "remote"
+ },
+ {
+  "word": "rigid",
+  "meaning": "뻣뻣한, 엄격한",
+  "norm": "rigid"
+ },
+ {
+  "word": "rough",
+  "meaning": "거친, 대략적인",
+  "norm": "rough"
+ },
+ {
+  "word": "rural",
+  "meaning": "시골의, 농촌의",
+  "norm": "rural"
+ },
+ {
+  "word": "sensible",
+  "meaning": "분별 있는, 현명한",
+  "norm": "sensible"
+ },
+ {
+  "word": "sensitive",
+  "meaning": "민감한, 세심한",
+  "norm": "sensitive"
+ },
+ {
+  "word": "severe",
+  "meaning": "심각한, 혹독한",
+  "norm": "severe"
+ },
+ {
+  "word": "significant",
+  "meaning": "중요한, 상당한",
+  "norm": "significant"
+ },
+ {
+  "word": "sincere",
+  "meaning": "진심의, 성실한",
+  "norm": "sincere"
+ },
+ {
+  "word": "slight",
+  "meaning": "약간의, 사소한",
+  "norm": "slight"
+ },
+ {
+  "word": "smooth",
+  "meaning": "매끄러운, 순조로운",
+  "norm": "smooth"
+ },
+ {
+  "word": "solid",
+  "meaning": "단단한, 확실한",
+  "norm": "solid"
+ },
+ {
+  "word": "spare",
+  "meaning": "여분의, 남는",
+  "norm": "spare"
+ },
+ {
+  "word": "stable",
+  "meaning": "안정된, 안정적인",
+  "norm": "stable"
+ },
+ {
+  "word": "steady",
+  "meaning": "꾸준한, 안정된",
+  "norm": "steady"
+ },
+ {
+  "word": "steep",
+  "meaning": "가파른, 급격한",
+  "norm": "steep"
+ },
+ {
+  "word": "stubborn",
+  "meaning": "고집 센, 완고한",
+  "norm": "stubborn"
+ },
+ {
+  "word": "sufficient",
+  "meaning": "충분한",
+  "norm": "sufficient"
+ },
+ {
+  "word": "suitable",
+  "meaning": "적합한, 알맞은",
+  "norm": "suitable"
+ },
+ {
+  "word": "temporary",
+  "meaning": "일시적인, 임시의",
+  "norm": "temporary"
+ },
+ {
+  "word": "thorough",
+  "meaning": "철저한",
+  "norm": "thorough"
+ },
+ {
+  "word": "tremendous",
+  "meaning": "엄청난, 대단한",
+  "norm": "tremendous"
+ },
+ {
+  "word": "urgent",
+  "meaning": "긴급한",
+  "norm": "urgent"
+ },
+ {
+  "word": "vast",
+  "meaning": "광대한, 방대한",
+  "norm": "vast"
+ },
+ {
+  "word": "vital",
+  "meaning": "필수적인, 중대한",
+  "norm": "vital"
+ },
+ {
+  "word": "widespread",
+  "meaning": "널리 퍼진, 광범위한",
+  "norm": "widespread"
+ },
+ {
+  "word": "willing",
+  "meaning": "기꺼이 하는, 자발적인",
+  "norm": "willing"
+ },
+ {
+  "word": "barely",
+  "meaning": "간신히, 겨우",
+  "norm": "barely"
+ },
+ {
+  "word": "deliberately",
+  "meaning": "고의로, 일부러",
+  "norm": "deliberately"
+ },
+ {
+  "word": "eventually",
+  "meaning": "결국, 마침내",
+  "norm": "eventually"
+ },
+ {
+  "word": "frequently",
+  "meaning": "자주, 빈번히",
+  "norm": "frequently"
+ },
+ {
+  "word": "gradually",
+  "meaning": "점차, 서서히",
+  "norm": "gradually"
+ },
+ {
+  "word": "immediately",
+  "meaning": "즉시, 곧바로",
+  "norm": "immediately"
+ },
+ {
+  "word": "merely",
+  "meaning": "단지, 그저",
+  "norm": "merely"
+ },
+ {
+  "word": "nevertheless",
+  "meaning": "그럼에도 불구하고",
+  "norm": "nevertheless"
+ },
+ {
+  "word": "occasionally",
+  "meaning": "가끔, 이따금",
+  "norm": "occasionally"
+ },
+ {
+  "word": "otherwise",
+  "meaning": "그렇지 않으면",
+  "norm": "otherwise"
+ },
+ {
+  "word": "rarely",
+  "meaning": "드물게",
+  "norm": "rarely"
+ },
+ {
+  "word": "roughly",
+  "meaning": "대략, 거칠게",
+  "norm": "roughly"
+ },
+ {
+  "word": "seldom",
+  "meaning": "좀처럼, 드물게",
+  "norm": "seldom"
+ },
+ {
+  "word": "slightly",
+  "meaning": "약간, 조금",
+  "norm": "slightly"
+ },
+ {
+  "word": "thoroughly",
+  "meaning": "철저히, 완전히",
+  "norm": "thoroughly"
+ },
+ {
+  "word": "ultimately",
+  "meaning": "궁극적으로, 결국",
+  "norm": "ultimately"
+ },
+ {
+  "word": "virtually",
+  "meaning": "사실상, 거의",
+  "norm": "virtually"
+ },
+ {
+  "word": "advocate",
+  "meaning": "옹호하다, 지지하다",
+  "norm": "advocate"
+ },
+ {
+  "word": "alleviate",
+  "meaning": "완화하다, 덜다",
+  "norm": "alleviate"
+ },
+ {
+  "word": "ambiguous",
+  "meaning": "모호한, 애매한",
+  "norm": "ambiguous"
+ },
+ {
+  "word": "bias",
+  "meaning": "편견, 편향",
+  "norm": "bias"
+ },
+ {
+  "word": "coherent",
+  "meaning": "일관성 있는, 조리 있는",
+  "norm": "coherent"
+ },
+ {
+  "word": "compelling",
+  "meaning": "설득력 있는, 강렬한",
+  "norm": "compelling"
+ },
+ {
+  "word": "comprehensive",
+  "meaning": "포괄적인, 종합적인",
+  "norm": "comprehensive"
+ },
+ {
+  "word": "consensus",
+  "meaning": "합의, 의견 일치",
+  "norm": "consensus"
+ },
+ {
+  "word": "contemplate",
+  "meaning": "심사숙고하다, 응시하다",
+  "norm": "contemplate"
+ },
+ {
+  "word": "convey",
+  "meaning": "전달하다, 전하다",
+  "norm": "convey"
+ },
+ {
+  "word": "deteriorate",
+  "meaning": "악화되다",
+  "norm": "deteriorate"
+ },
+ {
+  "word": "dilemma",
+  "meaning": "딜레마, 진퇴양난",
+  "norm": "dilemma"
+ },
+ {
+  "word": "diminish",
+  "meaning": "줄어들다, 약화시키다",
+  "norm": "diminish"
+ },
+ {
+  "word": "elaborate",
+  "meaning": "정교한, 공들인",
+  "norm": "elaborate"
+ },
+ {
+  "word": "exacerbate",
+  "meaning": "악화시키다",
+  "norm": "exacerbate"
+ },
+ {
+  "word": "feasible",
+  "meaning": "실현 가능한",
+  "norm": "feasible"
+ },
+ {
+  "word": "hinder",
+  "meaning": "방해하다, 저해하다",
+  "norm": "hinder"
+ },
+ {
+  "word": "implicit",
+  "meaning": "암시적인, 내포된",
+  "norm": "implicit"
+ },
+ {
+  "word": "incentive",
+  "meaning": "유인, 동기",
+  "norm": "incentive"
+ },
+ {
+  "word": "inevitable",
+  "meaning": "불가피한, 필연적인",
+  "norm": "inevitable"
+ },
+ {
+  "word": "integrity",
+  "meaning": "진실성, 청렴",
+  "norm": "integrity"
+ },
+ {
+  "word": "intricate",
+  "meaning": "복잡한, 정교한",
+  "norm": "intricate"
+ },
+ {
+  "word": "legacy",
+  "meaning": "유산",
+  "norm": "legacy"
+ },
+ {
+  "word": "legitimate",
+  "meaning": "합법적인, 정당한",
+  "norm": "legitimate"
+ },
+ {
+  "word": "meticulous",
+  "meaning": "꼼꼼한, 세심한",
+  "norm": "meticulous"
+ },
+ {
+  "word": "mitigate",
+  "meaning": "완화하다, 경감하다",
+  "norm": "mitigate"
+ },
+ {
+  "word": "notorious",
+  "meaning": "악명 높은",
+  "norm": "notorious"
+ },
+ {
+  "word": "paradox",
+  "meaning": "역설",
+  "norm": "paradox"
+ },
+ {
+  "word": "plausible",
+  "meaning": "그럴듯한",
+  "norm": "plausible"
+ },
+ {
+  "word": "pragmatic",
+  "meaning": "실용적인, 현실적인",
+  "norm": "pragmatic"
+ },
+ {
+  "word": "profound",
+  "meaning": "심오한, 깊은",
+  "norm": "profound"
+ },
+ {
+  "word": "prominent",
+  "meaning": "저명한, 두드러진",
+  "norm": "prominent"
+ },
+ {
+  "word": "reluctant",
+  "meaning": "꺼리는, 마지못한",
+  "norm": "reluctant"
+ },
+ {
+  "word": "resilient",
+  "meaning": "회복력 있는, 탄력 있는",
+  "norm": "resilient"
+ },
+ {
+  "word": "scrutinize",
+  "meaning": "면밀히 조사하다",
+  "norm": "scrutinize"
+ },
+ {
+  "word": "skeptical",
+  "meaning": "회의적인",
+  "norm": "skeptical"
+ },
+ {
+  "word": "sophisticated",
+  "meaning": "세련된, 정교한",
+  "norm": "sophisticated"
+ },
+ {
+  "word": "subtle",
+  "meaning": "미묘한, 교묘한",
+  "norm": "subtle"
+ },
+ {
+  "word": "tedious",
+  "meaning": "지루한, 장황한",
+  "norm": "tedious"
+ },
+ {
+  "word": "thrive",
+  "meaning": "번창하다, 잘 자라다",
+  "norm": "thrive"
+ },
+ {
+  "word": "undermine",
+  "meaning": "약화시키다, 훼손하다",
+  "norm": "undermine"
+ },
+ {
+  "word": "vague",
+  "meaning": "막연한, 모호한",
+  "norm": "vague"
+ },
+ {
+  "word": "versatile",
+  "meaning": "다재다능한, 다용도의",
+  "norm": "versatile"
+ },
+ {
+  "word": "vulnerable",
+  "meaning": "취약한",
+  "norm": "vulnerable"
+ }
+]
