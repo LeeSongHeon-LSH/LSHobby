@@ -12,7 +12,6 @@ export interface Tab {
 
 const ACCENT = {
   lang: { text: "text-lang", bar: "bg-lang" },
-  thought: { text: "text-thought", bar: "bg-thought" },
 } as const;
 
 export function TabBar({ tabs, accent }: { tabs: Tab[]; accent: keyof typeof ACCENT }) {

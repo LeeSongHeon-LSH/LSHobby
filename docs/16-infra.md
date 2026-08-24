@@ -148,50 +148,10 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 | 프로덕션 URL | https://lshobby.vercel.app |
 | 앱 계정 | leesongheon1209@gmail.com (1계정, 가입 차단) |
 | 비밀 보관 | `~/.lshobby/` (600 권한) + 리포 `.env`(gitignore) |
-| 로컬 LLM 엔드포인트 | `https://leesongheon.tailc7c4e0.ts.net:8443/ollama` (tailnet 전용, §16.11) |
 
-### 16.11 로컬 LLM(Ollama)과 tailnet 접근 — 2026-08-24 전환
+### 16.11 로컬 LLM(Ollama) — 다이제스트 배치 전용
 
-생각 세션(§8)의 하루 요약 배치와 철학 정보는 **로컬 Ollama**를 쓴다. 정책은 단순하다 — **생각 데이터는 어떤 외부 API로도 보내지 않는다.** 그래서 모델은 이 집 PC에서만 돌고, 클라우드 추론은 쓰지 않는다.
+생각 세션의 하루 요약 배치(`scripts/digest-thoughts.mjs`, 집 PC cron 00:30)는 이 PC의 **로컬 Ollama**(`localhost:11434`, 기본 바인딩)로 exaone3.5:7.8b를 돌린다. 정책은 단순하다 — **생각 데이터는 어떤 외부 API로도 보내지 않는다.** 그래서 클라우드 추론은 쓰지 않고, Ollama는 네트워크에 노출하지 않는다.
 
-철학 정보의 **한↔영 통역**도 같은 정책 아래 있다 (2026-08-24). 철학 모델이 영어(SEP) 데이터로만 학습돼, 한국어 질문은 exaone3.5(한국어 특화)가 같은 Ollama 안에서 영어로 옮겨 묻고 영어 답변을 한국어로 되옮긴다 — DeepL 같은 외부 번역 API는 쓰지 않는다(질문도 생각 데이터다). 이중 번역의 뉘앙스 손실에 대비해 질문 말풍선에 영어 번역을 병기하고 답변에는 영어 원문 토글을 남긴다. RTX 3060 12GB에 두 모델(각 ~5GB)이 **동시 상주**함을 실측했으므로(10.2GB) 턴마다 모델 스왑은 없다 — 철학·통역 모델을 더 큰 것으로 바꾸면 이 전제가 깨져 턴마다 수 초의 재로드가 생긴다. 통역 모델은 `NEXT_PUBLIC_TRANSLATE_MODEL`로 바꿀 수 있다(기본 `exaone3.5:7.8b`).
+> **철회 기록 (#63)**: 철학 정보 탭(브라우저→Ollama 문답 + 한↔영 통역)과 그를 위한 tailnet 노출(`tailscale serve :8443`, `OLLAMA_HOST` tailscale IP 바인딩, CORS, Vercel `NEXT_PUBLIC_OLLAMA_URL`)은 2026-08-24 당일 도입·철회했다. 구성과 근거는 git 히스토리에 보존(커밋 505629d 시점의 §16.11). 브라우저에서 Ollama를 다시 부를 일이 생기면 그 기록대로 재구성하면 된다.
 
-문제는 이 PC가 집에만 있다는 점이었다. `philosophy.ts`의 엔드포인트는 `NEXT_PUBLIC_` 변수라 **브라우저에서** 호출되는데, 폰으로 앱을 열면 그 폰의 `localhost:11434`를 찾다가 실패했다. Tailscale로 이 PC를 tailnet에 노출해 해결했다.
-
-```mermaid
-flowchart LR
-    P["폰·PC 브라우저<br/>(tailnet 가입 기기)"]
-    V["lshobby.vercel.app<br/>(화면만)"]
-    subgraph home["집 PC"]
-        TS["tailscaled<br/>:8443 HTTPS"]
-        OL["ollama<br/>100.65.178.61:11434"]
-        CR["cron 00:30<br/>digest-thoughts.mjs"]
-    end
-    P -- 화면 --> V
-    P -- "생각 요약·철학 정보<br/>(tailnet 전용 HTTPS)" --> TS --> OL
-    CR -- 직결 --> OL
-```
-
-**설정 (systemd 드롭인 `ollama.service.d/override.conf` + `tailscale serve`)**
-
-| 항목 | 값 | 이유 |
-|---|---|---|
-| `OLLAMA_HOST` | `100.65.178.61:11434` | tailscale IP **전용** 바인딩. LAN(`172.31.0.0/16`)에 노출되지 않는다 |
-| `OLLAMA_ORIGINS` | `lshobby.vercel.app`, `…ts.net` | 브라우저 CORS. 페이지 **출처**이지 호출 대상이 아니다 |
-| `tailscale serve` | `:8443/ollama` → `100.65.178.61:11434` | tailnet 전용 HTTPS(Let's Encrypt). `funnel`이 아니므로 인터넷 노출 없음 |
-| 드롭인 `[Unit]` | `After=/Wants=tailscaled.service` | tailscale IP에 바인딩하므로 부팅 시 `tailscaled`가 먼저 떠야 한다 |
-| `.env` | `OLLAMA_URL`(배치), `NEXT_PUBLIC_OLLAMA_URL`(앱) | 없으면 코드 기본값 `localhost:11434`로 떨어져 **조용히 실패**한다 |
-
-**왜 이런 모양인가 — 세 가지 결정**
-
-1. **443이 아니라 8443.** kind 클러스터의 ingress가 `0.0.0.0:443`을 점유해 tailscale IPv4 주소까지 가져간다. 443으로 serve하면 요청이 Ollama가 아니라 ingress의 자체 서명 인증서로 간다.
-2. **`0.0.0.0`이 아니라 tailscale IP.** Ollama는 DNS 리바인딩 방어로 비-로컬 `Host` 헤더를 403으로 막는데(`OLLAMA_ORIGINS`는 CORS 전용이라 무관), 이를 푸는 흔한 방법이 `OLLAMA_HOST=0.0.0.0`이다. 그러나 이 PC는 방화벽이 꺼져 있어 그러면 같은 WiFi의 아무 기기나 **인증 없이** 모델 실행·삭제가 가능해진다. 바인딩을 tailscale IP로 좁히면 Host 검사도 함께 풀리면서 LAN 노출이 생기지 않는다.
-3. **Ollama에는 인증이 없다.** 보호막은 tailnet 경계 하나뿐이다. 다른 사람 기기를 tailnet에 초대하면 ACL로 이 노드를 막아야 하고, `funnel`로 바꾸면 안 된다.
-
-**점검**
-
-```bash
-npm run check:ollama     # 설정·도달성·모델·CORS·격리 12항목
-```
-
-배치 실패 시 첫 확인 대상이다. 특히 **격리 항목**은 `OLLAMA_HOST`가 `0.0.0.0`으로 되돌아가 LAN에 노출되는 회귀를 잡는다.

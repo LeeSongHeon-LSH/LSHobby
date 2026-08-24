@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AuthGuard } from "@/modules/shared/auth";
 import {
   addThought,
   dayKey,
@@ -302,7 +303,10 @@ function ThoughtStream() {
   );
 }
 
-// AuthGuard는 세션 layout에서 감싼다 (탭 공통)
 export default function ThoughtsPage() {
-  return <ThoughtStream />;
+  return (
+    <AuthGuard>
+      <ThoughtStream />
+    </AuthGuard>
+  );
 }

@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { dayKey, groupByDay, mergeThoughts, topTopics, type Thought } from "./service";
-import { parseStreamLine } from "./ollama-chat";
-import { cleanTranslation, hasKorean } from "./translate";
 
 const at = (y: number, m: number, d: number, h: number) =>
   new Date(y, m - 1, d, h).toISOString();
@@ -46,47 +44,6 @@ describe("topTopics (주제 궤적 집계)", () => {
     ]);
     expect(topTopics(lists, 1)).toEqual([["습관", 3]]);
     expect(topTopics([])).toEqual([]);
-  });
-});
-
-describe("parseStreamLine (철학 정보 스트림)", () => {
-  it("본문 조각 추출, 빈 줄·본문 없는 줄·완성 마커는 빈 문자열", () => {
-    expect(
-      parseStreamLine('{"message":{"role":"assistant","content":"Kant argued"},"done":false}'),
-    ).toBe("Kant argued");
-    expect(parseStreamLine('{"done":true,"total_duration":123}')).toBe("");
-    expect(parseStreamLine("")).toBe("");
-    expect(parseStreamLine("잘린 조각 {")).toBe("");
-  });
-
-  it("error 응답은 예외로 던진다", () => {
-    expect(() => parseStreamLine('{"error":"model not found"}')).toThrow("model not found");
-  });
-});
-
-describe("hasKorean (통역 경로 판정)", () => {
-  it("한글이 하나라도 섞이면 true", () => {
-    expect(hasKorean("자유의지가 없다면 도덕적 책임은?")).toBe(true);
-    expect(hasKorean("Kant의 정언명령이 뭐야")).toBe(true);
-    expect(hasKorean("ㅇㅋ then what is justice?")).toBe(true);
-  });
-
-  it("영어·기호만이면 false", () => {
-    expect(hasKorean("What is the trolley problem?")).toBe(false);
-    expect(hasKorean("a priori / a posteriori?!")).toBe(false);
-  });
-});
-
-describe("cleanTranslation (번역 출력 정리)", () => {
-  it("감싼 따옴표·라벨·공백 제거", () => {
-    expect(cleanTranslation('"What is justice?"')).toBe("What is justice?");
-    expect(cleanTranslation("“What is justice?”")).toBe("What is justice?");
-    expect(cleanTranslation("Translation: What is justice?")).toBe("What is justice?");
-    expect(cleanTranslation("  What is justice?  ")).toBe("What is justice?");
-  });
-
-  it("본문 속 따옴표는 보존", () => {
-    expect(cleanTranslation('He said "no" to the offer.')).toBe('He said "no" to the offer.');
   });
 });
 

@@ -2,7 +2,7 @@
 // 실행: node --env-file=.env scripts/digest-thoughts.mjs  (집 PC cron 매일 밤)
 //
 // 정책:
-// - 생각 데이터는 어떤 외부 API로도 보내지 않는다 — 분석은 집 PC의 로컬 Ollama 전용 (OLLAMA_URL, §16.11)
+// - 생각 데이터는 어떤 외부 API로도 보내지 않는다 — 분석은 localhost Ollama 전용
 // - 판단·조언 없이 요약만. 산출: 하루 요약 3~5줄 + 메모별 주제 키워드 + activity 사실 한 줄
 // - 어제까지의 날 중 다이제스트 없는 날만 처리 (소급 — PC가 꺼졌던 날도 다음 실행에서 따라잡음)
 // - digest.topics = 그날 메모 주제의 합집합, activity 한 줄은 LLM 없이 activity_feed 집계
@@ -40,7 +40,7 @@ const dayRange = (day) => {
   return { from: from.toISOString(), to: to.toISOString() };
 };
 
-// ---------- Ollama (로컬 전용 — OLLAMA_URL) ----------
+// ---------- Ollama (localhost 전용) ----------
 const RESPONSE_SCHEMA = {
   type: "object",
   properties: {
