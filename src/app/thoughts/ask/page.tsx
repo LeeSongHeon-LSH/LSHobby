@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  PHILOSOPHY_MODEL,
-  streamPhilosophyReply,
-  type PhilosophyMessage,
-} from "@/modules/thought";
+import { streamPhilosophyReply, type PhilosophyMessage } from "@/modules/thought";
 import { HomeButton } from "../../ui/home-button";
 import { PixelPenguinThink } from "../../ui/pixel";
 
-// 철학 문답 — 휘발성 채팅: 저장하지 않고 그때그때 궁금증만 해소 (새로고침 = 초기화).
+// 철학 정보 — 휘발성 채팅: 저장하지 않고 그때그때 궁금증만 해소 (새로고침 = 초기화).
 // 모델이 영어(SEP) 데이터로 학습돼 영어로 물어야 답이 좋다
 export default function PhilosophyAskPage() {
   const [messages, setMessages] = useState<PhilosophyMessage[]>([]);
@@ -61,10 +57,7 @@ export default function PhilosophyAskPage() {
       <header className="mb-6 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-thought">Thought</p>
-          <h1 className="font-display text-2xl font-bold">철학 문답</h1>
-          <p className="mt-1 font-mono text-[11px] text-faint">
-            {PHILOSOPHY_MODEL.split("/").pop()} · 저장 안 함
-          </p>
+          <h1 className="font-display text-2xl font-bold">철학 정보</h1>
         </div>
         <HomeButton accent="thought" />
       </header>
@@ -76,9 +69,6 @@ export default function PhilosophyAskPage() {
           </div>
           <p className="text-sm text-faint">
             스탠퍼드 철학 백과사전으로 배운 교수에게 영어로 물어보세요
-          </p>
-          <p className="mt-1 font-mono text-[11px] text-faint">
-            대화는 저장되지 않아요 — 그때그때의 궁금증 해소용
           </p>
         </div>
       ) : (

@@ -9,7 +9,7 @@ import { PixelPenguinThink } from "../ui/pixel";
 // 언어 세션과 같은 문법(#59) — 모바일 하단 탭바, 데스크톱(md~)은 좌측 사이드바
 const TABS = [
   { href: "/thoughts", label: "기록", exact: true },
-  { href: "/thoughts/ask", label: "철학 문답", exact: false },
+  { href: "/thoughts/ask", label: "철학 정보", exact: false },
 ];
 
 function Sidebar() {

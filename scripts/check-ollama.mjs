@@ -62,7 +62,7 @@ await check("도달: 앱 경로(serve 경유) → /api/tags", async () => {
 });
 
 // 3) 모델 — 있어야 배치·문답이 실제로 돈다
-for (const [label, model] of [["다이제스트", DIGEST_MODEL], ["철학 문답", PHILOSOPHY_MODEL]]) {
+for (const [label, model] of [["다이제스트", DIGEST_MODEL], ["철학 정보", PHILOSOPHY_MODEL]]) {
   await check(`모델: ${label}`, async () => {
     assert(installed, "배치 경로 도달 실패로 확인 불가 — 위 항목을 먼저 보세요");
     assert(installed.includes(model), `설치되지 않음 — ollama pull ${model}`);

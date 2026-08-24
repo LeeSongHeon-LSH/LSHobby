@@ -48,7 +48,7 @@ describe("topTopics (주제 궤적 집계)", () => {
   });
 });
 
-describe("parseStreamLine (철학 문답 스트림)", () => {
+describe("parseStreamLine (철학 정보 스트림)", () => {
   it("본문 조각 추출, 빈 줄·본문 없는 줄·완성 마커는 빈 문자열", () => {
     expect(
       parseStreamLine('{"message":{"role":"assistant","content":"Kant argued"},"done":false}'),

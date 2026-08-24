@@ -152,7 +152,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 ### 16.11 로컬 LLM(Ollama)과 tailnet 접근 — 2026-08-24 전환
 
-생각 세션(§8)의 하루 요약 배치와 철학 문답은 **로컬 Ollama**를 쓴다. 정책은 단순하다 — **생각 데이터는 어떤 외부 API로도 보내지 않는다.** 그래서 모델은 이 집 PC에서만 돌고, 클라우드 추론은 쓰지 않는다.
+생각 세션(§8)의 하루 요약 배치와 철학 정보는 **로컬 Ollama**를 쓴다. 정책은 단순하다 — **생각 데이터는 어떤 외부 API로도 보내지 않는다.** 그래서 모델은 이 집 PC에서만 돌고, 클라우드 추론은 쓰지 않는다.
 
 문제는 이 PC가 집에만 있다는 점이었다. `philosophy.ts`의 엔드포인트는 `NEXT_PUBLIC_` 변수라 **브라우저에서** 호출되는데, 폰으로 앱을 열면 그 폰의 `localhost:11434`를 찾다가 실패했다. Tailscale로 이 PC를 tailnet에 노출해 해결했다.
 
@@ -166,7 +166,7 @@ flowchart LR
         CR["cron 00:30<br/>digest-thoughts.mjs"]
     end
     P -- 화면 --> V
-    P -- "생각 요약·철학 문답<br/>(tailnet 전용 HTTPS)" --> TS --> OL
+    P -- "생각 요약·철학 정보<br/>(tailnet 전용 HTTPS)" --> TS --> OL
     CR -- 직결 --> OL
 ```
 

@@ -1,4 +1,4 @@
-// 철학 문답 — SEP(스탠퍼드 철학 백과사전) 파인튜닝 Llama3를 로컬 Ollama로 스트리밍 호출.
+// 철학 정보 — SEP(스탠퍼드 철학 백과사전) 파인튜닝 Llama3를 로컬 Ollama로 스트리밍 호출.
 // 생각 데이터와 같은 정책: 로컬 Ollama 전용(외부 API 금지). 대화는 저장하지 않는 휘발성 (그때그때 궁금증 해소용)
 
 export interface PhilosophyMessage {
