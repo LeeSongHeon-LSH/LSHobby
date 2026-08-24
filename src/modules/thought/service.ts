@@ -82,6 +82,42 @@ export async function searchThoughts(query: string, limit = 80): Promise<Thought
   return mergeThoughts(byContent.data as Thought[], byTopic.data as Thought[], limit);
 }
 
+/** 과거의 오늘 — n일 전 그날 쓴 생각들 (되짚기, 시간순) */
+export async function thoughtsDaysAgo(days: number, now: Date = new Date()): Promise<Thought[]> {
+  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
+  const to = new Date(from.getTime() + 24 * 60 * 60 * 1000);
+  const { data, error } = await supabase
+    .from("thought")
+    .select("*")
+    .gte("created_at", from.toISOString())
+    .lt("created_at", to.toISOString())
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data as Thought[];
+}
+
+/** 주제 빈도 집계 — 상위 limit개 [주제, 횟수] (동률은 이름순) */
+export function topTopics(topicLists: (string[] | null)[], limit = 8): [string, number][] {
+  const counts = new Map<string, number>();
+  for (const list of topicLists)
+    for (const topic of list ?? []) counts.set(topic, (counts.get(topic) ?? 0) + 1);
+  return [...counts]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit);
+}
+
+/** 최근 n일간 메모의 주제 목록 (궤적 집계용) */
+export async function recentTopics(days = 30): Promise<(string[] | null)[]> {
+  const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("thought")
+    .select("topics")
+    .gte("created_at", from)
+    .not("topics", "is", null);
+  if (error) throw error;
+  return (data as { topics: string[] | null }[]).map((r) => r.topics);
+}
+
 export async function recentDigests(limit = 30): Promise<ThoughtDigest[]> {
   const { data, error } = await supabase
     .from("thought_digest")

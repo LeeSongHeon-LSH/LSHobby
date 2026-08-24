@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayKey, groupByDay, mergeThoughts, type Thought } from "./service";
+import { dayKey, groupByDay, mergeThoughts, topTopics, type Thought } from "./service";
 
 const at = (y: number, m: number, d: number, h: number) =>
   new Date(y, m - 1, d, h).toISOString();
@@ -31,6 +31,19 @@ describe("thought 날짜 그룹핑", () => {
 
   it("groupByDay: 빈 목록은 빈 배열", () => {
     expect(groupByDay([])).toEqual([]);
+  });
+});
+
+describe("topTopics (주제 궤적 집계)", () => {
+  it("빈도순 정렬, 동률은 이름순, limit·null 처리", () => {
+    const lists = [["습관", "정체성"], null, ["습관"], ["예문", "정체성"], ["습관"]];
+    expect(topTopics(lists)).toEqual([
+      ["습관", 3],
+      ["정체성", 2],
+      ["예문", 1],
+    ]);
+    expect(topTopics(lists, 1)).toEqual([["습관", 3]]);
+    expect(topTopics([])).toEqual([]);
   });
 });
 

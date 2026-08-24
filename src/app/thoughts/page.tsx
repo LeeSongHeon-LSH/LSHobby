@@ -8,7 +8,10 @@ import {
   groupByDay,
   listThoughts,
   recentDigests,
+  recentTopics,
   searchThoughts,
+  thoughtsDaysAgo,
+  topTopics,
   type Thought,
   type ThoughtDigest,
 } from "@/modules/thought";
@@ -16,6 +19,13 @@ import { HomeButton } from "../ui/home-button";
 import { PixelPenguinThink } from "../ui/pixel";
 
 const PAGE_SIZE = 80;
+
+// 과거의 오늘 되짚기 — 고치지 않고 남긴 생각을 다시 만나는 자리 (append-only의 보상)
+const ECHOES = [
+  { label: "1년 전 오늘", days: 365 },
+  { label: "한 달 전 오늘", days: 30 },
+  { label: "일주일 전 오늘", days: 7 },
+];
 
 const dayLabel = (day: string): string => {
   const today = dayKey(new Date().toISOString());
@@ -64,14 +74,27 @@ function ThoughtStream() {
   const [query, setQuery] = useState("");
   // 검색 결과 — 어떤 질의의 결과인지 함께 저장 (질의가 바뀌면 무시)
   const [results, setResults] = useState<{ q: string; list: Thought[] } | null>(null);
+  const [echoes, setEchoes] = useState<{ label: string; items: Thought[] }[]>([]);
+  const [trajectory, setTrajectory] = useState<[string, number][]>([]);
 
   useEffect(() => {
     (async () => {
       try {
-        const [list, digs] = await Promise.all([listThoughts(PAGE_SIZE), recentDigests()]);
+        const [list, digs, topics, ...pasts] = await Promise.all([
+          listThoughts(PAGE_SIZE),
+          recentDigests(),
+          recentTopics(),
+          ...ECHOES.map((e) => thoughtsDaysAgo(e.days)),
+        ]);
         setThoughts(list);
         setHasMore(list.length === PAGE_SIZE);
         setDigests(new Map(digs.map((d) => [d.day, d])));
+        setTrajectory(topTopics(topics));
+        setEchoes(
+          ECHOES.map((e, i) => ({ label: e.label, items: pasts[i] })).filter(
+            (e) => e.items.length > 0,
+          ),
+        );
       } catch {
         setThoughts([]);
       }
@@ -160,6 +183,41 @@ function ThoughtStream() {
         placeholder="내용·주제 검색"
         className="mt-3 w-full rounded-md border border-line bg-card px-3.5 py-2.5 text-sm"
       />
+
+      {!query.trim() && (trajectory.length > 0 || echoes.length > 0) && (
+        <div className="mt-5 space-y-3">
+          {trajectory.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="font-mono text-[11px] text-faint">최근 30일 주제</span>
+              {trajectory.map(([topic, n]) => (
+                <button
+                  key={topic}
+                  onClick={() => setQuery(topic)}
+                  className="rounded-full bg-thought-soft px-2.5 py-0.5 font-mono text-[11px] text-thought"
+                >
+                  {topic} <span className="opacity-60">{n}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {echoes.map((e) => (
+            <section
+              key={e.label}
+              className="relative overflow-hidden rounded-lg border border-thought/40 bg-thought-soft p-3.5"
+            >
+              <span className="absolute left-4 top-0 h-1 w-10 bg-thought" aria-hidden="true" />
+              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-thought">
+                그때의 나 · {e.label}
+              </p>
+              <ul className="mt-2 space-y-2">
+                {e.items.map((t) => (
+                  <ThoughtCard key={t.id} t={t} onTopic={setQuery} />
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
 
       {query.trim() ? (
         results?.q !== query.trim() ? (

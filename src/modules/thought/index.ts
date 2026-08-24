@@ -7,7 +7,10 @@ export {
   listThoughts,
   mergeThoughts,
   recentDigests,
+  recentTopics,
   searchThoughts,
+  thoughtsDaysAgo,
+  topTopics,
   type Thought,
   type ThoughtDigest,
 } from "./service";
