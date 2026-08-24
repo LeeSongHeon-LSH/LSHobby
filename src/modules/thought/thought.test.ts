@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dayKey, groupByDay, mergeThoughts, topTopics, type Thought } from "./service";
-import { parseStreamLine } from "./philosophy";
+import { parseStreamLine } from "./ollama-chat";
+import { cleanTranslation, hasKorean } from "./translate";
 
 const at = (y: number, m: number, d: number, h: number) =>
   new Date(y, m - 1, d, h).toISOString();
@@ -60,6 +61,32 @@ describe("parseStreamLine (철학 정보 스트림)", () => {
 
   it("error 응답은 예외로 던진다", () => {
     expect(() => parseStreamLine('{"error":"model not found"}')).toThrow("model not found");
+  });
+});
+
+describe("hasKorean (통역 경로 판정)", () => {
+  it("한글이 하나라도 섞이면 true", () => {
+    expect(hasKorean("자유의지가 없다면 도덕적 책임은?")).toBe(true);
+    expect(hasKorean("Kant의 정언명령이 뭐야")).toBe(true);
+    expect(hasKorean("ㅇㅋ then what is justice?")).toBe(true);
+  });
+
+  it("영어·기호만이면 false", () => {
+    expect(hasKorean("What is the trolley problem?")).toBe(false);
+    expect(hasKorean("a priori / a posteriori?!")).toBe(false);
+  });
+});
+
+describe("cleanTranslation (번역 출력 정리)", () => {
+  it("감싼 따옴표·라벨·공백 제거", () => {
+    expect(cleanTranslation('"What is justice?"')).toBe("What is justice?");
+    expect(cleanTranslation("“What is justice?”")).toBe("What is justice?");
+    expect(cleanTranslation("Translation: What is justice?")).toBe("What is justice?");
+    expect(cleanTranslation("  What is justice?  ")).toBe("What is justice?");
+  });
+
+  it("본문 속 따옴표는 보존", () => {
+    expect(cleanTranslation('He said "no" to the offer.')).toBe('He said "no" to the offer.');
   });
 });
 

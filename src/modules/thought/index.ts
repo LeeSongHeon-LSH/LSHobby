@@ -19,3 +19,9 @@ export {
   streamPhilosophyReply,
   type PhilosophyMessage,
 } from "./philosophy";
+export {
+  hasKorean,
+  streamKoreanTranslation,
+  translateToEnglish,
+  TRANSLATE_MODEL,
+} from "./translate";

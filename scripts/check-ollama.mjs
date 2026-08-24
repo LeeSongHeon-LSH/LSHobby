@@ -12,6 +12,7 @@ const DIGEST_MODEL = process.env.DIGEST_MODEL ?? "exaone3.5:7.8b";
 const PHILOSOPHY_MODEL =
   process.env.NEXT_PUBLIC_PHILOSOPHY_MODEL ??
   "hf.co/mradermacher/Llama3-stanford-encyclopedia-philosophy-QA-GGUF:Q4_K_M";
+const TRANSLATE_MODEL = process.env.NEXT_PUBLIC_TRANSLATE_MODEL ?? "exaone3.5:7.8b";
 const CORS_ORIGINS = ["http://localhost:3000", "https://lshobby.vercel.app"];
 const TIMEOUT = 10000;
 
@@ -62,7 +63,7 @@ await check("도달: 앱 경로(serve 경유) → /api/tags", async () => {
 });
 
 // 3) 모델 — 있어야 배치·문답이 실제로 돈다
-for (const [label, model] of [["다이제스트", DIGEST_MODEL], ["철학 정보", PHILOSOPHY_MODEL]]) {
+for (const [label, model] of [["다이제스트", DIGEST_MODEL], ["철학 정보", PHILOSOPHY_MODEL], ["통역(한↔영)", TRANSLATE_MODEL]]) {
   await check(`모델: ${label}`, async () => {
     assert(installed, "배치 경로 도달 실패로 확인 불가 — 위 항목을 먼저 보세요");
     assert(installed.includes(model), `설치되지 않음 — ollama pull ${model}`);
