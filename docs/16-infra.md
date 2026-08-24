@@ -148,3 +148,48 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 | 프로덕션 URL | https://lshobby.vercel.app |
 | 앱 계정 | leesongheon1209@gmail.com (1계정, 가입 차단) |
 | 비밀 보관 | `~/.lshobby/` (600 권한) + 리포 `.env`(gitignore) |
+| 로컬 LLM 엔드포인트 | `https://leesongheon.tailc7c4e0.ts.net:8443/ollama` (tailnet 전용, §16.11) |
+
+### 16.11 로컬 LLM(Ollama)과 tailnet 접근 — 2026-08-24 전환
+
+생각 세션(§8)의 하루 요약 배치와 철학 문답은 **로컬 Ollama**를 쓴다. 정책은 단순하다 — **생각 데이터는 어떤 외부 API로도 보내지 않는다.** 그래서 모델은 이 집 PC에서만 돌고, 클라우드 추론은 쓰지 않는다.
+
+문제는 이 PC가 집에만 있다는 점이었다. `philosophy.ts`의 엔드포인트는 `NEXT_PUBLIC_` 변수라 **브라우저에서** 호출되는데, 폰으로 앱을 열면 그 폰의 `localhost:11434`를 찾다가 실패했다. Tailscale로 이 PC를 tailnet에 노출해 해결했다.
+
+```mermaid
+flowchart LR
+    P["폰·PC 브라우저<br/>(tailnet 가입 기기)"]
+    V["lshobby.vercel.app<br/>(화면만)"]
+    subgraph home["집 PC"]
+        TS["tailscaled<br/>:8443 HTTPS"]
+        OL["ollama<br/>100.65.178.61:11434"]
+        CR["cron 00:30<br/>digest-thoughts.mjs"]
+    end
+    P -- 화면 --> V
+    P -- "생각 요약·철학 문답<br/>(tailnet 전용 HTTPS)" --> TS --> OL
+    CR -- 직결 --> OL
+```
+
+**설정 (systemd 드롭인 `ollama.service.d/override.conf` + `tailscale serve`)**
+
+| 항목 | 값 | 이유 |
+|---|---|---|
+| `OLLAMA_HOST` | `100.65.178.61:11434` | tailscale IP **전용** 바인딩. LAN(`172.31.0.0/16`)에 노출되지 않는다 |
+| `OLLAMA_ORIGINS` | `lshobby.vercel.app`, `…ts.net` | 브라우저 CORS. 페이지 **출처**이지 호출 대상이 아니다 |
+| `tailscale serve` | `:8443/ollama` → `100.65.178.61:11434` | tailnet 전용 HTTPS(Let's Encrypt). `funnel`이 아니므로 인터넷 노출 없음 |
+| 드롭인 `[Unit]` | `After=/Wants=tailscaled.service` | tailscale IP에 바인딩하므로 부팅 시 `tailscaled`가 먼저 떠야 한다 |
+| `.env` | `OLLAMA_URL`(배치), `NEXT_PUBLIC_OLLAMA_URL`(앱) | 없으면 코드 기본값 `localhost:11434`로 떨어져 **조용히 실패**한다 |
+
+**왜 이런 모양인가 — 세 가지 결정**
+
+1. **443이 아니라 8443.** kind 클러스터의 ingress가 `0.0.0.0:443`을 점유해 tailscale IPv4 주소까지 가져간다. 443으로 serve하면 요청이 Ollama가 아니라 ingress의 자체 서명 인증서로 간다.
+2. **`0.0.0.0`이 아니라 tailscale IP.** Ollama는 DNS 리바인딩 방어로 비-로컬 `Host` 헤더를 403으로 막는데(`OLLAMA_ORIGINS`는 CORS 전용이라 무관), 이를 푸는 흔한 방법이 `OLLAMA_HOST=0.0.0.0`이다. 그러나 이 PC는 방화벽이 꺼져 있어 그러면 같은 WiFi의 아무 기기나 **인증 없이** 모델 실행·삭제가 가능해진다. 바인딩을 tailscale IP로 좁히면 Host 검사도 함께 풀리면서 LAN 노출이 생기지 않는다.
+3. **Ollama에는 인증이 없다.** 보호막은 tailnet 경계 하나뿐이다. 다른 사람 기기를 tailnet에 초대하면 ACL로 이 노드를 막아야 하고, `funnel`로 바꾸면 안 된다.
+
+**점검**
+
+```bash
+npm run check:ollama     # 설정·도달성·모델·CORS·격리 12항목
+```
+
+배치 실패 시 첫 확인 대상이다. 특히 **격리 항목**은 `OLLAMA_HOST`가 `0.0.0.0`으로 되돌아가 LAN에 노출되는 회귀를 잡는다.

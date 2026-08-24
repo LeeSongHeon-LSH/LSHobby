@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:ollama": "node --env-file=.env scripts/check-ollama.mjs",
     "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {

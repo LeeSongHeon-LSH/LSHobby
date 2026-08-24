@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dayKey, groupByDay, mergeThoughts, topTopics, type Thought } from "./service";
+import { parseStreamLine } from "./philosophy";
 
 const at = (y: number, m: number, d: number, h: number) =>
   new Date(y, m - 1, d, h).toISOString();
@@ -44,6 +45,21 @@ describe("topTopics (주제 궤적 집계)", () => {
     ]);
     expect(topTopics(lists, 1)).toEqual([["습관", 3]]);
     expect(topTopics([])).toEqual([]);
+  });
+});
+
+describe("parseStreamLine (철학 문답 스트림)", () => {
+  it("본문 조각 추출, 빈 줄·본문 없는 줄·완성 마커는 빈 문자열", () => {
+    expect(
+      parseStreamLine('{"message":{"role":"assistant","content":"Kant argued"},"done":false}'),
+    ).toBe("Kant argued");
+    expect(parseStreamLine('{"done":true,"total_duration":123}')).toBe("");
+    expect(parseStreamLine("")).toBe("");
+    expect(parseStreamLine("잘린 조각 {")).toBe("");
+  });
+
+  it("error 응답은 예외로 던진다", () => {
+    expect(() => parseStreamLine('{"error":"model not found"}')).toThrow("model not found");
   });
 });
 

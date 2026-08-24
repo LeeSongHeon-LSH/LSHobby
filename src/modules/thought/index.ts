@@ -14,3 +14,8 @@ export {
   type Thought,
   type ThoughtDigest,
 } from "./service";
+export {
+  PHILOSOPHY_MODEL,
+  streamPhilosophyReply,
+  type PhilosophyMessage,
+} from "./philosophy";
