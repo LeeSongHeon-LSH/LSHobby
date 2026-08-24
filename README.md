@@ -20,4 +20,8 @@ DB 스키마 변경은 `supabase/migrations/`가 원본 — 절차는 [docs/16 �
 
 생각 세션의 하루 요약(집 PC cron 00:30)은 **로컬 Ollama**(`localhost:11434`)로만 돈다 — 생각 데이터는 외부 API로 보내지 않는다는 정책 때문이다. 구성은 [docs/16 §16.11](docs/16-infra.md).
 
+## 활동 미러
+
+홈 타임라인의 원천인 `activity_feed`는 매일 00:40 집 PC cron이 **Notion DB로 단방향 복제**한다 — 생각 도메인은 위 정책에 따라 제외. 구성과 운영은 [docs/16 §16.12](docs/16-infra.md).
+
 > 구 스페인어 학습 앱(FastAPI + SQLite)은 2026-08-15 컷오버로 종료·삭제됨 (git 히스토리에 보존, `spanish.db` 백업은 홈 디렉터리).
