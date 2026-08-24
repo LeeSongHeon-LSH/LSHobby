@@ -5,7 +5,9 @@ export {
   dayKey,
   groupByDay,
   listThoughts,
+  mergeThoughts,
   recentDigests,
+  searchThoughts,
   type Thought,
   type ThoughtDigest,
 } from "./service";

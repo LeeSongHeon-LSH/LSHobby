@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayKey, groupByDay, type Thought } from "./service";
+import { dayKey, groupByDay, mergeThoughts, type Thought } from "./service";
 
 const at = (y: number, m: number, d: number, h: number) =>
   new Date(y, m - 1, d, h).toISOString();
@@ -31,5 +31,14 @@ describe("thought 날짜 그룹핑", () => {
 
   it("groupByDay: 빈 목록은 빈 배열", () => {
     expect(groupByDay([])).toEqual([]);
+  });
+});
+
+describe("mergeThoughts (검색 결과 병합)", () => {
+  it("id 중복 제거 + 최신순 정렬 + limit 적용", () => {
+    const a = [t(3, at(2026, 8, 21, 22)), t(1, at(2026, 8, 20, 9))];
+    const b = [t(2, at(2026, 8, 21, 9)), t(1, at(2026, 8, 20, 9))];
+    expect(mergeThoughts(a, b, 80).map((x) => x.id)).toEqual([3, 2, 1]);
+    expect(mergeThoughts(a, b, 2).map((x) => x.id)).toEqual([3, 2]);
   });
 });

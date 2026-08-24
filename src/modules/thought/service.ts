@@ -51,6 +51,37 @@ export async function countThoughts(): Promise<number> {
   return count ?? 0;
 }
 
+/** 최신순 병합 + id 중복 제거 (내용 검색·주제 검색 결과 합치기) */
+export function mergeThoughts(a: Thought[], b: Thought[], limit: number): Thought[] {
+  const seen = new Set<number>();
+  return [...a, ...b]
+    .filter((t) => (seen.has(t.id) ? false : (seen.add(t.id), true)))
+    .sort((x, y) => (x.created_at < y.created_at ? 1 : -1))
+    .slice(0, limit);
+}
+
+/** 검색 — 내용 부분일치 또는 주제 키워드 정확 일치 (최신순) */
+export async function searchThoughts(query: string, limit = 80): Promise<Thought[]> {
+  const pattern = `%${query.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const [byContent, byTopic] = await Promise.all([
+    supabase
+      .from("thought")
+      .select("*")
+      .ilike("content", pattern)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("thought")
+      .select("*")
+      .contains("topics", [query])
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  ]);
+  if (byContent.error) throw byContent.error;
+  if (byTopic.error) throw byTopic.error;
+  return mergeThoughts(byContent.data as Thought[], byTopic.data as Thought[], limit);
+}
+
 export async function recentDigests(limit = 30): Promise<ThoughtDigest[]> {
   const { data, error } = await supabase
     .from("thought_digest")

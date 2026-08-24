@@ -8,6 +8,7 @@ import {
   groupByDay,
   listThoughts,
   recentDigests,
+  searchThoughts,
   type Thought,
   type ThoughtDigest,
 } from "@/modules/thought";
@@ -30,6 +31,29 @@ const timeOf = (iso: string): string => {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
+// 메모 카드 — 스트림·검색 결과 공용. 주제 칩 클릭 시 해당 주제로 검색
+function ThoughtCard({ t, onTopic }: { t: Thought; onTopic: (topic: string) => void }) {
+  return (
+    <li className="rounded-md border border-line bg-card p-3.5">
+      <p className="font-mono text-[11px] text-faint">{timeOf(t.created_at)}</p>
+      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{t.content}</p>
+      {t.topics && t.topics.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {t.topics.map((topic) => (
+            <button
+              key={topic}
+              onClick={() => onTopic(topic)}
+              className="rounded-full bg-thought-soft px-2 py-0.5 font-mono text-[10px] text-thought"
+            >
+              {topic}
+            </button>
+          ))}
+        </div>
+      )}
+    </li>
+  );
+}
+
 // 생각 세션 — 하루 생각 정리 스트림 (append-only) + 로컬 워커의 하루 요약
 function ThoughtStream() {
   const [input, setInput] = useState("");
@@ -37,6 +61,9 @@ function ThoughtStream() {
   const [digests, setDigests] = useState<Map<string, ThoughtDigest>>(new Map());
   const [hasMore, setHasMore] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState("");
+  // 검색 결과 — 어떤 질의의 결과인지 함께 저장 (질의가 바뀌면 무시)
+  const [results, setResults] = useState<{ q: string; list: Thought[] } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -50,6 +77,20 @@ function ThoughtStream() {
       }
     })();
   }, []);
+
+  // 검색 — 입력 후 300ms 디바운스, 비우면 스트림으로 복귀
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) return;
+    const timer = setTimeout(async () => {
+      try {
+        setResults({ q, list: await searchThoughts(q) });
+      } catch {
+        setResults({ q, list: [] });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const submit = async () => {
     const content = input.trim();
@@ -112,7 +153,37 @@ function ThoughtStream() {
         </div>
       </div>
 
-      {thoughts === null ? (
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="내용·주제 검색"
+        className="mt-3 w-full rounded-md border border-line bg-card px-3.5 py-2.5 text-sm"
+      />
+
+      {query.trim() ? (
+        results?.q !== query.trim() ? (
+          <p className="mt-14 text-center text-sm text-faint">검색 중…</p>
+        ) : results.list.length === 0 ? (
+          <p className="mt-14 text-center text-sm text-faint">검색 결과가 없어요</p>
+        ) : (
+          <div className="mt-7 space-y-7">
+            {groupByDay(results.list).map((g) => (
+              <section key={g.day}>
+                <h2 className="mb-2.5 flex items-baseline gap-2">
+                  <span className="font-display font-bold">{dayLabel(g.day)}</span>
+                  <span className="font-mono text-[11px] text-faint">{g.items.length}개</span>
+                </h2>
+                <ul className="space-y-2">
+                  {g.items.map((t) => (
+                    <ThoughtCard key={t.id} t={t} onTopic={setQuery} />
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        )
+      ) : thoughts === null ? (
         <p className="mt-14 text-center text-sm text-faint">불러오는 중…</p>
       ) : thoughts.length === 0 ? (
         <div className="mt-14 text-center">
@@ -139,12 +210,13 @@ function ThoughtStream() {
                     {digest.topics.length > 0 && (
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {digest.topics.map((topic) => (
-                          <span
+                          <button
                             key={topic}
+                            onClick={() => setQuery(topic)}
                             className="rounded-full border border-thought/40 bg-card px-2.5 py-0.5 font-mono text-[11px] text-thought"
                           >
                             {topic}
-                          </span>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -152,22 +224,7 @@ function ThoughtStream() {
                 )}
                 <ul className="space-y-2">
                   {g.items.map((t) => (
-                    <li key={t.id} className="rounded-md border border-line bg-card p-3.5">
-                      <p className="font-mono text-[11px] text-faint">{timeOf(t.created_at)}</p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{t.content}</p>
-                      {t.topics && t.topics.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {t.topics.map((topic) => (
-                            <span
-                              key={topic}
-                              className="rounded-full bg-thought-soft px-2 py-0.5 font-mono text-[10px] text-thought"
-                            >
-                              {topic}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </li>
+                    <ThoughtCard key={t.id} t={t} onTopic={setQuery} />
                   ))}
                 </ul>
               </section>
