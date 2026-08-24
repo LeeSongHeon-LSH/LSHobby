@@ -146,9 +146,6 @@ export default function PhilosophyAskPage() {
           <p className="text-sm text-faint">
             스탠퍼드 철학 백과사전으로 배운 교수에게 물어보세요
           </p>
-          <p className="mt-1 font-mono text-[11px] text-faint">
-            한국어로 물으면 영어로 통역해 묻고, 답변을 한국어로 옮겨드려요
-          </p>
         </div>
       ) : (
         <ul className="space-y-3">
