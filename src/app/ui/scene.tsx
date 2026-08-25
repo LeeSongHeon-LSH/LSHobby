@@ -1,7 +1,6 @@
 import {
   PixelAurora,
   PixelBerg,
-  PixelBookshelf,
   PixelChick,
   PixelCloud,
   PixelMoon,
@@ -107,8 +106,8 @@ export function IceScene() {
 }
 
 /**
- * 이글루 서재(책, #66·#67) — 돔 전체가 얼음 블록 벽: 위는 옅은 타일, 아래는 진한 띠.
- * 책장 곁에서 읽는 펭귄들 + 서서 읽어주는 펭귄과 듣는 아기들.
+ * 이글루 서재(책, #66·#67·#68) — 옅은 얼음 돔 아래, 하단 20vh를 가득 채운 책장 벽.
+ * 책장 벽 앞에서 읽는 펭귄들 + 서서 읽어주는 펭귄과 듣는 아기들.
  */
 export function IglooScene() {
   return (
@@ -116,17 +115,14 @@ export function IglooScene() {
       <div className="absolute left-[6%] top-[22%] hidden md:block">
         <PixelPortWindow size={60} />
       </div>
-      <div className="igloo-wall" />
-      <div className="absolute bottom-[10px] right-[5%]">
-        <PixelBookshelf size={120} />
-      </div>
-      <div className="absolute bottom-[10px] right-[16%]">
+      <div className="shelf-wall" />
+      <div className="absolute bottom-[10px] right-[7%]">
         <PixelPenguinReading size={36} book="#c05e7c" />
       </div>
-      <div className="absolute bottom-[10px] right-[27%]">
+      <div className="absolute bottom-[10px] right-[19%]">
         <PixelPenguinReading size={40} />
       </div>
-      <div className="absolute bottom-[10px] right-[38%]">
+      <div className="absolute bottom-[10px] right-[31%]">
         <PixelPenguinReading size={34} book="#d9821f" flip />
       </div>
       <div className="absolute bottom-3 left-[24%]">
@@ -146,67 +142,53 @@ export function IglooScene() {
   );
 }
 
-// 밤하늘 잔별 — 띠의 어두운 영역에만 흩어 둔다
+// 밤하늘 잔별 — 상공에 넓게, SSR 일관성을 위해 고정 배치
 const NIGHT_DOTS = [
-  { left: "6%", top: 78, delay: "-0.4s" },
-  { left: "13%", top: 108, delay: "-2.1s" },
-  { left: "22%", top: 88, delay: "-1.2s" },
-  { left: "31%", top: 118, delay: "-2.9s" },
-  { left: "40%", top: 82, delay: "-0.8s" },
-  { left: "48%", top: 112, delay: "-1.8s" },
-  { left: "57%", top: 90, delay: "-2.5s" },
-  { left: "66%", top: 122, delay: "-0.2s" },
-  { left: "74%", top: 84, delay: "-1.5s" },
-  { left: "82%", top: 114, delay: "-2.2s" },
-  { left: "91%", top: 94, delay: "-3.1s" },
-  { left: "96%", top: 124, delay: "-0.9s" },
-];
-
-// 해질녘 하늘에 먼저 뜬 별 — 반짝임 없이 은은하게
-const DUSK_DOTS = [
-  { left: "16%", top: "44%" },
-  { left: "52%", top: "50%" },
-  { left: "83%", top: "42%" },
+  { left: "4%", top: "12%", delay: "-0.4s" },
+  { left: "11%", top: "34%", delay: "-2.1s" },
+  { left: "18%", top: "7%", delay: "-1.2s" },
+  { left: "26%", top: "22%", delay: "-2.9s" },
+  { left: "33%", top: "44%", delay: "-0.8s" },
+  { left: "41%", top: "10%", delay: "-1.8s" },
+  { left: "49%", top: "30%", delay: "-2.5s" },
+  { left: "56%", top: "16%", delay: "-0.2s" },
+  { left: "63%", top: "40%", delay: "-1.5s" },
+  { left: "71%", top: "8%", delay: "-2.2s" },
+  { left: "78%", top: "26%", delay: "-3.1s" },
+  { left: "85%", top: "47%", delay: "-0.9s" },
+  { left: "92%", top: "14%", delay: "-1.7s" },
+  { left: "96%", top: "36%", delay: "-2.7s" },
 ];
 
 /**
- * 백야의 밤(생각, #66·#67) — 화면 전체가 해질녘 라벤더에서 밤으로 저물고,
- * 지평선 띠에 오로라·초승달·잔별, 눈 바닥에서 펭귄들이 하늘을 올려다본다.
+ * 백야의 밤(생각, #66·#67·#68) — 하늘 전체가 밤: 위는 짙은 남보라, 지평선으로 밝아진다.
+ * 상공에 잔별·초승달·오로라, 눈 바닥에서 펭귄들이 하늘을 올려다본다.
  */
 export function NightScene() {
   return (
     <div aria-hidden="true" className="sky-night pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {DUSK_DOTS.map((s) => (
+      {NIGHT_DOTS.map((s) => (
         <span
           key={s.left}
-          className="absolute"
-          style={{ left: s.left, top: s.top, width: 2, height: 2, background: "#7a74a8", opacity: 0.55 }}
+          className="night-star"
+          style={{ left: s.left, top: s.top, width: 2, height: 2, background: "#f2edd8", animationDelay: s.delay }}
         />
       ))}
-      <div className="night-band">
-        <span className="aurora" style={{ left: "12%", top: 84 }}>
-          <PixelAurora size={230} />
-        </span>
-        <span className="aurora" style={{ right: "20%", top: 96, animationDelay: "-5s" }}>
-          <PixelAurora size={150} flip />
-        </span>
-        {NIGHT_DOTS.map((s) => (
-          <span
-            key={s.left}
-            className="night-star"
-            style={{ left: s.left, top: s.top, width: 2, height: 2, background: "#f2edd8", animationDelay: s.delay }}
-          />
-        ))}
-        <span className="night-star" style={{ left: "38%", top: 96, animationDelay: "-1s" }}>
-          <PixelStar size={10} />
-        </span>
-        <span className="night-star" style={{ right: "8%", top: 120, animationDelay: "-2.6s" }}>
-          <PixelStar size={8} />
-        </span>
-        <span className="absolute right-[13%] top-[76px]">
-          <PixelMoon size={26} />
-        </span>
-      </div>
+      <span className="night-star" style={{ left: "38%", top: "20%", animationDelay: "-1s" }}>
+        <PixelStar size={10} />
+      </span>
+      <span className="night-star" style={{ right: "8%", top: "42%", animationDelay: "-2.6s" }}>
+        <PixelStar size={8} />
+      </span>
+      <span className="absolute right-[20%] top-[9%]">
+        <PixelMoon size={30} />
+      </span>
+      <span className="aurora" style={{ left: "8%", top: "26%" }}>
+        <PixelAurora size={240} />
+      </span>
+      <span className="aurora" style={{ right: "8%", top: "58%", animationDelay: "-5s" }}>
+        <PixelAurora size={160} flip />
+      </span>
       <div className="night-floor" />
       <div className="absolute bottom-[22px] left-[9%]">
         <PixelPenguinGaze size={24} />

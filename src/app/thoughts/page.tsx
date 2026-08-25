@@ -150,8 +150,8 @@ function ThoughtStream() {
       <NightScene />
       <header className="mb-6 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-thought">Thought</p>
-          <h1 className="font-display text-2xl font-bold">생각</h1>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-night-faint">Thought</p>
+          <h1 className="font-display text-2xl font-bold text-night-ink">생각</h1>
         </div>
         <HomeButton accent="thought" />
       </header>
@@ -190,7 +190,7 @@ function ThoughtStream() {
         <div className="mt-5 space-y-3">
           {trajectory.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-mono text-[11px] text-faint">최근 30일 주제</span>
+              <span className="font-mono text-[11px] text-night-faint">최근 30일 주제</span>
               {trajectory.map(([topic, n]) => (
                 <button
                   key={topic}
@@ -223,16 +223,16 @@ function ThoughtStream() {
 
       {query.trim() ? (
         results?.q !== query.trim() ? (
-          <p className="mt-14 text-center text-sm text-faint">검색 중…</p>
+          <p className="mt-14 text-center text-sm text-night-faint">검색 중…</p>
         ) : results.list.length === 0 ? (
-          <p className="mt-14 text-center text-sm text-faint">검색 결과가 없어요</p>
+          <p className="mt-14 text-center text-sm text-night-faint">검색 결과가 없어요</p>
         ) : (
           <div className="mt-7 space-y-7">
             {groupByDay(results.list).map((g) => (
               <section key={g.day}>
                 <h2 className="mb-2.5 flex items-baseline gap-2">
-                  <span className="font-display font-bold">{dayLabel(g.day)}</span>
-                  <span className="font-mono text-[11px] text-faint">{g.items.length}개</span>
+                  <span className="font-display font-bold text-night-ink">{dayLabel(g.day)}</span>
+                  <span className="font-mono text-[11px] text-night-faint">{g.items.length}개</span>
                 </h2>
                 <ul className="space-y-2">
                   {g.items.map((t) => (
@@ -244,11 +244,11 @@ function ThoughtStream() {
           </div>
         )
       ) : thoughts === null ? (
-        <p className="mt-14 text-center text-sm text-faint">불러오는 중…</p>
+        <p className="mt-14 text-center text-sm text-night-faint">불러오는 중…</p>
       ) : thoughts.length === 0 ? (
         <div className="mt-14 text-center">
           <div className="mb-3 flex justify-center"><PixelPenguinThink size={48} /></div>
-          <p className="text-sm text-faint">첫 생각을 남겨보세요</p>
+          <p className="text-sm text-night-faint">첫 생각을 남겨보세요</p>
         </div>
       ) : (
         <div className="mt-7 space-y-7">
@@ -257,8 +257,8 @@ function ThoughtStream() {
             return (
               <section key={g.day}>
                 <h2 className="mb-2.5 flex items-baseline gap-2">
-                  <span className="font-display font-bold">{dayLabel(g.day)}</span>
-                  <span className="font-mono text-[11px] text-faint">{g.items.length}개</span>
+                  <span className="font-display font-bold text-night-ink">{dayLabel(g.day)}</span>
+                  <span className="font-mono text-[11px] text-night-faint">{g.items.length}개</span>
                 </h2>
                 {digest && (
                   <div className="relative mb-2.5 overflow-hidden rounded-md border border-thought/40 bg-thought-soft p-3.5">
@@ -294,7 +294,7 @@ function ThoughtStream() {
             <button
               onClick={loadMore}
               disabled={busy}
-              className="w-full rounded-md border border-line py-3 text-sm text-faint disabled:opacity-40"
+              className="w-full rounded-md border border-night-faint/40 py-3 text-sm text-night-faint disabled:opacity-40"
             >
               더 보기
             </button>

@@ -316,51 +316,6 @@ export const PixelPenguinGaze = ({ size = 22, flip = false }: { size?: number; f
   />
 );
 
-// 이글루 서재 책장 — 나무 프레임 2단, 책등은 빙하 파랑 계열 + 주황·로즈 포인트
-const BOOKSHELF_GRID = [
-  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
-  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
-  "GG111.......666.........GG",
-  "GG111....22.666.........GG",
-  "GG111.44422.666.........GG",
-  "GG111.44422.66633.......GG",
-  "GG111.44422.66633.......GG",
-  "GG111.44422.66633..55555GG",
-  "GG111.44422.66633.111111GG",
-  "GG111.44422.66633.222222GG",
-  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
-  "HHHHHHHHHHHHHHHHHHHHHHHHHH",
-  "GG...222....44..........GG",
-  "GG55.222....44....666...GG",
-  "GG55.222111.44....666...GG",
-  "GG55.222111.44333.666...GG",
-  "GG55.222111.44333.666...GG",
-  "GG55.222111.44333.666...GG",
-  "GG55.222111.44333.666...GG",
-  "GG55.222111.44333.666...GG",
-  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
-  "HHHHHHHHHHHHHHHHHHHHHHHHHH",
-];
-
-export const PixelBookshelf = ({ size = 120 }: { size?: number }) => (
-  <PixelArt
-    grid={BOOKSHELF_GRID}
-    palette={{
-      G: "#8b6f47",
-      H: "#6f5738",
-      "1": "#4d7fa3",
-      "2": "#39536b",
-      "3": "#6b93b8",
-      "4": "#d9821f",
-      "5": "#c05e7c",
-      "6": "#3d4d6b",
-    }}
-    size={size}
-    cells={26}
-    cellsY={22}
-  />
-);
-
 // 이글루 둥근 창 — 얼음 프레임 너머로 설원과 먼 빙하가 보인다
 const PORT_WINDOW_GRID = [
   "....RRRRRRRR....",
