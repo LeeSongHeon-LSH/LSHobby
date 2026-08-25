@@ -396,14 +396,13 @@ const PENGUIN_SLIDE_GRID = [
   "..................",
 ];
 
-export const PixelPenguinSlide = ({ size = 44, flip = false }: { size?: number; flip?: boolean }) => (
+export const PixelPenguinSlide = ({ size = 44 }: { size?: number }) => (
   <PixelArt
     grid={PENGUIN_SLIDE_GRID}
     palette={{ K: "#22262b", C: "#e2801f", W: "#fafbfc" }}
     size={size}
     cells={18}
     cellsY={8}
-    flip={flip}
   />
 );
 

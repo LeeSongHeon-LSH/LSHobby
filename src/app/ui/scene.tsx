@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   PixelAurora,
   PixelBerg,
@@ -57,7 +58,7 @@ function Snowfall() {
  * 옅은 얼음빛 하늘 아래 빙하 산 → 눈드리프트 지면 → 펭귄 무리, 성근 눈내림.
  * -z-10 고정 레이어라 페이지 콘텐츠는 그대로 위에 얹힌다.
  */
-export function IceScene() {
+export const IceScene = memo(function IceScene() {
   return (
     <div aria-hidden="true" className="sky-ice pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <Snowfall />
@@ -100,13 +101,13 @@ export function IceScene() {
       </div>
     </div>
   );
-}
+});
 
 /**
  * 이글루 서재(책, #66·#67·#68) — 옅은 얼음 돔 아래, 하단 20vh를 가득 채운 책장 벽.
  * 책장 벽 앞에서 읽는 펭귄들 + 서서 읽어주는 펭귄과 듣는 아기들.
  */
-export function IglooScene() {
+export const IglooScene = memo(function IglooScene() {
   return (
     <div aria-hidden="true" className="igloo-sky pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <div className="absolute left-[6%] top-[22%] hidden md:block">
@@ -134,7 +135,7 @@ export function IglooScene() {
       </div>
     </div>
   );
-}
+});
 
 // 밤하늘 잔별 — 상공에 넓게, SSR 일관성을 위해 고정 배치
 const NIGHT_DOTS = [
@@ -158,7 +159,7 @@ const NIGHT_DOTS = [
  * 백야의 밤(생각, #66·#67·#68) — 하늘 전체가 밤: 위는 짙은 남보라, 지평선으로 밝아진다.
  * 상공에 잔별·초승달·오로라, 눈 바닥에서 펭귄들이 하늘을 올려다본다.
  */
-export function NightScene() {
+export const NightScene = memo(function NightScene() {
   return (
     <div aria-hidden="true" className="sky-night pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       {NIGHT_DOTS.map((s) => (
@@ -207,18 +208,18 @@ export function NightScene() {
       </div>
     </div>
   );
-}
+});
 
 /**
  * 수다 빙하(언어, #66·#67) — 낮은 해가 걸린 따뜻한 오후, 펭귄들이
  * 한국어·영어·스페인어(학습 언어)로 인사를 주고받는다.
  * 모바일은 탭바(53px) 위에 지면이 얹히도록 바닥을 올린다.
  */
-export function ChatterScene() {
+export const ChatterScene = memo(function ChatterScene() {
   return (
     <div
       aria-hidden="true"
-      className="sky-chat pointer-events-none fixed inset-x-0 top-0 bottom-[53px] -z-10 overflow-hidden md:bottom-0"
+      className="sky-chat pointer-events-none fixed inset-x-0 top-0 bottom-[var(--tab-h)] -z-10 overflow-hidden md:bottom-0"
     >
       <Snowfall />
       <div className="absolute right-[8%] top-[9%]">
@@ -266,4 +267,4 @@ export function ChatterScene() {
       </div>
     </div>
   );
-}
+});

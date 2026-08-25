@@ -148,7 +148,7 @@ function ThoughtStream() {
   return (
     <main className="mx-auto w-full max-w-md flex-1 p-4 pb-36 md:max-w-2xl">
       <NightScene />
-      <header className="mb-6 flex items-start justify-between gap-3">
+      <header className="focus-night mb-6 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-night-faint">Thought</p>
           <h1 className="font-display text-2xl font-bold text-night-ink">생각</h1>
@@ -183,7 +183,7 @@ function ThoughtStream() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="내용·주제 검색"
-        className="mt-3 w-full rounded-md border border-line bg-card px-3.5 py-2.5 text-sm"
+        className="focus-night mt-3 w-full rounded-md border border-line bg-card px-3.5 py-2.5 text-sm"
       />
 
       {!query.trim() && (trajectory.length > 0 || echoes.length > 0) && (

@@ -21,6 +21,7 @@
   --color-night-dot: #f2edd8; /* 잔별 */
   --color-star: #3d4d6b; /* 회독 별점 */
   --color-wood: #8b6f47; /* 책장 선반 */
+  --color-wood-dark: #6f5738; /* 선반 그림자면 */
   --color-ok: #2e7d46;
   --color-err: #c23b3b;
   --font-display: var(--font-gowun), "Gowun Batang", serif;
@@ -38,8 +39,11 @@ body {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
-/* 밤하늘 위에 바로 놓인 컨트롤 — 먹색 링은 어두운 하늘에 묻힌다 */
-.focus-night:focus-visible {
+/* 밤하늘 위에 바로 놓인 컨트롤 — 먹색 링은 어두운 하늘에 묻힌다.
+   링은 outline-offset만큼 요소 바깥(=하늘)에 그려지므로 컨트롤 자체가 밝아도 필요하다.
+   자손 선택자는 HomeButton처럼 className을 못 받는 컴포넌트를 감쌀 때 쓴다 */
+.focus-night:focus-visible,
+.focus-night :focus-visible {
   outline-color: var(--color-night-ink);
 }
 
@@ -47,7 +51,8 @@ body {
 :root {
   --shelf-h: max(20dvh, 132px);
   --shelf-lip: 6px;
-  --shelf-tile: 96px; /* 48×28 타일의 렌더 폭 (높이는 7/12) */
+  --shelf-tile: 96px; /* 48×28 타일의 렌더 폭 — 반드시 48의 정수배(도트가 정수 픽셀에 떨어지게) */
+  --tab-h: 53px; /* 모바일 탭바 — TabBar와 ChatterScene 바닥이 같은 값을 쓴다 */
 }
 
 /* 홈 서랍 스태거 등장 — 1회성, 감속 곡선 */
@@ -93,7 +98,7 @@ body {
 }
 @keyframes snow-fall {
   to {
-    transform: translateY(105dvh);
+    transform: translateY(110vh);
   }
 }
 /* 세션별 하늘 (#67) — 장면 컨테이너 전체를 덮는 배경 */
@@ -110,7 +115,8 @@ body {
 /* 이글루 위쪽 벽 — 아래 띠보다 옅은 같은 블록 타일 (한 돔 안) */
 .igloo-sky {
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="24"><rect width="48" height="24" fill="%23e6edf2"/><rect x="1" y="1" width="22" height="10" fill="%23f0f4f8"/><rect x="25" y="1" width="22" height="10" fill="%23f0f4f8"/><rect x="0" y="13" width="11" height="10" fill="%23f0f4f8"/><rect x="13" y="13" width="22" height="10" fill="%23f0f4f8"/><rect x="37" y="13" width="11" height="10" fill="%23f0f4f8"/></svg>')
-    bottom left / 48px 24px repeat;
+    bottom left / 96px 48px repeat;
+  image-rendering: pixelated;
 }
 
 /* 이글루 서재(책) — 하단 20vh를 채우는 책장 벽(나무 선반 + 책등 타일) + 눈 다진 바닥 */
@@ -136,7 +142,7 @@ body {
     180deg,
     var(--color-wood) 0,
     var(--color-wood) calc(var(--shelf-lip) - 2px),
-    #6f5738 calc(var(--shelf-lip) - 2px)
+    var(--color-wood-dark) calc(var(--shelf-lip) - 2px)
   );
 }
 .igloo-floor {

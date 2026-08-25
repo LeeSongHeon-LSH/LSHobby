@@ -18,7 +18,7 @@ export function TabBar({ tabs, accent }: { tabs: Tab[]; accent: keyof typeof ACC
   const pathname = usePathname();
   const a = ACCENT[accent];
   return (
-    <nav className="fixed inset-x-0 bottom-0 border-t border-line bg-card md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 h-[var(--tab-h)] border-t border-line bg-card md:hidden">
       <div className="mx-auto flex max-w-md">
         {tabs.map((t) => {
           const active = t.exact ? pathname === t.href : pathname.startsWith(t.href);

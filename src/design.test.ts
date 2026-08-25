@@ -40,9 +40,11 @@ describe("도트 스프라이트 격자 (PixelArt)", () => {
     return { gridName, cells, cellsY: cellsYRaw ? Number(cellsYRaw) : cells, keys, rows };
   });
 
-  it("파일 안의 스프라이트를 모두 읽어냈다", () => {
-    expect(sprites.length).toBe((pixelSrc.match(/<PixelArt\b/g) ?? []).length);
-    expect(sprites.length).toBeGreaterThan(15);
+  // 파서가 스프라이트를 건너뛰면 그 스프라이트의 검사가 통째로 사라진다 —
+  // 내보낸 컴포넌트 수와 대조해 조용히 빠지는 일을 막는다
+  it("내보낸 스프라이트를 하나도 빠뜨리지 않고 읽어냈다", () => {
+    const exported = [...pixelSrc.matchAll(/export const (Pixel\w+)/g)].map((m) => m[1]);
+    expect(sprites.length).toBe(exported.length);
   });
 
   it.each(sprites.map((s) => [s.gridName, s] as const))("%s — 행 수가 cellsY와 같다", (_n, s) => {
@@ -60,33 +62,41 @@ describe("도트 스프라이트 격자 (PixelArt)", () => {
 });
 
 describe("모션 축소 (prefers-reduced-motion)", () => {
-  // @keyframes와 축소 블록을 걷어낸 나머지에서 animation을 선언한 규칙을 모은다
-  const stripped = (() => {
-    let out = css.replace(/\/\*[\s\S]*?\*\//g, "");
-    for (const at of ["@keyframes", "@media"]) {
-      let i: number;
-      while ((i = out.indexOf(at)) >= 0) out = out.slice(0, i) + out.slice(blockAt(out, i).end);
-    }
-    return out;
-  })();
+  // 주석은 먼저 걷어낸다 — 주석에 들어간 셀렉터가 검사를 통과시켜서는 안 된다
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const selectorsOf = (src: string, bodyMatches: (body: string) => boolean) =>
+    [...src.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter((m) => bodyMatches(m[2]))
+      .flatMap((m) => m[1].split(",").map((sel) => sel.trim().replace(/\s+/g, " ")))
+      .filter(Boolean);
 
-  const animated = [...stripped.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-    .filter((m) => /animation(-name)?\s*:/.test(m[2]))
-    .flatMap((m) => m[1].split(",").map((sel) => sel.trim().replace(/\s+/g, " ")))
-    .filter(Boolean);
+  // @keyframes·축소 블록을 걷어낸 나머지에서 애니메이션을 선언한 규칙
+  const animated = selectorsOf(
+    (() => {
+      let out = bare;
+      for (const at of ["@keyframes", "@media"]) {
+        let i: number;
+        while ((i = out.indexOf(at)) >= 0) out = out.slice(0, i) + out.slice(blockAt(out, i).end);
+      }
+      return out;
+    })(),
+    (body) => /animation(-name)?\s*:/.test(body),
+  );
 
-  const reduced = (() => {
-    const i = css.indexOf("@media (prefers-reduced-motion: reduce)");
-    expect(i).toBeGreaterThan(-1);
-    return blockAt(css, i).body;
-  })();
+  // 축소 블록에서 "실제로 모션을 끄는" 규칙만 인정한다 — 이름만 남고 선언이 바뀌면 통과시키지 않는다
+  const disabled = new Set(
+    selectorsOf(blockAt(bare, bare.indexOf("@media (prefers-reduced-motion: reduce)")).body, (body) =>
+      /(animation(-name)?|display)\s*:\s*none/.test(body),
+    ),
+  );
 
-  it("애니메이션을 선언한 규칙을 찾았다", () => {
+  it("애니메이션을 선언한 규칙과 끄는 규칙을 모두 찾았다", () => {
     expect(animated.length).toBeGreaterThan(5);
+    expect(disabled.size).toBeGreaterThan(5);
   });
 
-  it.each(animated.map((s) => [s]))("%s 가 모션 축소 블록에 있다", (sel) => {
-    expect(reduced).toContain(sel);
+  it.each(animated.map((s) => [s]))("%s 가 모션 축소 시 꺼진다", (sel) => {
+    expect([...disabled]).toContain(sel);
   });
 });
 
@@ -105,21 +115,22 @@ describe("밤하늘 위 글자 대비 (생각 세션)", () => {
 
   const token = (name: string) =>
     new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6})`, "i").exec(css)![1];
-  const skyStops = (() => {
-    const rule = /\.sky-night\s*\{([^}]*)\}/.exec(css)![1];
-    return [...rule.matchAll(/#[0-9a-f]{6}/gi)].map((m) => m[0]);
-  })();
+  const skyRule = /\.sky-night\s*\{([^}]*)\}/.exec(css)![1];
+  const skyStops = [...skyRule.matchAll(/#[0-9a-f]{6}\b/gi)].map((m) => m[0]);
 
-  it("하늘 그라데이션 색을 모두 읽었다", () => {
-    expect(skyStops.length).toBeGreaterThanOrEqual(3);
-  });
-
-  // 하늘이 지평선으로 밝아지므로 가장 밝은 정지점에서도 AA(4.5:1)를 넘어야 한다
+  // 하늘이 지평선으로 밝아지므로 가장 밝은 정지점에서도 AA(4.5:1)를 넘어야 한다.
+  // 정지점을 세는 가드를 같은 it 안에 둔다 — 따로 두면 파서가 아무것도 못 읽어도 대비 검사가 초록으로 뜬다
   for (const name of ["night-ink", "night-faint"]) {
     it(`${name} 가 모든 하늘 정지점에서 AA를 넘는다`, () => {
+      // 6자리 hex만 읽으므로 다른 표기가 섞이면 조용히 지나친다 → 여기서 먼저 크게 실패시킨다
+      const unreadable = skyRule
+        .replace(/#[0-9a-f]{6}\b/gi, "")
+        .match(/\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color-mix)\(|#[0-9a-f]{3,4}\b|\b(white|black|currentcolor)\b/i);
+      expect(unreadable).toBeNull();
+      expect(skyStops.length).toBeGreaterThanOrEqual(3);
+
       const fg = token(name);
-      const failing = skyStops.filter((bg) => ratio(fg, bg) < 4.5);
-      expect(failing).toEqual([]);
+      expect(skyStops.filter((bg) => ratio(fg, bg) < 4.5)).toEqual([]);
     });
   }
 });

@@ -19,6 +19,80 @@ import {
 } from "../ui/pixel";
 import { IceScene } from "../ui/scene";
 
+// #69 — 서랍 = 각 세션 장면을 들여다보는 창: 배경은 세션 하늘·시그니처, 내용은 흰 테두리 + 소프트색 판.
+// 모듈 스코프에 둔다 — 컴포넌트 안이면 설정 시트 입력 한 글자마다 장면 JSX 수백 개가 새로 만들어진다
+const DRAWERS = [
+  {
+    href: "/library",
+    name: "책",
+    icon: <PixelPenguinBook size={48} />,
+    tab: "bg-lib",
+    card: "border-lib/40 igloo-sky",
+    plate: "bg-lib-soft/95",
+    scene: (
+      <span
+        className="shelf-wall"
+        style={{ "--shelf-h": "28px", "--shelf-tile": "48px", "--shelf-lip": "3px" } as CSSProperties}
+      />
+    ),
+  },
+  {
+    href: "/language",
+    name: "언어",
+    icon: <PixelPenguinBubble size={48} />,
+    tab: "bg-lang",
+    card: "border-lang/40 sky-chat",
+    plate: "bg-lang-soft/95",
+    scene: (
+      <>
+        <span className="absolute right-3 top-3"><PixelSun size={22} /></span>
+        <span className="igloo-floor" />
+        <span className="absolute bottom-2.5 left-3 opacity-70"><PixelTracks size={56} /></span>
+      </>
+    ),
+  },
+  {
+    href: "/cv/edit",
+    name: "CV",
+    icon: <PixelMascot size={48} />,
+    tab: "bg-cv",
+    card: "border-cv/40 sky-ice",
+    plate: "bg-cv-soft/95",
+    scene: (
+      <>
+        <span className="absolute bottom-2 left-2"><PixelBerg size={64} /></span>
+        <span className="igloo-floor" />
+      </>
+    ),
+  },
+  {
+    href: "/thoughts",
+    name: "생각",
+    icon: <PixelPenguinThink size={48} />,
+    tab: "bg-thought",
+    card: "border-thought/40 sky-night",
+    plate: "bg-thought-soft/95",
+    scene: (
+      <>
+        {[
+          { left: "12%", top: "22%" },
+          { left: "30%", top: "62%" },
+          { left: "58%", top: "14%" },
+          { left: "82%", top: "55%" },
+          { left: "92%", top: "26%" },
+        ].map((s) => (
+          <span
+            key={s.left}
+            className="absolute h-0.5 w-0.5 bg-night-dot"
+            style={{ left: s.left, top: s.top }}
+          />
+        ))}
+        <span className="absolute right-3 top-2.5"><PixelMoon size={16} /></span>
+      </>
+    ),
+  },
+];
+
 // #57·#60 홈(허브) — 쌓인 네 서랍(책·언어·CV·생각), 서랍마다 도메인 펭귄. 탭바 없음
 function Hub() {
   const router = useRouter();
@@ -70,82 +144,12 @@ function Hub() {
     }
   };
 
-  // #69 — 서랍 = 각 세션 장면을 들여다보는 창: 배경은 세션 하늘·시그니처, 내용은 흰 테두리 + 소프트색 판
-  const drawers = [
-    {
-      href: "/library",
-      name: "책",
-      count: bookCount === null ? "" : `완독 ${bookCount}권`,
-      icon: <PixelPenguinBook size={48} />,
-      tab: "bg-lib",
-      card: "border-lib/40 igloo-sky",
-      plate: "bg-lib-soft/95",
-      scene: (
-        <span
-          className="shelf-wall"
-          style={{ "--shelf-h": "36px", "--shelf-tile": "62px", "--shelf-lip": "3px" } as CSSProperties}
-        />
-      ),
-    },
-    {
-      href: "/language",
-      name: "언어",
-      count: wordCount === null ? "" : `단어 ${wordCount}개`,
-      icon: <PixelPenguinBubble size={48} />,
-      tab: "bg-lang",
-      card: "border-lang/40 sky-chat",
-      plate: "bg-lang-soft/95",
-      scene: (
-        <>
-          <span className="absolute right-3 top-3"><PixelSun size={22} /></span>
-          <span className="igloo-floor" />
-          <span className="absolute bottom-2.5 left-3 opacity-70"><PixelTracks size={56} /></span>
-        </>
-      ),
-    },
-    {
-      href: "/cv/edit",
-      name: "CV",
-      count: "공개 이력서",
-      icon: <PixelMascot size={48} />,
-      tab: "bg-cv",
-      card: "border-cv/40 sky-ice",
-      plate: "bg-cv-soft/95",
-      scene: (
-        <>
-          <span className="absolute bottom-2 left-2"><PixelBerg size={64} /></span>
-          <span className="igloo-floor" />
-        </>
-      ),
-    },
-    {
-      href: "/thoughts",
-      name: "생각",
-      count: thoughtCount === null ? "" : `기록 ${thoughtCount}개`,
-      icon: <PixelPenguinThink size={48} />,
-      tab: "bg-thought",
-      card: "border-thought/40 sky-night",
-      plate: "bg-thought-soft/95",
-      scene: (
-        <>
-          {[
-            { left: "12%", top: "22%" },
-            { left: "30%", top: "62%" },
-            { left: "58%", top: "14%" },
-            { left: "82%", top: "55%" },
-            { left: "92%", top: "26%" },
-          ].map((s) => (
-            <span
-              key={s.left}
-              className="absolute h-0.5 w-0.5 bg-night-dot"
-              style={{ left: s.left, top: s.top }}
-            />
-          ))}
-          <span className="absolute right-3 top-2.5"><PixelMoon size={16} /></span>
-        </>
-      ),
-    },
-  ];
+  const counts: Record<string, string> = {
+    "/library": bookCount === null ? "" : `완독 ${bookCount}권`,
+    "/language": wordCount === null ? "" : `단어 ${wordCount}개`,
+    "/cv/edit": "공개 이력서",
+    "/thoughts": thoughtCount === null ? "" : `기록 ${thoughtCount}개`,
+  };
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4 pb-16 md:max-w-4xl md:p-8 md:pb-16">
@@ -161,7 +165,7 @@ function Hub() {
       </header>
 
       <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-4 gap-3 md:grid-cols-2 md:grid-rows-2 md:gap-5">
-        {drawers.map((d, i) => (
+        {DRAWERS.map((d, i) => (
           <Link
             key={d.href}
             href={d.href}
@@ -175,7 +179,7 @@ function Hub() {
             >
               <span className="pg-waddle">{d.icon}</span>
               <span className="font-display text-lg font-bold">{d.name}</span>
-              <span className="min-h-4 font-mono text-xs text-faint">{d.count}</span>
+              <span className="min-h-4 font-mono text-xs text-ink/70">{counts[d.href]}</span>
             </span>
           </Link>
         ))}

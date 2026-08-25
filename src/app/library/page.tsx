@@ -219,7 +219,7 @@ export default function LibraryJourneyPage() {
         </header>
 
         <div
-          className="relative flex-1 md:mx-auto md:min-h-[420px] md:w-full md:max-h-[560px]"
+          className="relative flex-1 md:mx-auto md:min-h-[360px] md:w-full md:max-h-[560px]"
           style={{ perspective: "1600px" }}
         >
           {wide ? (
