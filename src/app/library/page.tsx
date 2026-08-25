@@ -218,7 +218,10 @@ export default function LibraryJourneyPage() {
           <button onClick={() => jump(0)} className={navBtn}>목차</button>
         </header>
 
-        <div className="relative flex-1 md:mx-auto md:h-[560px] md:w-full md:flex-none" style={{ perspective: "1600px" }}>
+        <div
+          className="relative flex-1 md:mx-auto md:min-h-[420px] md:w-full md:max-h-[560px]"
+          style={{ perspective: "1600px" }}
+        >
           {wide ? (
             // ── 양면 스프레드 ──
             <div className="flex h-full">

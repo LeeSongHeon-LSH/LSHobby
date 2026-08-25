@@ -16,8 +16,9 @@
   --color-cv-soft: #f6e7ec;
   --color-thought: #6f66a8; /* 생각 — 오로라 보라 */
   --color-thought-soft: #edeaf5;
-  --color-night-ink: #eeecf8; /* 밤하늘 위 제목 (생각 세션 전용) */
-  --color-night-faint: #a9a2cd; /* 밤하늘 위 보조 텍스트 */
+  --color-night-ink: #f5f3ff; /* 밤하늘 위 제목 (생각 세션 전용) */
+  --color-night-faint: #d3cdee; /* 밤하늘 위 보조 텍스트 — .sky-night 가장 밝은 지점에서도 AA */
+  --color-night-dot: #f2edd8; /* 잔별 */
   --color-star: #3d4d6b; /* 회독 별점 */
   --color-wood: #8b6f47; /* 책장 선반 */
   --color-ok: #2e7d46;
@@ -36,6 +37,17 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
+}
+/* 밤하늘 위에 바로 놓인 컨트롤 — 먹색 링은 어두운 하늘에 묻힌다 */
+.focus-night:focus-visible {
+  outline-color: var(--color-night-ink);
+}
+
+/* 책장 벽 치수 — .shelf-wall과 서재 스크롤 영역 높이가 같은 값을 쓴다 */
+:root {
+  --shelf-h: max(20dvh, 132px);
+  --shelf-lip: 6px;
+  --shelf-tile: 96px; /* 48×28 타일의 렌더 폭 (높이는 7/12) */
 }
 
 /* 홈 서랍 스태거 등장 — 1회성, 감속 곡선 */
@@ -91,8 +103,9 @@ body {
 .sky-chat {
   background: linear-gradient(180deg, #f8e9d3 0%, #f3ecdf 40%, #eef1f4 78%);
 }
+/* 지평선으로 밝아지되 가장 밝은 지점(#565080)에서도 night-ink·night-faint가 AA를 넘도록 폭을 제한 */
 .sky-night {
-  background: linear-gradient(180deg, #221e42 0%, #2b2850 38%, #3d3768 62%, #574f8e 82%, #7d75b2 100%);
+  background: linear-gradient(180deg, #201c3e 0%, #2b2850 40%, #383163 68%, #474075 86%, #565080 100%);
 }
 /* 이글루 위쪽 벽 — 아래 띠보다 옅은 같은 블록 타일 (한 돔 안) */
 .igloo-sky {
@@ -106,11 +119,10 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 20vh;
-  min-height: 132px;
+  height: var(--shelf-h);
   /* 48×28 도트 타일을 2배(셀당 2px)로 렌더 — 다른 스프라이트와 같은 도트 밀도 */
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="28"><rect width="48" height="28" fill="%2377603f"/><rect x="2" y="6" width="5" height="17" fill="%234d7fa3"/><rect x="8" y="8" width="4" height="15" fill="%23c05e7c"/><rect x="14" y="5" width="6" height="18" fill="%233d4d6b"/><rect x="21" y="9" width="4" height="14" fill="%23d9821f"/><rect x="27" y="6" width="5" height="17" fill="%236b93b8"/><rect x="33" y="8" width="4" height="15" fill="%2339536b"/><rect x="40" y="17" width="7" height="3" fill="%23c05e7c"/><rect x="41" y="20" width="6" height="3" fill="%234d7fa3"/><rect y="23" width="48" height="3" fill="%238b6f47"/><rect y="26" width="48" height="2" fill="%236f5738"/></svg>')
-    bottom left / 96px 56px repeat;
+    bottom left / var(--shelf-tile) calc(var(--shelf-tile) * 7 / 12) repeat;
   image-rendering: pixelated;
 }
 .shelf-wall::before {
@@ -118,9 +130,14 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  top: -6px;
-  height: 6px;
-  background: linear-gradient(180deg, #8b6f47 0, #8b6f47 4px, #6f5738 4px);
+  top: calc(-1 * var(--shelf-lip));
+  height: var(--shelf-lip);
+  background: linear-gradient(
+    180deg,
+    var(--color-wood) 0,
+    var(--color-wood) calc(var(--shelf-lip) - 2px),
+    #6f5738 calc(var(--shelf-lip) - 2px)
+  );
 }
 .igloo-floor {
   position: absolute;

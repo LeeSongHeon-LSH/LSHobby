@@ -195,7 +195,7 @@ function ThoughtStream() {
                 <button
                   key={topic}
                   onClick={() => setQuery(topic)}
-                  className="rounded-full bg-thought-soft px-2.5 py-0.5 font-mono text-[11px] text-thought"
+                  className="focus-night rounded-full bg-thought-soft px-2.5 py-0.5 font-mono text-[11px] text-thought"
                 >
                   {topic} <span className="opacity-60">{n}</span>
                 </button>
@@ -294,7 +294,7 @@ function ThoughtStream() {
             <button
               onClick={loadMore}
               disabled={busy}
-              className="w-full rounded-md border border-night-faint/40 py-3 text-sm text-night-faint disabled:opacity-40"
+              className="focus-night w-full rounded-md border border-night-faint/40 py-3 text-sm text-night-faint disabled:opacity-40"
             >
               더 보기
             </button>

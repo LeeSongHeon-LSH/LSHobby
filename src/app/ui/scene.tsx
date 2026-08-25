@@ -74,31 +74,28 @@ export function IceScene() {
         <PixelBerg size={140} flip />
       </div>
       <div className="ice-ground" />
-      <div className="absolute bottom-[38px] left-[6%]">
+      {/* 어른+아기는 한 묶음 — %와 px를 섞으면 좁은 화면에서 서로를 뚫고 그려진다 */}
+      <div className="absolute bottom-[38px] left-[5%] flex items-end gap-1">
         <PixelPenguinTiny size={26} />
-      </div>
-      <div className="absolute bottom-[38px] left-[9%]">
         <PixelChick size={18} />
       </div>
-      <div className="absolute bottom-9 left-[13%]">
+      <div className="absolute bottom-9 left-[22%]">
         <PixelPenguinTiny size={20} flip />
       </div>
-      <div className="absolute bottom-[46px] left-[24%]">
+      <div className="absolute bottom-[46px] left-[38%]">
         <PixelPenguinSlide size={44} />
       </div>
-      <div className="absolute bottom-[30px] left-[34%]">
+      <div className="absolute bottom-[30px] left-[56%] hidden sm:block">
         <PixelPenguinTiny size={20} />
       </div>
-      <div className="absolute bottom-[34px] right-[24%]">
-        <PixelPenguinTiny size={22} flip />
-      </div>
-      <div className="absolute bottom-[34px] right-[16%]">
-        <PixelChick size={16} flip />
-      </div>
-      <div className="absolute bottom-8 right-[13%] opacity-80">
+      <div className="absolute bottom-8 right-[26%] hidden opacity-80 sm:block">
         <PixelTracks size={80} />
       </div>
-      <div className="absolute bottom-10 right-[7%]">
+      <div className="absolute bottom-[34px] right-[18%] flex items-end gap-1">
+        <PixelChick size={16} flip />
+        <PixelPenguinTiny size={22} flip />
+      </div>
+      <div className="absolute bottom-10 right-[6%]">
         <PixelPenguinTiny size={24} flip />
       </div>
     </div>
@@ -116,6 +113,7 @@ export function IglooScene() {
         <PixelPortWindow size={60} />
       </div>
       <div className="shelf-wall" />
+      <div className="igloo-floor" />
       <div className="absolute bottom-[10px] right-[7%]">
         <PixelPenguinReading size={36} book="#c05e7c" />
       </div>
@@ -125,19 +123,15 @@ export function IglooScene() {
       <div className="absolute bottom-[10px] right-[31%]">
         <PixelPenguinReading size={34} book="#d9821f" flip />
       </div>
-      <div className="absolute bottom-3 left-[24%]">
+      {/* 읽어주는 펭귄과 듣는 아기들 — 한 묶음으로 두어야 좁은 화면에서도 붙어 앉는다 */}
+      <div className="absolute bottom-3 left-[22%] flex items-end gap-1.5">
         <PixelPenguinBook size={44} />
-      </div>
-      <div className="absolute bottom-[10px] left-[32%]">
         <PixelChick size={17} />
-      </div>
-      <div className="absolute bottom-3 left-[37%]">
         <PixelChick size={15} flip />
       </div>
       <div className="absolute bottom-[12px] left-[10%] hidden sm:block">
         <PixelPenguinTiny size={22} flip />
       </div>
-      <div className="igloo-floor" />
     </div>
   );
 }
@@ -171,7 +165,7 @@ export function NightScene() {
         <span
           key={s.left}
           className="night-star"
-          style={{ left: s.left, top: s.top, width: 2, height: 2, background: "#f2edd8", animationDelay: s.delay }}
+          style={{ left: s.left, top: s.top, width: 2, height: 2, background: "var(--color-night-dot)", animationDelay: s.delay }}
         />
       ))}
       <span className="night-star" style={{ left: "38%", top: "20%", animationDelay: "-1s" }}>
@@ -205,7 +199,7 @@ export function NightScene() {
       <div className="absolute bottom-[22px] right-[30%]">
         <PixelPenguinGaze size={22} flip />
       </div>
-      <div className="absolute bottom-[20px] right-[17%]">
+      <div className="absolute bottom-[20px] right-[19%]">
         <PixelChick size={15} flip />
       </div>
       <div className="absolute bottom-[24px] right-[10%]">
@@ -237,16 +231,14 @@ export function ChatterScene() {
         <PixelBerg size={150} flip />
       </div>
       <div className="ice-ground" />
-      <div className="absolute bottom-9 left-[16%]">
+      <div className="absolute bottom-9 left-[12%] flex items-end gap-1">
         <div className="relative">
           <span className="pg-bubble">안녕!</span>
           <PixelPenguinTiny size={26} />
         </div>
-      </div>
-      <div className="absolute bottom-[34px] left-[13%]">
         <PixelChick size={16} />
       </div>
-      <div className="absolute bottom-[34px] left-[27%]">
+      <div className="absolute bottom-[34px] left-[30%]">
         <div className="relative">
           <span className="pg-bubble" style={{ animationDelay: "-1.4s" }}>
             Hello!
@@ -257,10 +249,11 @@ export function ChatterScene() {
       <div className="absolute bottom-[46px] left-[52%] hidden sm:block">
         <PixelPenguinSlide size={40} />
       </div>
-      <div className="absolute bottom-8 left-[42%] opacity-80 sm:hidden">
+      <div className="absolute bottom-8 left-[46%] opacity-80 sm:hidden">
         <PixelTracks size={72} />
       </div>
-      <div className="absolute bottom-[38px] right-[18%]">
+      <div className="absolute bottom-[38px] right-[16%] flex items-end gap-1">
+        <PixelChick size={16} flip />
         <div className="relative">
           <span className="pg-bubble pg-bubble-r" style={{ animationDelay: "-2.2s" }}>
             ¡Hola!
@@ -268,10 +261,7 @@ export function ChatterScene() {
           <PixelPenguinTiny size={24} flip />
         </div>
       </div>
-      <div className="absolute bottom-[34px] right-[25%]">
-        <PixelChick size={16} flip />
-      </div>
-      <div className="absolute bottom-9 right-[11%]">
+      <div className="absolute bottom-9 right-[4%]">
         <PixelPenguinTiny size={20} />
       </div>
     </div>

@@ -9,7 +9,7 @@ export default function LibraryLayout({ children }: LayoutProps<"/library">) {
   return (
     <AuthGuard>
       <IglooScene />
-      <div className="h-[calc(100dvh-max(20vh,132px))] overflow-y-auto">
+      <div className="h-[calc(100dvh-var(--shelf-h)-var(--shelf-lip))] overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full max-w-md flex-col md:max-w-4xl">{children}</div>
       </div>
     </AuthGuard>

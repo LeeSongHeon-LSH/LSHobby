@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
@@ -80,7 +80,12 @@ function Hub() {
       tab: "bg-lib",
       card: "border-lib/40 igloo-sky",
       plate: "bg-lib-soft/95",
-      scene: <div className="shelf-wall" style={{ height: 36, minHeight: 0 }} />,
+      scene: (
+        <span
+          className="shelf-wall"
+          style={{ "--shelf-h": "36px", "--shelf-tile": "62px", "--shelf-lip": "3px" } as CSSProperties}
+        />
+      ),
     },
     {
       href: "/language",
@@ -93,8 +98,8 @@ function Hub() {
       scene: (
         <>
           <span className="absolute right-3 top-3"><PixelSun size={22} /></span>
-          <span className="absolute inset-x-0 bottom-0 h-2.5 bg-[#f4f8fb]" />
-          <span className="absolute bottom-1.5 left-3 opacity-70"><PixelTracks size={56} /></span>
+          <span className="igloo-floor" />
+          <span className="absolute bottom-2.5 left-3 opacity-70"><PixelTracks size={56} /></span>
         </>
       ),
     },
@@ -109,7 +114,7 @@ function Hub() {
       scene: (
         <>
           <span className="absolute bottom-2 left-2"><PixelBerg size={64} /></span>
-          <span className="absolute inset-x-0 bottom-0 h-2.5 bg-[#f4f8fb]" />
+          <span className="igloo-floor" />
         </>
       ),
     },
@@ -132,7 +137,7 @@ function Hub() {
           ].map((s) => (
             <span
               key={s.left}
-              className="absolute h-0.5 w-0.5 bg-[#f2edd8]"
+              className="absolute h-0.5 w-0.5 bg-night-dot"
               style={{ left: s.left, top: s.top }}
             />
           ))}
