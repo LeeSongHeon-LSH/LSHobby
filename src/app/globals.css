@@ -51,6 +51,59 @@ body {
   animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
+/* ── 남극 장면 (#65) — CV 지평선·눈내림 + 펭귄 뒤뚱 ── */
+/* 눈드리프트 지면 — 위 가장자리는 픽셀 계단 타일(24×8)로 들쭉하게 */
+.ice-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 44px;
+  background: #f7fafc;
+}
+.ice-ground::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -8px;
+  height: 8px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="8"><path d="M0 8V4h4V2h4v2h4v2h4V3h4v2h4v3z" fill="%23f7fafc"/></svg>')
+    bottom left / 24px 8px repeat-x;
+}
+.flake {
+  position: absolute;
+  top: -6px;
+  background: #cfdfe9;
+  animation: snow-fall linear infinite;
+}
+@keyframes snow-fall {
+  to {
+    transform: translateY(105dvh);
+  }
+}
+/* 펭귄 뒤뚱 — .pg-host(카드·링크)에 올리면 안의 .pg-waddle이 좌우로 기우뚱 */
+.pg-waddle {
+  display: inline-flex;
+  transform-origin: 50% 88%;
+}
+.pg-host:hover .pg-waddle,
+.pg-host:focus-visible .pg-waddle {
+  animation: waddle 0.7s ease-in-out infinite;
+}
+@keyframes waddle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-6deg);
+  }
+  75% {
+    transform: rotate(6deg);
+  }
+}
+
 /* ── 독서 여정 책장 (#58) — 책등·선반·한 쪽 넘김 ── */
 .jr-vol {
   position: relative;
@@ -153,7 +206,12 @@ body {
   .anim-rise,
   .jr-flip-out,
   .jr-flip-in,
-  .anim-sheet-up {
+  .anim-sheet-up,
+  .pg-host:hover .pg-waddle,
+  .pg-host:focus-visible .pg-waddle {
     animation: none;
+  }
+  .flake {
+    display: none;
   }
 }

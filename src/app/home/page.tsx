@@ -7,7 +7,14 @@ import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
 import { countThoughts } from "@/modules/thought";
-import { PixelMascot, PixelPenguinBook, PixelPenguinBubble, PixelPenguinThink } from "../ui/pixel";
+import {
+  PixelMascot,
+  PixelPenguinBook,
+  PixelPenguinBubble,
+  PixelPenguinThink,
+  PixelPenguinTiny,
+  PixelTracks,
+} from "../ui/pixel";
 
 // #57·#60 홈(허브) — 쌓인 네 서랍(책·언어·CV·생각), 서랍마다 도메인 펭귄. 탭바 없음
 function Hub() {
@@ -112,16 +119,21 @@ function Hub() {
           <Link
             key={d.href}
             href={d.href}
-            className={`anim-rise relative flex flex-col items-center justify-center gap-2.5 overflow-hidden rounded-md border ${d.card}`}
+            className={`anim-rise pg-host relative flex flex-col items-center justify-center gap-2.5 overflow-hidden rounded-md border ${d.card}`}
             style={{ animationDelay: `${i * 70}ms` }}
           >
             <span className={`absolute left-4 top-0 h-1 w-10 ${d.tab}`} aria-hidden="true" />
-            {d.icon}
+            <span className="pg-waddle">{d.icon}</span>
             <span className="font-display text-lg font-bold">{d.name}</span>
             <span className="min-h-4 font-mono text-xs text-faint">{d.count}</span>
           </Link>
         ))}
       </nav>
+
+      <div aria-hidden="true" className="mt-3 flex items-end justify-end gap-1.5 pr-1 opacity-80">
+        <PixelTracks size={88} />
+        <PixelPenguinTiny size={20} />
+      </div>
 
       {menuOpen && (
         <div className="fixed inset-0 z-10 flex items-end bg-black/30" onClick={() => setMenuOpen(false)}>

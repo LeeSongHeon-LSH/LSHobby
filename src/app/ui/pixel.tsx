@@ -6,27 +6,34 @@ function PixelArt({
   palette,
   size,
   cells = 16,
+  cellsY,
+  flip = false,
 }: {
   grid: string[];
   palette: Record<string, string>;
   size: number;
   cells?: number;
+  cellsY?: number; // 세로 셀 수 — 정사각이 아닌 스프라이트(빙하·발자국)용
+  flip?: boolean; // 좌우 반전
 }) {
+  const rows = cellsY ?? cells;
   return (
     <svg
       width={size}
-      height={size}
-      viewBox={`0 0 ${cells} ${cells}`}
+      height={(size * rows) / cells}
+      viewBox={`0 0 ${cells} ${rows}`}
       shapeRendering="crispEdges"
       aria-hidden="true"
     >
-      {grid.flatMap((row, y) =>
-        [...row].map((ch, x) =>
-          ch === "." ? null : (
-            <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={palette[ch]} />
+      <g transform={flip ? `translate(${cells} 0) scale(-1 1)` : undefined}>
+        {grid.flatMap((row, y) =>
+          [...row].map((ch, x) =>
+            ch === "." ? null : (
+              <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={palette[ch]} />
+            ),
           ),
-        ),
-      )}
+        )}
+      </g>
     </svg>
   );
 }
@@ -191,4 +198,71 @@ const FLAME_GRID = [
 
 export const PixelFlame = ({ size = 12 }: { size?: number }) => (
   <PixelArt grid={FLAME_GRID} palette={{ R: "#c23b3b", O: "#d9821f" }} size={size} cells={8} />
+);
+
+/* ── 남극 장면 스프라이트 — 배경 소품이라 도메인 3색을 쓰지 않고 빙하 톤만 ── */
+
+// 꼬마 펭귄 — 장면에 세워 두는 소품 (아무것도 들지 않은 기본 자세)
+const PENGUIN_TINY_GRID = [
+  "...KKKKKK...",
+  "..KKKKKKKK..",
+  "..KKWKKWKK..",
+  "..KKKCCKKK..",
+  "..KKWWWWKK..",
+  ".KKWWWWWWKK.",
+  ".KKWWWWWWKK.",
+  ".KKWWWWWWKK.",
+  "..KKWWWWKK..",
+  "...CC..CC...",
+];
+
+export const PixelPenguinTiny = ({ size = 22, flip = false }: { size?: number; flip?: boolean }) => (
+  <PixelArt
+    grid={PENGUIN_TINY_GRID}
+    palette={{ K: "#22262b", C: "#e2801f", W: "#fafbfc" }}
+    size={size}
+    cells={12}
+    cellsY={10}
+    flip={flip}
+  />
+);
+
+// 빙하 산 — 두 봉우리, 눈 덮인 능선(W)·빙벽(I)·그늘 파셋(J). 밑단은 눈 지면에 묻힌다
+const BERG_GRID = [
+  "......W.................",
+  ".....WWW................",
+  ".....WWWW...............",
+  "....WWIWWW..............",
+  "....WIIWWJW.............",
+  "...WWIIIWWJW.....W......",
+  "...WIIIIIWJJW...WWW.....",
+  "..WWIIIIIIJJW..WWIWW....",
+  "..WIIIIIIIJJJW.WWIIJW...",
+  ".WWIIIIIIIIJJWWIIIIJJW..",
+  "WWIIIIIIIIIJJJWIIIIIJJW.",
+  "WIIIIIIIIIIJJJIIIIIIJJJW",
+  "IIIIIIIIIIIJJJIIIIIIJJJJ",
+  "IIIIIIIIIIJJJJIIIIIJJJJJ",
+];
+
+export const PixelBerg = ({ size = 160, flip = false }: { size?: number; flip?: boolean }) => (
+  <PixelArt
+    grid={BERG_GRID}
+    palette={{ W: "#fafbfc", I: "#cfdfe9", J: "#a9c4d6" }}
+    size={size}
+    cells={24}
+    cellsY={14}
+    flip={flip}
+  />
+);
+
+// 눈 위 펭귄 발자국 — 좌우 번갈아 딛은 자국
+const TRACKS_GRID = [
+  "FF........FF........FF......",
+  "............................",
+  ".....FF........FF........FF.",
+];
+
+export const PixelTracks = ({ size = 92 }: { size?: number }) => (
+  <PixelArt grid={TRACKS_GRID} palette={{ F: "#c5d2dd" }} size={size} cells={28} cellsY={3} />
 );

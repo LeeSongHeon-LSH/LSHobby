@@ -3,6 +3,7 @@ import type { Components } from "react-markdown";
 import { getCv } from "@/modules/cv";
 import { Markdown } from "@/modules/shared/markdown";
 import { PixelMascot } from "../ui/pixel";
+import { IceScene } from "../ui/scene";
 import { splitSections } from "./split";
 import { CvFilter } from "./sections";
 
@@ -37,13 +38,16 @@ export async function CvView() {
   const content = cv?.content.trim() ?? "";
   const { intro, sections } = splitSections(content);
   return (
-    <main className="relative mx-auto w-full max-w-2xl flex-1 px-4 pb-14 pt-14 sm:px-6">
+    <main className="relative mx-auto w-full max-w-2xl flex-1 px-4 pb-16 pt-14 sm:px-6">
+      <IceScene />
       <div className="absolute left-1/2 top-[26px] z-[2] -translate-x-1/2">
-        <Link href="/login" aria-label="LSHobby" className="inline-block">
-          <PixelMascot size={48} />
+        <Link href="/login" aria-label="LSHobby" className="pg-host inline-block">
+          <span className="pg-waddle">
+            <PixelMascot size={48} />
+          </span>
         </Link>
       </div>
-      <div className="relative min-h-[70dvh] rounded-lg border border-line bg-sheet px-6 pb-12 pt-10 shadow-[0_10px_30px_rgba(34,38,43,0.08)] sm:px-10">
+      <div className="relative z-[1] min-h-[70dvh] rounded-lg border border-line bg-sheet px-6 pb-12 pt-10 shadow-[0_10px_30px_rgba(34,38,43,0.08)] sm:px-10">
         {content ? (
           <CvFilter
             intro={intro ? <Markdown components={cvComponents}>{intro}</Markdown> : null}
