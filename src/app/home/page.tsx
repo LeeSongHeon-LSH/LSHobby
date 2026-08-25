@@ -7,14 +7,8 @@ import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
 import { countThoughts } from "@/modules/thought";
-import {
-  PixelMascot,
-  PixelPenguinBook,
-  PixelPenguinBubble,
-  PixelPenguinThink,
-  PixelPenguinTiny,
-  PixelTracks,
-} from "../ui/pixel";
+import { PixelMascot, PixelPenguinBook, PixelPenguinBubble, PixelPenguinThink } from "../ui/pixel";
+import { IceScene } from "../ui/scene";
 
 // #57·#60 홈(허브) — 쌓인 네 서랍(책·언어·CV·생각), 서랍마다 도메인 펭귄. 탭바 없음
 function Hub() {
@@ -103,7 +97,8 @@ function Hub() {
   ];
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4 pb-6 md:max-w-4xl md:p-8">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4 pb-16 md:max-w-4xl md:p-8 md:pb-16">
+      <IceScene />
       <header className="mb-4 flex items-center justify-between md:mb-6">
         <div className="flex items-end gap-2.5">
           <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">LSHobby</h1>
@@ -129,11 +124,6 @@ function Hub() {
           </Link>
         ))}
       </nav>
-
-      <div aria-hidden="true" className="mt-3 flex items-end justify-end gap-1.5 pr-1 opacity-80">
-        <PixelTracks size={88} />
-        <PixelPenguinTiny size={20} />
-      </div>
 
       {menuOpen && (
         <div className="fixed inset-0 z-10 flex items-end bg-black/30" onClick={() => setMenuOpen(false)}>

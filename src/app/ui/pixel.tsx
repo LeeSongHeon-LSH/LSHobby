@@ -256,6 +256,187 @@ export const PixelBerg = ({ size = 160, flip = false }: { size?: number; flip?: 
   />
 );
 
+// 앉아서 책 읽는 펭귄 — 무릎 위 펼친 책, 발은 양옆으로 (이글루 서재 소품)
+const PENGUIN_READING_GRID = [
+  "....KKKKKK....",
+  "...KKKKKKKK...",
+  "...KKWKKWKK...",
+  "...KKKCCKKK...",
+  "..KKWWWWWWKK..",
+  "..KKWWWWWWKK..",
+  ".KKWWWWWWWWKK.",
+  ".BDDDDBBDDDDB.",
+  ".BDDDDBBDDDDB.",
+  "..BBBBBBBBBB..",
+  ".CC........CC.",
+  "..............",
+];
+
+export const PixelPenguinReading = ({
+  size = 36,
+  book = "#4d7fa3",
+  flip = false,
+}: {
+  size?: number;
+  book?: string;
+  flip?: boolean;
+}) => (
+  <PixelArt
+    grid={PENGUIN_READING_GRID}
+    palette={{ K: "#22262b", C: "#e2801f", W: "#fafbfc", B: book, D: "#f1ead9" }}
+    size={size}
+    cells={14}
+    cellsY={12}
+    flip={flip}
+  />
+);
+
+// 하늘을 올려다보는 펭귄 — 부리가 정수리로, 눈은 위쪽 (밤하늘 장면)
+const PENGUIN_GAZE_GRID = [
+  ".....CC.....",
+  "...KKKKKK...",
+  "..KKWKKWKK..",
+  "..KKKKKKKK..",
+  "..KKWWWWKK..",
+  ".KKWWWWWWKK.",
+  ".KKWWWWWWKK.",
+  ".KKWWWWWWKK.",
+  "..KKWWWWKK..",
+  "...CC..CC...",
+];
+
+export const PixelPenguinGaze = ({ size = 22, flip = false }: { size?: number; flip?: boolean }) => (
+  <PixelArt
+    grid={PENGUIN_GAZE_GRID}
+    palette={{ K: "#22262b", C: "#e2801f", W: "#fafbfc" }}
+    size={size}
+    cells={12}
+    cellsY={10}
+    flip={flip}
+  />
+);
+
+// 이글루 서재 책장 — 나무 프레임 2단, 책등은 빙하 파랑 계열 + 주황·로즈 포인트
+const BOOKSHELF_GRID = [
+  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "GG111.......666.........GG",
+  "GG111....22.666.........GG",
+  "GG111.44422.666.........GG",
+  "GG111.44422.66633.......GG",
+  "GG111.44422.66633.......GG",
+  "GG111.44422.66633..55555GG",
+  "GG111.44422.66633.111111GG",
+  "GG111.44422.66633.222222GG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "HHHHHHHHHHHHHHHHHHHHHHHHHH",
+  "GG...222....44..........GG",
+  "GG55.222....44....666...GG",
+  "GG55.222111.44....666...GG",
+  "GG55.222111.44333.666...GG",
+  "GG55.222111.44333.666...GG",
+  "GG55.222111.44333.666...GG",
+  "GG55.222111.44333.666...GG",
+  "GG55.222111.44333.666...GG",
+  "GGGGGGGGGGGGGGGGGGGGGGGGGG",
+  "HHHHHHHHHHHHHHHHHHHHHHHHHH",
+];
+
+export const PixelBookshelf = ({ size = 120 }: { size?: number }) => (
+  <PixelArt
+    grid={BOOKSHELF_GRID}
+    palette={{
+      G: "#8b6f47",
+      H: "#6f5738",
+      "1": "#4d7fa3",
+      "2": "#39536b",
+      "3": "#6b93b8",
+      "4": "#d9821f",
+      "5": "#c05e7c",
+      "6": "#3d4d6b",
+    }}
+    size={size}
+    cells={26}
+    cellsY={22}
+  />
+);
+
+// 이글루 둥근 창 — 얼음 프레임 너머로 설원과 먼 빙하가 보인다
+const PORT_WINDOW_GRID = [
+  "....RRRRRRRR....",
+  "...RRRRRRRRRR...",
+  "..RRSSSSSSSSRR..",
+  ".RRSSSSSSSSSSRR.",
+  ".RSSSSSSSSSSSSR.",
+  ".RSSSSSSSSSSSSR.",
+  ".RSSSSSSSSSSSSR.",
+  ".RSSSSSSSSSSSSR.",
+  ".RSSSSSBSSSSSSR.",
+  ".RSSSSBBBSSSSSR.",
+  ".RNNNNNNNNNNNNR.",
+  ".RRNNNNNNNNNNRR.",
+  "..RRNNNNNNNNRR..",
+  "...RRRRRRRRRR...",
+  "....RRRRRRRR....",
+  "................",
+];
+
+export const PixelPortWindow = ({ size = 52 }: { size?: number }) => (
+  <PixelArt
+    grid={PORT_WINDOW_GRID}
+    palette={{ R: "#c3d6e2", S: "#e4eef6", B: "#cfdfe9", N: "#fafbfc" }}
+    size={size}
+  />
+);
+
+// 초승달 — 백야의 밤 띠
+const MOON_GRID = [
+  "..MMMM..",
+  ".MMM....",
+  "MMM.....",
+  "MMM.....",
+  "MMM.....",
+  "MMM.....",
+  ".MMM....",
+  "..MMMM..",
+];
+
+export const PixelMoon = ({ size = 28 }: { size?: number }) => (
+  <PixelArt grid={MOON_GRID} palette={{ M: "#ecdfa8" }} size={size} cells={8} />
+);
+
+// 오로라 — 민트→라벤더→보라 3겹 물결 리본 (블러 대신 도트)
+const AURORA_GRID = [
+  "................................",
+  "................................",
+  "................MMMM............",
+  "............MMMMLLLLMMMM........",
+  "........MMMMLLLLPPPPLLLLMMMM....",
+  "....MMMMLLLLPPPP....PPPPLLLLMMMM",
+  "MMMMLLLLPPPP............PPPPLLLL",
+  "LLLLPPPP....................PPPP",
+  "PPPP............................",
+  "................................",
+];
+
+export const PixelAurora = ({ size = 200, flip = false }: { size?: number; flip?: boolean }) => (
+  <PixelArt
+    grid={AURORA_GRID}
+    palette={{ M: "#8fe3c0", L: "#a89ce8", P: "#7c6fd0" }}
+    size={size}
+    cells={32}
+    cellsY={10}
+    flip={flip}
+  />
+);
+
+// 큰 별 — 밤하늘 포인트 (작은 별은 CSS 점)
+const STAR_GRID = ["..P..", "..P..", "PPPPP", "..P..", "..P.."];
+
+export const PixelStar = ({ size = 10 }: { size?: number }) => (
+  <PixelArt grid={STAR_GRID} palette={{ P: "#f2edd8" }} size={size} cells={5} />
+);
+
 // 눈 위 펭귄 발자국 — 좌우 번갈아 딛은 자국
 const TRACKS_GRID = [
   "FF........FF........FF......",

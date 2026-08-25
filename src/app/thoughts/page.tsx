@@ -17,6 +17,7 @@ import {
 } from "@/modules/thought";
 import { HomeButton } from "../ui/home-button";
 import { PixelPenguinThink } from "../ui/pixel";
+import { NightScene } from "../ui/scene";
 
 const PAGE_SIZE = 80;
 
@@ -145,7 +146,8 @@ function ThoughtStream() {
   const groups = groupByDay(thoughts ?? []);
 
   return (
-    <main className="mx-auto w-full max-w-md flex-1 p-4 pb-10 md:max-w-2xl">
+    <main className="mx-auto w-full max-w-md flex-1 p-4 pb-36 md:max-w-2xl">
+      <NightScene />
       <header className="mb-6 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-thought">Thought</p>

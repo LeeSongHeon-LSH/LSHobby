@@ -82,6 +82,143 @@ body {
     transform: translateY(105dvh);
   }
 }
+/* 이글루 서재(책) — 얼음 블록 벽 띠 + 눈 다진 바닥 */
+.igloo-wall {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 112px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="24"><rect width="48" height="24" fill="%23d8e2ea"/><rect x="1" y="1" width="22" height="10" fill="%23e9f0f5"/><rect x="25" y="1" width="22" height="10" fill="%23e9f0f5"/><rect x="0" y="13" width="11" height="10" fill="%23e9f0f5"/><rect x="13" y="13" width="22" height="10" fill="%23e9f0f5"/><rect x="37" y="13" width="11" height="10" fill="%23e9f0f5"/></svg>')
+    bottom left / 48px 24px repeat;
+}
+.igloo-wall::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -8px;
+  height: 8px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="8"><path d="M0 8V4h4V2h4v2h4v2h4V3h4v2h4v3z" fill="%23d8e2ea"/></svg>')
+    bottom left / 24px 8px repeat-x;
+}
+.igloo-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: #f4f8fb;
+}
+
+/* 백야의 밤(생각) — 지평선 띠만 어두워지고 위는 눈밭 그대로 */
+.night-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 180px;
+  background: linear-gradient(
+    180deg,
+    rgba(43, 40, 80, 0) 0%,
+    rgba(43, 40, 80, 0.86) 34%,
+    #2b2850 62%,
+    #262347 100%
+  );
+}
+.night-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26px;
+  background: #dbe3eb;
+}
+.night-floor::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -8px;
+  height: 8px;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="8"><path d="M0 8V4h4V2h4v2h4v2h4V3h4v2h4v3z" fill="%23dbe3eb"/></svg>')
+    bottom left / 24px 8px repeat-x;
+}
+.night-star {
+  position: absolute;
+  animation: twinkle 3.4s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.aurora {
+  position: absolute;
+  opacity: 0.55; /* 모션 축소 시 정지 상태의 농도 */
+  animation: aurora-breathe 11s ease-in-out infinite alternate;
+}
+@keyframes aurora-breathe {
+  from {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0.75;
+    transform: translateY(-4px);
+  }
+}
+
+/* 수다 빙하(언어) — 픽셀풍 말풍선, 번갈아 둥실 */
+.pg-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 2px;
+  border: 1.5px solid #22262b;
+  background: #fff;
+  border-radius: 2px;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  color: #22262b;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(34, 38, 43, 0.12);
+  animation: bob 2.8s ease-in-out infinite alternate;
+}
+.pg-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 9px;
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-right: 1.5px solid #22262b;
+  border-bottom: 1.5px solid #22262b;
+  transform: rotate(45deg);
+}
+.pg-bubble-r {
+  left: auto;
+  right: 2px;
+}
+.pg-bubble-r::after {
+  left: auto;
+  right: 9px;
+}
+@keyframes bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
+}
+
 /* 펭귄 뒤뚱 — .pg-host(카드·링크)에 올리면 안의 .pg-waddle이 좌우로 기우뚱 */
 .pg-waddle {
   display: inline-flex;
@@ -208,7 +345,10 @@ body {
   .jr-flip-in,
   .anim-sheet-up,
   .pg-host:hover .pg-waddle,
-  .pg-host:focus-visible .pg-waddle {
+  .pg-host:focus-visible .pg-waddle,
+  .night-star,
+  .aurora,
+  .pg-bubble {
     animation: none;
   }
   .flake {
