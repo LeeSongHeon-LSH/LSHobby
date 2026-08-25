@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthGuard, supabase } from "@/modules/shared/auth";
 import { getCv, saveCv } from "@/modules/cv";
 import { HomeButton } from "../../ui/home-button";
+import { IceScene } from "../../ui/scene";
 
 // §17.5 CV 편집 — textarea + 저장, 저장 후 /cv로 확인 (#52). 홈 복귀는 우상단 버튼 (#59)
 function CvEdit() {
@@ -39,6 +40,7 @@ function CvEdit() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-1 flex-col p-4">
+      <IceScene />
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-cv">CV</p>

@@ -82,6 +82,22 @@ body {
     transform: translateY(105dvh);
   }
 }
+/* 세션별 하늘 (#67) — 장면 컨테이너 전체를 덮는 배경 */
+.sky-ice {
+  background: linear-gradient(180deg, #d5e6f2 0%, #e4eef5 42%, #eef1f4 80%);
+}
+.sky-chat {
+  background: linear-gradient(180deg, #f8e9d3 0%, #f3ecdf 40%, #eef1f4 78%);
+}
+.sky-night {
+  background: linear-gradient(180deg, #e9e6f4 0%, #d6d2e8 38%, #b6b0d1 66%, #918ab8 100%);
+}
+/* 이글루 위쪽 벽 — 아래 띠보다 옅은 같은 블록 타일 (한 돔 안) */
+.igloo-sky {
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="24"><rect width="48" height="24" fill="%23e6edf2"/><rect x="1" y="1" width="22" height="10" fill="%23f0f4f8"/><rect x="25" y="1" width="22" height="10" fill="%23f0f4f8"/><rect x="0" y="13" width="11" height="10" fill="%23f0f4f8"/><rect x="13" y="13" width="22" height="10" fill="%23f0f4f8"/><rect x="37" y="13" width="11" height="10" fill="%23f0f4f8"/></svg>')
+    bottom left / 48px 24px repeat;
+}
+
 /* 이글루 서재(책) — 얼음 블록 벽 띠 + 눈 다진 바닥 */
 .igloo-wall {
   position: absolute;
@@ -117,12 +133,12 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 180px;
+  height: 210px;
   background: linear-gradient(
     180deg,
     rgba(43, 40, 80, 0) 0%,
-    rgba(43, 40, 80, 0.86) 34%,
-    #2b2850 62%,
+    rgba(43, 40, 80, 0.8) 26%,
+    #2b2850 52%,
     #262347 100%
   );
 }

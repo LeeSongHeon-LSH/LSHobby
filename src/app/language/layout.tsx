@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { AuthGuard } from "@/modules/shared/auth";
 import { TabBar } from "../ui/tab-bar";
 import { PixelMascot } from "../ui/pixel";
+import { ChatterScene } from "../ui/scene";
 
 // #59 — 4탭(도메인 기능만), 홈 복귀는 각 화면 우상단 HomeButton.
 // 데스크톱(md~)은 탭바 대신 좌측 사이드바 — 하단 탭 문법의 번역 (목업 데스크톱 페이지)
@@ -51,6 +52,7 @@ function Sidebar() {
 export default function LanguageLayout({ children }: LayoutProps<"/language">) {
   return (
     <AuthGuard>
+      <ChatterScene />
       <div className="flex min-h-dvh w-full">
         <Sidebar />
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col pb-20 md:pb-6">{children}</div>

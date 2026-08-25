@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { HomeButton } from "../ui/home-button";
 import { PixelFlame, PixelPenguinBubble } from "../ui/pixel";
-import { ChatterScene } from "../ui/scene";
 import {
   isHard,
   languageConfigs,
@@ -81,7 +80,6 @@ export default function LanguageHome() {
   const free = dueCount === 0;
   return (
     <main className="flex flex-1 flex-col p-4">
-      <ChatterScene />
       <header className="mb-7 flex items-start justify-between gap-3">
         <div className="relative" ref={menuRef}>
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">Language</p>

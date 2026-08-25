@@ -405,6 +405,93 @@ export const PixelMoon = ({ size = 28 }: { size?: number }) => (
   <PixelArt grid={MOON_GRID} palette={{ M: "#ecdfa8" }} size={size} cells={8} />
 );
 
+// 아기 펭귄 — 회색 솜털, 흰 얼굴에 까만 눈 (황제펭귄 새끼)
+const CHICK_GRID = [
+  "..KKKKKK..",
+  ".KKWWWWKK.",
+  ".KWKWWKWK.",
+  ".KWWCCWWK.",
+  ".FFFFFFFF.",
+  "FFFFFFFFFF",
+  "FFFFFFFFFF",
+  ".FFFFFFFF.",
+  "..CC..CC..",
+];
+
+export const PixelChick = ({ size = 17, flip = false }: { size?: number; flip?: boolean }) => (
+  <PixelArt
+    grid={CHICK_GRID}
+    palette={{ K: "#22262b", W: "#fafbfc", C: "#e2801f", F: "#a8b2ba" }}
+    size={size}
+    cells={10}
+    cellsY={9}
+    flip={flip}
+  />
+);
+
+// 배밀이 펭귄 — 눈 위를 미끄러지는 중 (머리가 진행 방향)
+const PENGUIN_SLIDE_GRID = [
+  "..........KKKKK...",
+  ".KKKKKKKKKKKWKKK..",
+  "KKKKKKKKKKKKKKKCC.",
+  "KWWWWWWWWWWWWKKC..",
+  ".KWWWWWWWWWWWWK...",
+  "..WWWWWWWWWWWW....",
+  ".CC...............",
+  "..................",
+];
+
+export const PixelPenguinSlide = ({ size = 44, flip = false }: { size?: number; flip?: boolean }) => (
+  <PixelArt
+    grid={PENGUIN_SLIDE_GRID}
+    palette={{ K: "#22262b", C: "#e2801f", W: "#fafbfc" }}
+    size={size}
+    cells={18}
+    cellsY={8}
+    flip={flip}
+  />
+);
+
+// 뭉게구름 — 하늘 소품
+const CLOUD_GRID = [
+  "......WWWW..........",
+  "....WWWWWWWWWW......",
+  "..WWWWWWWWWWWWWWW...",
+  ".WWWWWWWWWWWWWWWWWW.",
+  ".UUUUUUUUUUUUUUUUUU.",
+];
+
+export const PixelCloud = ({ size = 84, flip = false }: { size?: number; flip?: boolean }) => (
+  <PixelArt
+    grid={CLOUD_GRID}
+    palette={{ W: "#ffffff", U: "#e2ebf2" }}
+    size={size}
+    cells={20}
+    cellsY={5}
+    flip={flip}
+  />
+);
+
+// 낮은 해 — 수다 빙하의 따뜻한 오후 빛
+const SUN_GRID = [
+  ".....SS.....",
+  ".....SS.....",
+  "..S......S..",
+  "....SSSS....",
+  "...SSSSSS...",
+  "SS.SSSSSS.SS",
+  "SS.SSSSSS.SS",
+  "...SSSSSS...",
+  "....SSSS....",
+  "..S......S..",
+  ".....SS.....",
+  ".....SS.....",
+];
+
+export const PixelSun = ({ size = 40 }: { size?: number }) => (
+  <PixelArt grid={SUN_GRID} palette={{ S: "#f2cd82" }} size={size} cells={12} />
+);
+
 // 오로라 — 민트→라벤더→보라 3겹 물결 리본 (블러 대신 도트)
 const AURORA_GRID = [
   "................................",

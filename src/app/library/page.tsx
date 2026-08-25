@@ -12,7 +12,6 @@ import {
 } from "@/modules/library";
 import { HomeButton } from "../ui/home-button";
 import { PixelPenguinBook } from "../ui/pixel";
-import { IglooScene } from "../ui/scene";
 import { BookSheet } from "./book-sheet";
 
 // #58 서재 = 독서 여정 책장 — 완독 20권 = 한 보(步) = 책등 하나.
@@ -208,7 +207,6 @@ export default function LibraryJourneyPage() {
 
     return (
       <main className="flex flex-1 flex-col p-4 md:p-6">
-        <IglooScene />
         <header className="mb-3 flex items-center gap-2 md:mb-4">
           <button onClick={() => setView({ t: "shelf" })} className={navBtn}>← 책장</button>
           <div className="flex-1 text-center">
@@ -327,7 +325,6 @@ export default function LibraryJourneyPage() {
   const spineHeight = (v: number) => 142 + ((v * 29) % 15);
   return (
     <main className="flex flex-1 flex-col p-4 md:p-6">
-      <IglooScene />
       <header className="mb-5 flex items-start justify-between gap-3 md:mb-8">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>

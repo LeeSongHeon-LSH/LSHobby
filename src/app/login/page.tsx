@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/modules/shared/auth";
 import { PixelMascot } from "../ui/pixel";
+import { IceScene } from "../ui/scene";
 
 // §11.2 — 이메일 로그인. 회원가입·비밀번호 찾기 UI 없음 (SEC-01·SEC-08)
 export default function LoginPage() {
@@ -28,6 +29,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center p-6">
+      <IceScene />
       <form onSubmit={submit} className="w-full max-w-xs space-y-4">
         <div className="flex justify-center">
           <PixelMascot size={48} />
