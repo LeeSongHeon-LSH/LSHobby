@@ -7,7 +7,16 @@ import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
 import { countThoughts } from "@/modules/thought";
-import { PixelMascot, PixelPenguinBook, PixelPenguinBubble, PixelPenguinThink } from "../ui/pixel";
+import {
+  PixelBerg,
+  PixelMascot,
+  PixelMoon,
+  PixelPenguinBook,
+  PixelPenguinBubble,
+  PixelPenguinThink,
+  PixelSun,
+  PixelTracks,
+} from "../ui/pixel";
 import { IceScene } from "../ui/scene";
 
 // #57·#60 홈(허브) — 쌓인 네 서랍(책·언어·CV·생각), 서랍마다 도메인 펭귄. 탭바 없음
@@ -61,6 +70,7 @@ function Hub() {
     }
   };
 
+  // #69 — 서랍 = 각 세션 장면을 들여다보는 창: 배경은 세션 하늘·시그니처, 내용은 흰 테두리 + 소프트색 판
   const drawers = [
     {
       href: "/library",
@@ -68,7 +78,9 @@ function Hub() {
       count: bookCount === null ? "" : `완독 ${bookCount}권`,
       icon: <PixelPenguinBook size={48} />,
       tab: "bg-lib",
-      card: "border-lib/40 bg-lib-soft",
+      card: "border-lib/40 igloo-sky",
+      plate: "bg-lib-soft/95",
+      scene: <div className="shelf-wall" style={{ height: 36, minHeight: 0 }} />,
     },
     {
       href: "/language",
@@ -76,7 +88,15 @@ function Hub() {
       count: wordCount === null ? "" : `단어 ${wordCount}개`,
       icon: <PixelPenguinBubble size={48} />,
       tab: "bg-lang",
-      card: "border-lang/40 bg-lang-soft",
+      card: "border-lang/40 sky-chat",
+      plate: "bg-lang-soft/95",
+      scene: (
+        <>
+          <span className="absolute right-3 top-3"><PixelSun size={22} /></span>
+          <span className="absolute inset-x-0 bottom-0 h-2.5 bg-[#f4f8fb]" />
+          <span className="absolute bottom-1.5 left-3 opacity-70"><PixelTracks size={56} /></span>
+        </>
+      ),
     },
     {
       href: "/cv/edit",
@@ -84,7 +104,14 @@ function Hub() {
       count: "공개 이력서",
       icon: <PixelMascot size={48} />,
       tab: "bg-cv",
-      card: "border-cv/40 bg-cv-soft",
+      card: "border-cv/40 sky-ice",
+      plate: "bg-cv-soft/95",
+      scene: (
+        <>
+          <span className="absolute bottom-2 left-2"><PixelBerg size={64} /></span>
+          <span className="absolute inset-x-0 bottom-0 h-2.5 bg-[#f4f8fb]" />
+        </>
+      ),
     },
     {
       href: "/thoughts",
@@ -92,7 +119,26 @@ function Hub() {
       count: thoughtCount === null ? "" : `기록 ${thoughtCount}개`,
       icon: <PixelPenguinThink size={48} />,
       tab: "bg-thought",
-      card: "border-thought/40 bg-thought-soft",
+      card: "border-thought/40 sky-night",
+      plate: "bg-thought-soft/95",
+      scene: (
+        <>
+          {[
+            { left: "12%", top: "22%" },
+            { left: "30%", top: "62%" },
+            { left: "58%", top: "14%" },
+            { left: "82%", top: "55%" },
+            { left: "92%", top: "26%" },
+          ].map((s) => (
+            <span
+              key={s.left}
+              className="absolute h-0.5 w-0.5 bg-[#f2edd8]"
+              style={{ left: s.left, top: s.top }}
+            />
+          ))}
+          <span className="absolute right-3 top-2.5"><PixelMoon size={16} /></span>
+        </>
+      ),
     },
   ];
 
@@ -114,13 +160,18 @@ function Hub() {
           <Link
             key={d.href}
             href={d.href}
-            className={`anim-rise pg-host relative flex flex-col items-center justify-center gap-2.5 overflow-hidden rounded-md border ${d.card}`}
+            className={`anim-rise pg-host relative flex flex-col items-center justify-center overflow-hidden rounded-md border ${d.card}`}
             style={{ animationDelay: `${i * 70}ms` }}
           >
-            <span className={`absolute left-4 top-0 h-1 w-10 ${d.tab}`} aria-hidden="true" />
-            <span className="pg-waddle">{d.icon}</span>
-            <span className="font-display text-lg font-bold">{d.name}</span>
-            <span className="min-h-4 font-mono text-xs text-faint">{d.count}</span>
+            <span aria-hidden="true">{d.scene}</span>
+            <span className={`absolute left-4 top-0 z-[1] h-1 w-10 ${d.tab}`} aria-hidden="true" />
+            <span
+              className={`z-[1] flex flex-col items-center gap-2.5 rounded-lg border-2 border-white/85 px-7 py-3.5 ${d.plate}`}
+            >
+              <span className="pg-waddle">{d.icon}</span>
+              <span className="font-display text-lg font-bold">{d.name}</span>
+              <span className="min-h-4 font-mono text-xs text-faint">{d.count}</span>
+            </span>
           </Link>
         ))}
       </nav>
