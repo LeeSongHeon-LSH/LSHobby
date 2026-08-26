@@ -155,23 +155,26 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 > **철회 기록 (#63)**: 철학 정보 탭(브라우저→Ollama 문답 + 한↔영 통역)과 그를 위한 tailnet 노출(`tailscale serve :8443`, `OLLAMA_HOST` tailscale IP 바인딩, CORS, Vercel `NEXT_PUBLIC_OLLAMA_URL`)은 2026-08-24 당일 도입·철회했다. 구성과 근거는 git 히스토리에 보존(커밋 505629d 시점의 §16.11). 브라우저에서 Ollama를 다시 부를 일이 생기면 그 기록대로 재구성하면 된다.
 
-### 16.12 Notion 활동 미러 (#64)
+### 16.12 Notion 백업 미러 (#64 → 백업 형태로 개편 2026-08-26)
 
-홈 타임라인의 원천인 `activity_feed`를 **Notion DB 하나에 단방향으로 append** 한다 — 앱이 원본, Notion은 일지 뷰용 사본(Notion 쪽 수정·삭제는 앱에 안 돌아온다).
+앱 데이터를 **혹시 모를 백업 사본**으로 Notion에 미러한다 — 앱이 원본, 단방향(Notion 쪽 수정·삭제는 앱에 안 돌아온다). 활동 한 줄 append 방식(#64 원안)은 폐기하고 상태 미러로 바꿨다: activity 이벤트 나열보다 "책 1권 = 페이지 1장"이 백업으로서 복원 가치가 있다.
 
 ```
-집 PC cron 00:40 → node --env-file=.env scripts/sync-activity-notion.mjs
-  ① Notion DB의 최대 activity_id 조회 (커서 저장소 없음 — 사본에 직접 묻기)
-  ② activity_feed에서 그 이후 id · 어제까지 · 포함 도메인만 조회
-  ③ 행 → 표준 이벤트 배열 → id 오름차순 전송, 실패 시 중단 (다음 실행이 소급)
+집 PC cron 00:40(UTC, =KST 09:40) → node --env-file=.env scripts/sync-notion-backup.mjs
+  ① 책 여정 백업 DB — 페이지 = 책 1권. 저자·출판사·태그·여정 번호·회독·완독일·별점은
+     속성으로, 노트·완독 기록·감상(reflection)은 본문 블록으로 upsert (book_id가 키)
+  ② 단어 대시보드 DB — 언어×날짜 1행 (복습·정답·정답률). review_log에서 daily_stats
+     RPC(tz=Asia/Seoul)로 집계 — 오늘(KST)은 확정 전이라 제외, 지난 날짜는 값 변경 시 갱신
 ```
 
 | 항목 | 값 | 이유 |
 |---|---|---|
-| 포함 도메인 | `library` `language` `cv` (포함 목록) | **thought 제외** — 생각 데이터 외부 반출 금지(§16.11). summary에 생각 원문 첫 줄이 들어 있다 |
-| 전송 경계 | `occurred_at` < 오늘 0시 | 언어의 당일 1건 갱신(upsertDaily)이 확정된 뒤에만 박제 |
-| Notion DB 속성 | 요약(제목)·날짜·도메인(선택)·액션(선택)·activity_id(숫자) | activity_id가 커서·중복 방지의 열쇠 |
-| 비밀 | `.env`의 `NOTION_TOKEN`·`NOTION_DB_ID` | integration은 이 DB 하나만 공유받는다 |
-| 실패 정책 | 로그만, 알림 없음 | PC 꺼짐·Notion 장애는 다음 실행이 따라잡는다 (#45와 같은 1인 규모 판단) |
+| 커서 | 없음 — 매 실행 전체 상태 수렴 (책은 sync_hash로 무변경 스킵) | append 커서(activity_id)의 "한 번 보내면 끝" 박제 문제 제거 |
+| 하루 경계 | 스크립트가 KST(Asia/Seoul)로 직접 계산 | 집 PC는 UTC — 시스템 타임존에 기대면 경계가 9시간 어긋난다 |
+| 삭제 | 반영 안 함 | 백업이므로 앱에서 지워도 사본은 남긴다 |
+| thought | 다루지 않음 | 생각 데이터 외부 반출 금지(§16.11) |
+| Notion 구조 | 기존 LSHobby DB 안의 "📦 LSHobby 백업" 페이지 아래 인라인 DB 2개 | integration이 접근 가능한 유일한 컨테이너 (API는 워크스페이스 루트에 DB 생성 불가) |
+| 비밀 | `.env`의 `NOTION_TOKEN`·`NOTION_BOOK_DB_ID`·`NOTION_WORD_DB_ID` | (구 `NOTION_DB_ID`는 활동 DB — 부모 페이지 생성 시에만 쓰였다) |
+| 실패 정책 | 로그만(`~/.local/state/lshobby-notion-backup.log`), 알림 없음 | PC 꺼짐·Notion 장애는 다음 실행이 따라잡는다 (#45와 같은 1인 규모 판단) |
 
-어댑터 계층은 두지 않았다(#64) — 다른 기록 앱으로 갈아탈 때는 스크립트의 "행→표준 이벤트 배열" 경계 아래(`sendToNotion`)만 바꾸면 된다.
+구 활동 미러의 행들은 Notion에 그대로 남아 있다(삭제는 수동). 백업 DB를 Notion에서 다른 위치로 옮기면 integration 공유가 끊길 수 있다 — 옮긴 뒤에는 해당 페이지에 integration을 다시 연결해야 한다.
