@@ -75,7 +75,7 @@
 | SEC-03 | C | 키 관리 — `service_role` 키는 서버 환경변수 전용, 클라이언트 번들·리포 커밋 금지. 브라우저에는 anon key만. `.env*`는 gitignore |
 | SEC-04 | C | Storage 버킷 **private**(공개 버킷 금지) + authenticated 정책. 이미지 표시는 signed URL 또는 인증 경유 |
 | SEC-05 | P | 마크다운 렌더 시 HTML sanitize(rehype-sanitize 등) — 입력자가 본인뿐이어도 저장 XSS를 습관적으로 차단, 비용 0 |
-| SEC-06 | C | HTTPS 전제(Vercel 기본). CSP 튜닝은 여전히 스코프 외 — 단 **무비용 최소 헤더 2종은 추가** (2026-08-18, #56): `X-Content-Type-Options: nosniff` · `Referrer-Policy: strict-origin-when-cross-origin` (next.config.ts `headers()`) |
+| SEC-06 | C | HTTPS 전제(Vercel 기본). CSP 튜닝은 여전히 스코프 외 — 단 **무비용 최소 헤더 3종은 추가** (2026-08-18 #56 → 2026-08-27 #72 개정): `X-Content-Type-Options: nosniff` · `Referrer-Policy: strict-origin-when-cross-origin` · `X-Frame-Options: DENY`(클릭재킹 차단, #72) (next.config.ts `headers()`) |
 | SEC-07 | — | **명시적 비채택**: 레이트리밋·감사 로그·2FA·세션 정책 커스텀 — SEC-01이 성립하면 1인 규모에서 실익 없음 |
 | SEC-08 | C | **비밀번호 분실 복구 = 운영 절차** (아래 런북). 앱 내 "비밀번호 찾기" 플로우는 비채택 — 재설정 페이지·이메일 설정이 필요해지는데, 프로젝트 소유자 본인이라 대시보드/admin API로 즉시 재설정 가능하므로 코드 0줄이 이김. 다중 사용자 확장 시에만 앱 내 플로우 추가 |
 
