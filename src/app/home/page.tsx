@@ -8,7 +8,6 @@ import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
 import { countThoughts } from "@/modules/thought";
 import {
-  PixelBerg,
   PixelMascot,
   PixelMoon,
   PixelPenguinBook,
@@ -23,8 +22,6 @@ import { IceScene } from "../ui/scene";
 // 모듈 스코프에 둔다 — 컴포넌트 안이면 설정 시트 입력 한 글자마다 장면 JSX 수백 개가 새로 만들어진다
 const DRAWERS: {
   href: string;
-  /** 앱 밖으로 나가는 서랍 — 새 탭으로 연다 */
-  external?: boolean;
   name: string;
   icon: ReactNode;
   tab: string;
@@ -62,22 +59,6 @@ const DRAWERS: {
     ),
   },
   {
-    // CV는 별도 리포(GitHub Pages)로 떠났다 — 서랍은 그 원본 cv.md의 편집 화면으로 나간다
-    href: "https://github.com/LeeSongHeon-LSH/LeeSongHeon-LSH.github.io/edit/main/cv.md",
-    external: true,
-    name: "CV",
-    icon: <PixelMascot size={48} />,
-    tab: "bg-cv",
-    card: "border-cv/40 sky-ice",
-    plate: "bg-cv-soft/95",
-    scene: (
-      <>
-        <span className="absolute bottom-2 left-2"><PixelBerg size={64} /></span>
-        <span className="igloo-floor" />
-      </>
-    ),
-  },
-  {
     href: "/thoughts",
     name: "생각",
     icon: <PixelPenguinThink size={48} />,
@@ -105,7 +86,7 @@ const DRAWERS: {
   },
 ];
 
-// #57·#60 홈(허브) — 쌓인 네 서랍(책·언어·CV·생각), 서랍마다 도메인 펭귄. 탭바 없음
+// #57·#60 홈(허브) — 쌓인 세 서랍(책·언어·생각), 서랍마다 도메인 펭귄. 탭바 없음
 function Hub() {
   const router = useRouter();
   const [wordCount, setWordCount] = useState<number | null>(null);
@@ -159,12 +140,11 @@ function Hub() {
   const counts: Record<string, string> = {
     "/library": bookCount === null ? "" : `완독 ${bookCount}권`,
     "/language": wordCount === null ? "" : `단어 ${wordCount}개`,
-    "https://github.com/LeeSongHeon-LSH/LeeSongHeon-LSH.github.io/edit/main/cv.md": "이력서 편집 ↗",
     "/thoughts": thoughtCount === null ? "" : `기록 ${thoughtCount}개`,
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4 pb-16 md:max-w-4xl md:p-8 md:pb-16">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4 pb-16 md:max-w-5xl md:p-8 md:pb-16">
       <IceScene />
       <header className="mb-4 flex items-center justify-between md:mb-6">
         <div className="flex items-end gap-2.5">
@@ -176,12 +156,11 @@ function Hub() {
         </button>
       </header>
 
-      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-4 gap-3 md:grid-cols-2 md:grid-rows-2 md:gap-5">
+      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-3 md:my-auto md:max-h-[600px] md:grid-cols-3 md:grid-rows-1 md:gap-5">
         {DRAWERS.map((d, i) => (
           <Link
             key={d.href}
             href={d.href}
-            {...(d.external ? { target: "_blank", rel: "noreferrer" } : {})}
             className={`anim-rise pg-host relative flex flex-col items-center justify-center overflow-hidden rounded-md border ${d.card}`}
             style={{ animationDelay: `${i * 70}ms` }}
           >
