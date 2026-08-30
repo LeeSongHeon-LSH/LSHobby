@@ -69,6 +69,10 @@ function ShelfBoard() {
   );
 }
 
+// 책은 넘겨도 크기가 변하지 않는다 — 쪽의 내용이 상자를 밀지 않게 하고(min-h-0),
+// 넘치는 쪽(목차 10줄)은 잘리는 대신 지면 안에서 스크롤한다. 아래 여백은 쪽번호 자리.
+const LEAF = "h-full overflow-y-auto overscroll-contain px-6 pb-8 pt-6 md:px-7 md:pt-7";
+
 const pageNo = (page: Page) =>
   page.t === "rec" ? `p.${page.no}` : page.t === "toc" ? (page.half === 0 ? "목차 i" : "목차 ii") : "";
 
@@ -180,7 +184,7 @@ export default function LibraryJourneyPage() {
         );
       if (page.t === "rec")
         return (
-          <div className="flex h-full flex-col items-center justify-center pb-4 text-center">
+          <div className="flex min-h-full flex-col items-center justify-center pb-4 text-center">
             <p className="font-mono text-[11px] tracking-[0.18em] text-lib">여정 {page.no} / {VOL_CAP}</p>
             <h2 className="mt-4 max-w-[262px] font-display text-[26px] font-bold leading-snug md:text-2xl">
               {page.item.title}
@@ -202,7 +206,7 @@ export default function LibraryJourneyPage() {
           </div>
         );
       return (
-        <div className="flex h-full flex-col items-center justify-center gap-2 text-line">
+        <div className="flex min-h-full flex-col items-center justify-center gap-2 text-line">
           <span className="text-2xl">✳</span>
           <span className="font-mono text-xs">{page.next}번째 여정을 기다리는 중</span>
         </div>
@@ -226,16 +230,18 @@ export default function LibraryJourneyPage() {
         </header>
 
         <div
-          className="relative flex-1 md:mx-auto md:min-h-[360px] md:w-full md:max-h-[560px]"
+          className="relative min-h-0 flex-1 md:mx-auto md:min-h-[360px] md:w-full md:max-h-[560px]"
           style={{ perspective: "1600px" }}
         >
           {wide ? (
             // ── 양면 스프레드 ──
-            <div className="flex h-full">
+            // absolute inset-0: 지면의 h-full이 풀리려면 부모 높이가 확정이어야 한다.
+            // flex-1은 flex-basis만 정할 뿐 height는 auto라 백분율 높이가 내용 높이로 무너진다
+            <div className="absolute inset-0 flex">
               {[pages[base], pages[base + 1]].map((pg, side) => (
                 <div
                   key={side}
-                  className={`relative h-full w-1/2 overflow-hidden border border-line bg-sheet p-7 shadow-[0_10px_30px_rgba(34,38,43,0.08)] ${
+                  className={`relative h-full w-1/2 overflow-hidden border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.08)] ${
                     side === 0 ? "rounded-l-lg border-r-0" : "rounded-r-lg"
                   }`}
                 >
@@ -246,7 +252,7 @@ export default function LibraryJourneyPage() {
                     }}
                     aria-hidden="true"
                   />
-                  {face(pg)}
+                  <div className={LEAF}>{face(pg)}</div>
                   <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-faint">
                     {pg ? pageNo(pg) : ""}
                   </p>
@@ -271,13 +277,13 @@ export default function LibraryJourneyPage() {
           ) : (
             // ── 한 쪽 넘김 ──
             <>
-              <div className="absolute inset-0 overflow-hidden rounded-lg border border-line bg-sheet p-6 shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
+              <div className="absolute inset-0 overflow-hidden rounded-lg border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
                 <span
                   className="pointer-events-none absolute inset-y-0 left-0 w-5 rounded-l-lg"
                   style={{ background: "linear-gradient(90deg, rgba(34,38,43,0.1), transparent)" }}
                   aria-hidden="true"
                 />
-                {face(pages[dispP])}
+                <div className={LEAF}>{face(pages[dispP])}</div>
                 <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-faint">
                   {pages[dispP] ? pageNo(pages[dispP]) : ""}
                 </p>
