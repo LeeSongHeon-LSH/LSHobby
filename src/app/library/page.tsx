@@ -50,6 +50,13 @@ function Ornament() {
   );
 }
 
+// 책등 치수 — 한 보는 모두 완독 20권이라는 같은 값이라 높이도 같게 둔다(#58).
+// 행은 고정 칸 수 그리드: 마지막 줄의 빈 자리(다음 보)도 한 칸을 차지해 줄마다 책등 폭이 흔들리지 않는다.
+const SPINE_H = 152;
+const SHELF_W = "md:mx-auto md:w-full md:max-w-[790px]"; // 790 = 11칸 × 62px + 간격 10×10 + px-1
+const ROW = "grid min-h-[168px] items-end justify-items-center gap-2.5 px-1";
+const cols = (perRow: number) => ({ gridTemplateColumns: `repeat(${perRow + 1}, minmax(0, 1fr))` });
+
 function ShelfBoard() {
   return (
     <>
@@ -325,7 +332,6 @@ export default function LibraryJourneyPage() {
   if (rows.length === 0) rows.push([]);
   const spineColor = (v: number) =>
     vols[v].length < VOL_CAP ? "#6b93b8" : v % 2 === 0 ? "#39536b" : "#4d7fa3";
-  const spineHeight = (v: number) => 142 + ((v * 29) % 15);
   return (
     <main className="flex flex-1 flex-col p-4 md:p-6">
       <header className="mb-5 flex items-start justify-between gap-3 md:mb-8">
@@ -337,19 +343,23 @@ export default function LibraryJourneyPage() {
       </header>
 
       {!loaded ? (
-        <div className="md:mx-auto md:w-full md:max-w-[740px]">
-          <div className="flex min-h-[168px] items-end gap-2.5 px-1">
-            {[152, 144, 148].map((h, i) => (
-              <div key={i} className="w-[62px] animate-pulse rounded-md bg-line/60" style={{ height: h }} />
+        <div className={SHELF_W}>
+          <div className={ROW} style={cols(perRow)}>
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-full max-w-[62px] animate-pulse rounded-md bg-line/60"
+                style={{ height: SPINE_H }}
+              />
             ))}
           </div>
           <ShelfBoard />
         </div>
       ) : (
-      <div className="space-y-0 md:mx-auto md:w-full md:max-w-[740px]">
+      <div className={`space-y-0 ${SHELF_W}`}>
         {rows.map((row, ri) => (
           <div key={ri} className={ri > 0 ? "mt-8" : ""}>
-            <div className="flex min-h-[168px] items-end gap-2.5 px-1">
+            <div className={ROW} style={cols(perRow)}>
               {row.map((v, ci) => {
                 const vi = ri * perRow + ci;
                 return (
@@ -357,7 +367,7 @@ export default function LibraryJourneyPage() {
                     key={vi}
                     onClick={() => setView({ t: "book", vol: vi, p: 0, dir: null })}
                     className="jr-vol"
-                    style={{ height: spineHeight(vi), background: spineColor(vi) }}
+                    style={{ height: SPINE_H, background: spineColor(vi) }}
                   >
                     <span className="jr-band" aria-hidden="true" />
                     <span className="jr-vol-label">
@@ -373,7 +383,10 @@ export default function LibraryJourneyPage() {
                 );
               })}
               {ri === rows.length - 1 && (
-                <div className="flex h-[132px] w-[62px] flex-col items-center justify-center rounded-md border-2 border-dashed border-line text-center">
+                <div
+                  className="flex w-full max-w-[62px] flex-col items-center justify-center rounded-md border-2 border-dashed border-line text-center"
+                  style={{ height: SPINE_H }}
+                >
                   <span className="font-mono text-[10px] tracking-[0.12em] text-faint [writing-mode:vertical-rl]">
                     제{vols.length + 1}보
                   </span>

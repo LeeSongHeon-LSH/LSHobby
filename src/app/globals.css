@@ -273,7 +273,8 @@ body {
 /* ── 독서 여정 책장 (#58) — 책등·선반·한 쪽 넘김 ── */
 .jr-vol {
   position: relative;
-  width: 62px;
+  width: 100%;
+  max-width: 62px;
   border-radius: 6px 6px 3px 3px;
   display: flex;
   flex-direction: column;
