@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
@@ -21,7 +21,17 @@ import { IceScene } from "../ui/scene";
 
 // #69 — 서랍 = 각 세션 장면을 들여다보는 창: 배경은 세션 하늘·시그니처, 내용은 흰 테두리 + 소프트색 판.
 // 모듈 스코프에 둔다 — 컴포넌트 안이면 설정 시트 입력 한 글자마다 장면 JSX 수백 개가 새로 만들어진다
-const DRAWERS = [
+const DRAWERS: {
+  href: string;
+  /** 앱 밖으로 나가는 서랍 — 새 탭으로 연다 */
+  external?: boolean;
+  name: string;
+  icon: ReactNode;
+  tab: string;
+  card: string;
+  plate: string;
+  scene: ReactNode;
+}[] = [
   {
     href: "/library",
     name: "책",
@@ -52,7 +62,9 @@ const DRAWERS = [
     ),
   },
   {
-    href: "/cv/edit",
+    // CV는 별도 리포(GitHub Pages)로 떠났다 — 서랍은 그 원본 cv.md의 편집 화면으로 나간다
+    href: "https://github.com/LeeSongHeon-LSH/LeeSongHeon-LSH.github.io/edit/main/cv.md",
+    external: true,
     name: "CV",
     icon: <PixelMascot size={48} />,
     tab: "bg-cv",
@@ -147,7 +159,7 @@ function Hub() {
   const counts: Record<string, string> = {
     "/library": bookCount === null ? "" : `완독 ${bookCount}권`,
     "/language": wordCount === null ? "" : `단어 ${wordCount}개`,
-    "/cv/edit": "공개 이력서",
+    "https://github.com/LeeSongHeon-LSH/LeeSongHeon-LSH.github.io/edit/main/cv.md": "이력서 편집 ↗",
     "/thoughts": thoughtCount === null ? "" : `기록 ${thoughtCount}개`,
   };
 
@@ -169,6 +181,7 @@ function Hub() {
           <Link
             key={d.href}
             href={d.href}
+            {...(d.external ? { target: "_blank", rel: "noreferrer" } : {})}
             className={`anim-rise pg-host relative flex flex-col items-center justify-center overflow-hidden rounded-md border ${d.card}`}
             style={{ animationDelay: `${i * 70}ms` }}
           >

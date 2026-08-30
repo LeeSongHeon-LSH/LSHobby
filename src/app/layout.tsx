@@ -10,7 +10,7 @@ const plexMono = IBM_Plex_Mono({ weight: ["400", "500"], subsets: ["latin"], var
 
 export const metadata: Metadata = {
   title: "LSHobby",
-  description: "개인 지식·취미 기록 — 책 · 언어 · CV",
+  description: "개인 지식·취미 기록 — 책 · 언어 · 생각",
   appleWebApp: { capable: true, title: "LSHobby", statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },
 };

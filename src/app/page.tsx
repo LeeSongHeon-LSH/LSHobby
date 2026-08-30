@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
-import { CvView } from "./cv/view";
+import Link from "next/link";
+import { PixelMascot } from "./ui/pixel";
+import { IceScene } from "./ui/scene";
 import { RedirectIfAuthed } from "./redirect-if-authed";
 
-// §17 루트 = 공개 CV — 정적 렌더 + 저장 시 revalidatePath로 즉시 반영 (#51 개정, 성능 리뷰 P2), 색인 허용
+// §17 개정 — CV가 별도 리포(GitHub Pages)로 떠나면서 루트는 취미공간의 문이 됐다.
+// 색인은 막는다: 더는 공개 문서가 아니고, 테일넷 안에서만 열리는 주소다.
 export const metadata: Metadata = {
-  title: "이송헌 — CV",
-  description: "이송헌(Lee SongHeon)의 이력서",
+  title: "LSHobby",
+  robots: { index: false, follow: false },
 };
 
-export default function PublicCvPage() {
+export default function EntrancePage() {
   return (
-    <>
+    <main className="flex flex-1 items-center justify-center p-6">
+      <IceScene />
       <RedirectIfAuthed />
-      <CvView />
-    </>
+      <Link href="/login" aria-label="LSHobby" className="pg-host inline-block">
+        <span className="pg-waddle">
+          <PixelMascot size={160} />
+        </span>
+      </Link>
+    </main>
   );
 }

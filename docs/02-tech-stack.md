@@ -9,24 +9,24 @@
 | DB | **Supabase (PostgreSQL)** | 무료 티어 |
 | 인증 | **Supabase Auth** | |
 | 스토리지 | **Supabase Storage** | 이미지/첨부 |
-| 배포 | **Vercel** | GitHub 연동 자동 배포 |
+| 배포 | **집 PC 로컬 호스팅 + Tailscale** | 2026-08-30 Vercel에서 전환 (§16.5). 공개 CV만 GitHub Pages (§17) |
 | 비용 | **0원** | 개인 취미 프로젝트 범위 내 |
 
 ### 2.1 왜 AWS가 아닌가
 - 취미 프로젝트에 월 4~6만원 + 서버 관리 부담은 오버킬
-- Vercel + Supabase 무료 티어로 충분 (DB 500MB, 스토리지 1GB, 대역폭 100GB/월)
+- Supabase 무료 티어 + 집 PC 호스팅으로 충분 (DB 500MB, 스토리지 1GB)
 
 ### 2.2 락인(lock-in) 회피 원칙
-Vercel이 유료화되어도 쉽게 이전할 수 있도록 다음을 지킨다.
+호스팅 업체가 유료화되거나 마음이 바뀌어도 쉽게 옮길 수 있도록 다음을 지킨다.
 
-- [ ] **DB는 Supabase 사용** — Vercel Postgres/KV/Blob **사용 금지**
+- [ ] **DB는 Supabase 사용** — 호스팅 업체 전용 저장소(Vercel Postgres/KV/Blob 등) **사용 금지**
 - [ ] 파일/이미지도 Supabase Storage (또는 Cloudflare R2)
 - [ ] 모든 연결 정보는 **환경변수**로 관리, 코드 하드코딩 금지
-- [ ] Vercel 전용 API 최소화, 표준 Next.js 기능 위주
+- [ ] 호스팅 전용 API 최소화, 표준 Next.js 기능 위주
 - [ ] 정기 백업 (`pg_dump`)
 
-> 이 원칙을 지키면 Vercel → Netlify/Cloudflare/Railway 이전은 30분~1시간,
-> Supabase → 다른 PostgreSQL 이전은 반나절 수준.
+> 이 원칙을 지킨 덕에 **2026-08-30 Vercel → 집 PC 이전이 실제로 반나절도 안 걸렸다**(#73) —
+> 코드에서 뗀 것은 `.vercelignore`뿐. Supabase → 다른 PostgreSQL 이전은 여전히 반나절 수준.
 
 ### 2.3 모바일 우선 설계
 입력의 대부분이 모바일에서 발생하므로 **모바일 우선 → PC 확장** 순서로 설계.

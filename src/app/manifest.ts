@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "LSHobby",
     short_name: "LSHobby",
-    description: "개인 지식·취미 기록 — 책 · 언어 · CV",
+    description: "개인 지식·취미 기록 — 책 · 언어 · 생각",
     start_url: "/home", // 설치형 앱은 취미공간이 목적 — 공개 CV(`/`) 경유·리다이렉트 생략 (§17.2)
     scope: "/",
     display: "standalone",

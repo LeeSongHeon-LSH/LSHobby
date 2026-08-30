@@ -1,6 +1,6 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
-## 16. 인프라 구조 해설 — 현재 상태 (2026-08-14 세팅 완료 기준)
+## 16. 인프라 구조 해설 — 현재 상태 (2026-08-30 로컬 호스팅 전환 반영)
 
 §2(스택 선정 이유)·§12(보안 요구)의 결과물로 **실제로 세워진 인프라가 어떻게 맞물려 도는지**를 학습용으로 풀어쓴 문서. 규칙의 원본은 §12, 여기는 "왜 이렇게 생겼고 요청이 어디로 흐르는가"를 설명한다.
 
@@ -14,9 +14,13 @@ flowchart LR
     subgraph gh["GitHub"]
         REPO["LeeSongHeon-LSH/LSHobby<br/>main 브랜치"]
     end
-    subgraph vercel["Vercel (호스팅)"]
-        BUILD["빌드: next build"]
-        PROD["프로덕션<br/>lshobby.vercel.app"]
+    subgraph home["집 PC (호스팅, 이 서버)"]
+        BUILD["npm run build"]
+        PROD["systemd --user lshobby<br/>next start :3000"]
+        TS["tailscale serve :8443"]
+    end
+    subgraph pages["GitHub Pages"]
+        CV["leesongheon-lsh.github.io<br/>공개 CV (별도 리포, §17)"]
     end
     subgraph supa["Supabase (백엔드, 서울 리전)"]
         AUTH["Auth (GoTrue)<br/>로그인·JWT 발급"]
@@ -26,23 +30,26 @@ flowchart LR
     end
     U["브라우저 (모바일/PC)"]
 
-    CODE -- git push --> REPO -- 자동 트리거 --> BUILD --> PROD
-    U -- HTML·JS·CSS --> PROD
+    CODE -- git push --> REPO
+    CODE -- npm run build<br/>+ systemctl restart --> BUILD --> PROD --> TS
+    U -- "HTML·JS·CSS<br/>(테일넷 안에서만)" --> TS
     U -- supabase-js<br/>(anon key + JWT) --> AUTH & REST
     REST --> DB
+    U -- 공개 링크 --> CV
 ```
 
 핵심 구조 두 가지:
 
-1. **서버 코드가 거의 없는 구조** — 데이터 요청은 Next.js 서버를 거치지 않고 **브라우저 → Supabase 직행**이 기본이다. Vercel은 화면(정적 자산)을 주는 역할, Supabase가 API·DB·인증 전부를 담당한다. 백엔드를 직접 짜는 대신 PostgREST가 테이블마다 REST API를 자동 생성해 준다.
+1. **서버 코드가 거의 없는 구조** — 데이터 요청은 Next.js 서버를 거치지 않고 **브라우저 → Supabase 직행**이 기본이다. 호스팅(지금은 집 PC)은 화면(정적 자산)을 주는 역할, Supabase가 API·DB·인증 전부를 담당한다. 백엔드를 직접 짜는 대신 PostgREST가 테이블마다 REST API를 자동 생성해 준다.
 2. **보안의 최종 방어선은 DB 안(RLS)에 있다** — API가 브라우저에 열려 있으므로, "누가 뭘 읽고 쓸 수 있나"는 서버 코드가 아니라 Postgres의 Row Level Security 정책이 결정한다(§16.3).
 
 ### 16.2 구성요소별 역할
 
 | 구성요소 | 역할 | 우리 설정 |
 |---|---|---|
-| **GitHub** | 소스 저장 + 배포 트리거 | `main` 푸시 = 프로덕션 배포 (Vercel GitHub App 연동) |
-| **Vercel** | 빌드·CDN·호스팅 | 프로젝트 `lshobby`, 환경변수 3종 등록, 프리뷰/프로덕션 분리 |
+| **GitHub** | 소스 저장 + CI | `main`·PR 푸시에 `npm run lint` + `npm test` (배포 트리거 아님 — 2026-08-30 Vercel 연동 해제) |
+| **집 PC** | 빌드·호스팅 | `systemd --user lshobby` = `next start :3000`, 배포는 손으로 (§16.5) |
+| **Tailscale** | 외부 접근 | `tailscale serve :8443` — **테일넷 안에서만** 열린다. 인터넷 공개(funnel) 아님 |
 | **Next.js** | 화면 + (필요 시) 서버 코드 | 16.x, App Router, `src/` 구조 — 모듈 경계는 §3 |
 | **Supabase Auth** | 로그인·세션(JWT) | 이메일 로그인, **가입 서버 차단**(SEC-01), 계정 1개 |
 | **PostgREST** | 테이블 → REST API 자동화 | supabase-js가 클라이언트. 모든 요청에 RLS 적용 |
@@ -76,27 +83,41 @@ sequenceDiagram
 
 | 비밀 | 성격 | 위치 | 용도 |
 |---|---|---|---|
-| anon key | **공개돼도 됨** (RLS가 방어) | `.env`, Vercel env, 브라우저 번들 | 클라이언트 접속 |
-| service_role key | **절대 비공개** — RLS를 통째로 우회 | `.env`(로컬), Vercel env(server-only), `~/.lshobby/api-keys.json` | 관리 작업(계정 생성·SEC-08 재설정), 추후 서버 코드 |
+| anon key | **공개돼도 됨** (RLS가 방어) | `.env`, 브라우저 번들 | 클라이언트 접속 |
+| service_role key | **절대 비공개** — RLS를 통째로 우회 | `.env`(로컬), `~/.lshobby/api-keys.json` | 관리 작업(계정 생성·SEC-08 재설정), 추후 서버 코드 |
 | DB 비밀번호 | 비공개 | `~/.lshobby/db-password` | `pg_dump` 백업(NFR-04), `supabase link` |
 | 앱 로그인 비밀번호 | 본인만 | `~/.lshobby/app-password` (+비밀번호 관리자) | 앱 로그인. 분실 시 SEC-08 런북 |
-| Supabase/Vercel 대시보드 계정 | **최상위 복구 수단** | GitHub 로그인 | 모든 것의 마스터 키 |
+| Supabase 대시보드 계정 | **최상위 복구 수단** | GitHub 로그인 | 모든 것의 마스터 키 |
 
-규칙(SEC-03): 비밀은 `.env`(gitignore)와 Vercel env로만 — 코드·리포에 하드코딩 금지. **`NEXT_PUBLIC_` 접두사가 붙은 변수만 브라우저 번들에 들어간다**는 Next.js 규칙이 anon(공개)과 service_role(서버 전용)의 경계를 코드 레벨에서 지켜준다.
+규칙(SEC-03): 비밀은 `.env`(gitignore)로만 — 코드·리포에 하드코딩 금지. 호스팅이 집 PC로 내려오면서 원격 환경변수 저장소는 아예 없어졌다. **`NEXT_PUBLIC_` 접두사가 붙은 변수만 브라우저 번들에 들어간다**는 Next.js 규칙이 anon(공개)과 service_role(서버 전용)의 경계를 코드 레벨에서 지켜준다.
 
-### 16.5 배포 파이프라인
+### 16.5 배포 — 집 PC 로컬 호스팅 + Tailscale (2026-08-30 전환, #73)
+
+Vercel을 내리고 **이 PC가 프로덕션**이 됐다. 공개할 것은 CV 하나뿐인데 그건 이미 GitHub Pages로 나갔고(§17), 남은 취미공간은 나만 쓰므로 인터넷에 있을 이유가 없다. 배치(§16.11·§16.12)도 이미 이 PC의 cron이라 운영 지점이 한 곳으로 모인다.
 
 ```mermaid
 flowchart LR
-    A[git push main] --> B[GitHub]
-    B --> C["Vercel 빌드<br/>npm install → next build"]
-    C --> D["프로덕션 배포<br/>lshobby.vercel.app"]
-    C -. 실패 시 .-> E["이전 배포 유지<br/>(사이트 안 죽음)"]
+    A[코드 수정] --> B["npm run build"]
+    B --> C["systemctl --user restart lshobby"]
+    C --> D["next start :3000"]
+    D --> E["tailscale serve :8443"]
+    E --> F["https://leesongheon.tailc7c4e0.ts.net:8443<br/>(테일넷 기기에서만)"]
+    B -. 실패 시 .-> G["직전 .next 그대로 서빙<br/>(restart를 안 하면 사이트는 안 죽는다)"]
 ```
 
-- **main 푸시 = 프로덕션**. 다른 브랜치를 푸시하면 고유 URL의 **프리뷰 배포**가 생긴다 (컷오버 전 기능 확인에 활용 가능)
-- 빌드가 실패하면 배포되지 않고 직전 버전이 계속 서빙된다 — 푸시가 사이트를 깨뜨리지 않는 구조
-- `vercel deploy` CLI 직접 배포는 이제 쓰지 않는다. **주의 이력**: CLI 배포는 `.gitignore`를 무시하고 `.env`를 업로드해서 `.vercelignore`로 차단해 뒀다 (2026-08-14 실제 발생·조치)
+- **배포 = 손으로 두 줄.** `main` 푸시는 이제 배포를 일으키지 않는다(GitHub Actions CI는 테스트만 돈다).
+  ```bash
+  npm run build && systemctl --user restart lshobby
+  ```
+- **상시 구동**: `~/.config/systemd/user/lshobby.service` (`Restart=always`) + `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**를 쓴다(노드를 올리면 유닛도 고쳐야 한다).
+- **외부 접근 = Tailscale `serve`**: 테일넷에 들어온 기기만 닿는다. `funnel`이 아니므로 인터넷에는 열리지 않는다. TLS는 tailscaled가 테일넷 도메인 인증서로 종단한다 — `next.config.ts`의 헤더 3종(SEC-06)은 그대로 살아서 나간다.
+- **포트가 443이 아니라 8443인 이유**: 이 PC의 kind 클러스터(다른 프로젝트) 컨테이너가 `0.0.0.0:80`·`0.0.0.0:443`을 이미 점유하고 있어 tailscaled가 IPv4 443을 잡지 못한다. 443을 비우면 `tailscale serve --bg 3000`으로 되돌려 주소에서 포트를 뗄 수 있다.
+- **끄고 켜기**: `tailscale serve --https=8443 off` / `tailscale serve --bg --https=8443 3000`, 상태는 `tailscale serve status`.
+- **DB는 그대로 원격 Supabase**다. 호스팅만 내려왔을 뿐이라 PC가 꺼져도 데이터는 안전하고, 대신 PC가 꺼져 있으면 앱에 접속할 수 없다 — 가용성은 NFR-03의 best-effort에서 한 단계 더 내려간 셈(수용).
+
+**공개 CV는 다른 경로다**: 별도 리포 `LeeSongHeon-LSH.github.io`의 `main` 푸시 → GitHub Actions → Pages (§17.4). 이쪽만 인터넷에 있다.
+
+> **주의 이력**: `vercel deploy` CLI 직접 배포는 `.gitignore`를 무시하고 `.env`를 업로드해서 `.vercelignore`로 막아 뒀었다 (2026-08-14). Vercel을 쓰지 않게 되면서 `.vercelignore`·`.vercel/`도 함께 제거했다 — CLI로 다시 배포할 일이 생기면 이 차단부터 복원할 것.
 
 ### 16.6 스키마 변경 절차 (형상 관리)
 
@@ -110,13 +131,14 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 ### 16.7 로컬 개발 ↔ 프로덕션
 
-| | 로컬 (`npm run dev`) | 프로덕션 |
+| | 개발 (`npm run dev`) | 프로덕션 |
 |---|---|---|
-| 화면 | localhost:3000 | lshobby.vercel.app |
-| 환경변수 | `.env` 파일 | Vercel env (대시보드/CLI 등록분) |
+| 화면 | localhost:3000 | `https://leesongheon.tailc7c4e0.ts.net:8443` (같은 PC의 :3000을 프록시) |
+| 실행 | 터미널에서 직접 | `systemd --user lshobby` (`next start`) |
+| 환경변수 | `.env` 파일 | 같은 `.env` 파일 |
 | DB | **같은 Supabase를 바라봄** | 같음 |
 
-로컬 개발도 프로덕션 DB를 직접 쓴다 — 1인 프로젝트라 dev/prod DB 분리를 하지 않았다(단순성 우선). 파괴적인 실험이 필요하면 그때 `supabase start`(로컬 Docker DB)를 검토.
+이제 개발과 프로덕션이 **같은 PC·같은 파일**을 쓴다 — `npm run dev`를 띄워도 3000 포트가 이미 서비스에 잡혀 있으므로, 개발할 때는 서비스를 멈추거나(`systemctl --user stop lshobby`) 다른 포트로 띄운다. 로컬 개발도 프로덕션 DB를 직접 쓴다 — 1인 프로젝트라 dev/prod DB 분리를 하지 않았다(단순성 우선). 파괴적인 실험이 필요하면 그때 `supabase start`(로컬 Docker DB)를 검토.
 
 ### 16.8 구 파이썬 앱과의 공존 — **종료됨 (2026-08-15 컷오버, #49)**
 
@@ -135,8 +157,8 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 ### 16.9 무료 티어 한계와 운영 수칙
 
 - **Supabase Free**: DB 500MB · Storage 1GB · 자동 백업 없음 → **`pg_dump` 주 1회**(NFR-04). 장기 무활동 시 프로젝트 일시정지 가능(상시 사용이면 무관)
-- **Vercel Hobby**: 대역폭 100GB/월 — 1인 사용에 충분
-- 락인 회피(§2.2): DB·Storage가 전부 Supabase(표준 Postgres)에 있으므로 Vercel 이전은 재배포 수준, Supabase 이전은 `pg_dump` 복원 수준
+- **호스팅 비용 0원**: 집 PC + Tailscale(개인 무료 플랜) + GitHub Pages. 대역폭 한도라는 개념 자체가 사라졌다
+- 락인 회피(§2.2): DB·Storage가 전부 Supabase(표준 Postgres)에 있으므로 호스팅 이전은 재배포 수준, Supabase 이전은 `pg_dump` 복원 수준 — 2026-08-30 Vercel → 집 PC 이전이 이 원칙의 실증
 
 ### 16.10 식별자 모음 (운영 참조)
 
@@ -144,8 +166,10 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 |---|---|
 | Supabase 프로젝트 | `pxozfdypiexwakocfofs` (서울 ap-northeast-2) |
 | Supabase URL | `https://pxozfdypiexwakocfofs.supabase.co` |
-| Vercel 프로젝트 | `lshobby` (팀 `lsh12`) |
-| 프로덕션 URL | https://lshobby.vercel.app |
+| 프로덕션 URL | `https://leesongheon.tailc7c4e0.ts.net:8443` (테일넷 전용) |
+| 서비스 유닛 | `~/.config/systemd/user/lshobby.service` |
+| 공개 CV | https://leesongheon-lsh.github.io (리포 `LeeSongHeon-LSH.github.io`, §17) |
+| 구 Vercel 프로젝트 | `lshobby` (팀 `lsh12`) — GitHub 연동 해제됨 (2026-08-30) |
 | 앱 계정 | leesongheon1209@gmail.com (1계정, 가입 차단) |
 | 비밀 보관 | `~/.lshobby/` (600 권한) + 리포 `.env`(gitignore) |
 
