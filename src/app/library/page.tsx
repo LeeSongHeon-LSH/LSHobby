@@ -395,7 +395,7 @@ export default function LibraryJourneyPage() {
         href="/library/record"
         className="mt-6 block w-full rounded-md bg-lib py-3 text-center font-medium text-white md:mx-auto md:w-72"
       >
-        ＋ 완독 기록
+        ＋ 독서 기록
       </Link>
 
       {sheet && (

@@ -11,6 +11,7 @@ import {
   noInVol,
   previewJourneyNo,
   recordCompletion,
+  sortJourney,
   volOf,
   type Book,
   type BookListItem,
@@ -58,8 +59,11 @@ export default function RecordPage() {
   const journeyNoById = useMemo(() => journeyNumbers(books), [books]);
   const nextJourneyNo = journeyNoById.size + 1;
 
+  // 목록도 여정 번호 순(최초 완독 오름차순) — listBooks의 최근 완독순 그대로 두면 번호가 뒤섞여 보인다
+  const ordered = useMemo(() => sortJourney(books), [books]);
+
   const q = query.trim().toLowerCase();
-  const matches = q ? books.filter((b) => b.title.toLowerCase().includes(q)) : books;
+  const matches = q ? ordered.filter((b) => b.title.toLowerCase().includes(q)) : ordered;
 
   const createAndPick = async () => {
     setBusy(true);
@@ -102,7 +106,7 @@ export default function RecordPage() {
         <header className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
-            <h1 className="font-display text-2xl font-bold">완독 기록</h1>
+            <h1 className="font-display text-2xl font-bold">독서 기록</h1>
           </div>
           <button
             onClick={() => setPicked(null)}
@@ -180,7 +184,7 @@ export default function RecordPage() {
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
-          <h1 className="font-display text-2xl font-bold">완독 기록</h1>
+          <h1 className="font-display text-2xl font-bold">독서 기록</h1>
         </div>
         <Link
           href="/library"

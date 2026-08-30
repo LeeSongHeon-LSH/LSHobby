@@ -199,7 +199,7 @@ export function BookSheet({
                       <span className="text-star">{stars(r.rating)}</span>
                     </li>
                   ))}
-                  {readings.length === 0 && <li className="py-1.5 text-xs text-faint">아직 완독 기록이 없습니다</li>}
+                  {readings.length === 0 && <li className="py-1.5 text-xs text-faint">아직 독서 기록이 없습니다</li>}
                 </ul>
               </section>
 

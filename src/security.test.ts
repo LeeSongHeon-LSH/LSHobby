@@ -45,8 +45,8 @@ describe("가입 차단 (FR-01·SEC-01 — 회원가입 UI 없음)", () => {
   });
 });
 
-describe("최소 보안 헤더 (SEC-06 · 결정 #56)", () => {
-  it("전 경로에 nosniff·Referrer-Policy가 걸린다", async () => {
+describe("최소 보안 헤더 (SEC-06 · 결정 #56·#72)", () => {
+  it("전 경로에 nosniff·Referrer-Policy·X-Frame-Options가 걸린다", async () => {
     const rules = await nextConfig.headers!();
     const all = rules.find((r) => r.source === "/(.*)");
     expect(all).toBeDefined();
@@ -55,5 +55,6 @@ describe("최소 보안 헤더 (SEC-06 · 결정 #56)", () => {
       key: "Referrer-Policy",
       value: "strict-origin-when-cross-origin",
     });
+    expect(all!.headers).toContainEqual({ key: "X-Frame-Options", value: "DENY" });
   });
 });
