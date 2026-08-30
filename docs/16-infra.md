@@ -97,19 +97,30 @@ Vercel을 내리고 **이 PC가 프로덕션**이 됐다. 공개할 것은 CV �
 
 ```mermaid
 flowchart LR
-    A[코드 수정] --> B["npm run build"]
+    A[git push main] --> T["lshobby-deploy.timer<br/>2분마다 origin/main 대조"]
+    T --> B["git merge --ff-only<br/>+ npm run build"]
     B --> C["systemctl --user restart lshobby"]
     C --> D["next start :3000"]
     D --> E["tailscale serve :8443"]
     E --> F["https://leesongheon.tailc7c4e0.ts.net:8443<br/>(테일넷 기기에서만)"]
-    B -. 실패 시 .-> G["직전 .next 그대로 서빙<br/>(restart를 안 하면 사이트는 안 죽는다)"]
+    B -. 빌드 실패 .-> G["재시작 안 함<br/>직전 빌드가 계속 서빙"]
 ```
 
-- **배포 = 손으로 두 줄.** `main` 푸시는 이제 배포를 일으키지 않는다(GitHub Actions CI는 테스트만 돈다).
+- **배포 = `main` 푸시** (2026-08-30 자동화). `systemd --user` 타이머 `lshobby-deploy.timer`가 **2분마다** `scripts/deploy-local.sh`를 돌려 origin/main과 대조하고, 새 커밋이 있을 때만 받아서 빌드·재시작한다. 손으로 하려면 같은 두 줄이 그대로 통한다:
   ```bash
   npm run build && systemctl --user restart lshobby
   ```
-- **상시 구동**: `~/.config/systemd/user/lshobby.service` (`Restart=always`) + `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**를 쓴다(노드를 올리면 유닛도 고쳐야 한다).
+  자동 배포의 안전장치 — 하나라도 걸리면 **돌던 사이트는 그대로 둔다**:
+
+  | 상황 | 동작 |
+  |---|---|
+  | 작업 트리가 더럽거나 `main`이 아님 | 건너뜀 (개발 중일 수 있다 — 이 PC가 개발기이자 서버다) |
+  | 로컬 `main`이 origin과 갈라짐 | `--ff-only` 실패 → 멈춤, 손이 개입 |
+  | `package-lock.json`이 바뀐 커밋 | `npm ci` 먼저 |
+  | 빌드 실패 | 재시작을 안 한다 → **직전 빌드가 계속 서빙** |
+
+  로그는 `journalctl --user -u lshobby-deploy`. 잠깐 끄려면 `systemctl --user stop lshobby-deploy.timer`.
+- **상시 구동**: `~/.config/systemd/user/lshobby.service` (`Restart=always`) + 배포 타이머 `lshobby-deploy.{service,timer}`, 그리고 `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**를 쓴다(노드를 올리면 유닛도 고쳐야 한다).
 - **외부 접근 = Tailscale `serve`**: 테일넷에 들어온 기기만 닿는다. `funnel`이 아니므로 인터넷에는 열리지 않는다. TLS는 tailscaled가 테일넷 도메인 인증서로 종단한다 — `next.config.ts`의 헤더 3종(SEC-06)은 그대로 살아서 나간다.
 - **포트가 443이 아니라 8443인 이유**: 이 PC의 kind 클러스터(다른 프로젝트) 컨테이너가 `0.0.0.0:80`·`0.0.0.0:443`을 이미 점유하고 있어 tailscaled가 IPv4 443을 잡지 못한다. 443을 비우면 `tailscale serve --bg 3000`으로 되돌려 주소에서 포트를 뗄 수 있다.
 - **끄고 켜기**: `tailscale serve --https=8443 off` / `tailscale serve --bg --https=8443 3000`, 상태는 `tailscale serve status`.

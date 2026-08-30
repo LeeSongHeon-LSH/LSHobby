@@ -14,7 +14,7 @@ npm run dev     # localhost:3000 (.env 필요 — docs/16 §16.4)
 npm test        # vitest
 ```
 
-배포는 이 PC에서 손으로 두 줄이다 — `main` 푸시는 배포를 일으키지 않는다:
+배포는 **`main` 푸시**다 — 이 PC의 systemd 타이머(`lshobby-deploy.timer`)가 2분마다 origin/main을 확인해 받아서 빌드·재시작한다. 작업 트리가 더럽거나 빌드가 실패하면 건드리지 않는다 ([docs/16 §16.5](docs/16-infra.md), 로그는 `journalctl --user -u lshobby-deploy`). 기다리지 않고 바로 올리려면:
 
 ```bash
 npm run build && systemctl --user restart lshobby
