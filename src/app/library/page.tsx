@@ -70,7 +70,8 @@ function ShelfBoard() {
 }
 
 // 책은 넘겨도 크기가 변하지 않는다 — 쪽의 내용이 상자를 밀지 않게 하고(min-h-0),
-// 넘치는 쪽(목차 10줄)은 잘리는 대신 지면 안에서 스크롤한다. 아래 여백은 쪽번호 자리.
+// 그래도 넘치면 잘리는 대신 지면 안에서 스크롤한다. 목차는 스스로 높이를 나눠 가지므로
+// 이 스크롤에 닿지 않는 것이 정상이다 (#75). 아래 여백은 쪽번호 자리.
 const LEAF = "h-full overflow-y-auto overscroll-contain px-6 pb-8 pt-6 md:px-7 md:pt-7";
 
 // 지면 가장자리 탭 = 넘김. 안쪽 버튼·링크를 누른 것은 넘기지 않는다
@@ -169,31 +170,40 @@ export default function LibraryJourneyPage() {
       if (!page || page.t === "pad") return null;
       if (page.t === "toc")
         return (
-          <div>
+          // 10줄은 지면 높이를 나눠 갖는다 — 줄마다 높이가 고정이면 필요한 높이가 화면보다 먼저
+          // 정해져서, 쪽을 아무리 키워도 조금 짧은 화면에서 다시 넘친다 (#75). 줄이 좁아질 수
+          // 있는 하한(min-h-9)까지 줄어들고, 그보다 짧은 화면에서만 LEAF의 스크롤이 받는다
+          <div className="flex h-full flex-col">
             <p className="text-center font-mono text-[11px] tracking-[0.2em] text-lib">CONTENTS</p>
             <p className="mt-0.5 text-center font-display text-xl font-bold">목차</p>
             <p className="mb-3 mt-0.5 text-center font-mono text-[11px] tracking-[0.08em] text-faint">
               여정 {page.half === 0 ? "1–10" : "11–20"}
             </p>
-            {Array.from({ length: 10 }, (_, i) => {
-              const no = page.half * 10 + i + 1;
-              const item = items[no - 1];
-              return (
-                <button
-                  key={no}
-                  onClick={() => item && jump(no + 1)}
-                  disabled={!item}
-                  className="relative z-[1] flex w-full items-baseline gap-2 border-b border-dotted border-line px-0.5 py-2.5 text-left text-[13px] disabled:text-line"
-                >
-                  <span className={`w-5 shrink-0 font-mono text-[10px] ${item ? "text-lib" : "text-line"}`}>
-                    {String(no).padStart(2, "0")}
-                  </span>
-                  <span className="truncate font-display">{item?.title ?? ""}</span>
-                  <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
-                  <span className="shrink-0 font-mono text-[10px] text-faint">{item ? `p.${no}` : ""}</span>
-                </button>
-              );
-            })}
+            <div className="flex flex-1 flex-col">
+              {Array.from({ length: 10 }, (_, i) => {
+                const no = page.half * 10 + i + 1;
+                const item = items[no - 1];
+                return (
+                  <button
+                    key={no}
+                    onClick={() => item && jump(no + 1)}
+                    disabled={!item}
+                    className="relative z-[1] flex max-h-13 min-h-9 flex-1 items-center border-b border-dotted border-line px-0.5 text-left text-[13px] disabled:text-line"
+                  >
+                    {/* 줄 높이가 늘었다 줄었다 하므로 글자는 안쪽에서 세로 가운데에 놓는다.
+                        번호·제목·점선·쪽번호가 한 밑선에 서는 것은 이 안쪽 줄이 계속 맡는다 */}
+                    <span className="flex w-full items-baseline gap-2">
+                      <span className={`w-5 shrink-0 font-mono text-[10px] ${item ? "text-lib" : "text-line"}`}>
+                        {String(no).padStart(2, "0")}
+                      </span>
+                      <span className="truncate font-display">{item?.title ?? ""}</span>
+                      <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
+                      <span className="shrink-0 font-mono text-[10px] text-faint">{item ? `p.${no}` : ""}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         );
       if (page.t === "rec")
@@ -231,7 +241,9 @@ export default function LibraryJourneyPage() {
       "inline-flex min-h-11 w-[76px] items-center justify-center rounded-lg border border-lib/40 bg-lib-soft font-mono text-xs text-lib";
 
     return (
-      <main className="flex flex-1 flex-col p-4 md:p-6">
+      // 펼친 책은 벽 앞에 떠 있다 — 책장의 "벽 위에서만"(#68) 규칙을 벗어나 뷰포트 전체를 쓰고,
+      // 아래로는 벽 앞 펭귄 띠만 비워 둔다. 지면이 쪽 안에서 스크롤되면 책이 아니다 (#75)
+      <main className="flex h-dvh flex-col p-4 pb-[var(--shelf-figures)] md:p-6 md:pb-[var(--shelf-figures)]">
         <header className="mb-3 flex items-center gap-2 md:mb-4">
           <button onClick={() => setView({ t: "shelf" })} className={navBtn}>← 책장</button>
           <div className="flex-1 text-center">
@@ -244,7 +256,7 @@ export default function LibraryJourneyPage() {
         </header>
 
         <div
-          className="relative min-h-0 flex-1 md:mx-auto md:min-h-[360px] md:w-full md:max-h-[560px]"
+          className="relative min-h-0 flex-1 md:mx-auto md:min-h-[360px] md:w-full md:max-h-[680px]"
           style={{ perspective: "1600px" }}
         >
           {wide ? (
@@ -255,7 +267,7 @@ export default function LibraryJourneyPage() {
               {[pages[base], pages[base + 1]].map((pg, side) => (
                 <div
                   key={side}
-                  className={`relative h-full w-1/2 overflow-hidden border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.08)] ${
+                  className={`relative h-full w-1/2 overflow-hidden border border-line bg-sheet shadow-[0_18px_44px_-12px_rgba(34,38,43,0.38)] ${
                     side === 0 ? "rounded-l-lg border-r-0" : "rounded-r-lg"
                   }`}
                 >
@@ -281,7 +293,7 @@ export default function LibraryJourneyPage() {
               {view.dir && (
                 <div
                   onAnimationEnd={commitFlip}
-                  className={`absolute bottom-0 right-0 top-0 w-1/2 origin-left rounded-r-lg border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.12)] ${
+                  className={`absolute bottom-0 right-0 top-0 w-1/2 origin-left rounded-r-lg border border-line bg-sheet shadow-[0_18px_44px_-12px_rgba(34,38,43,0.38)] ${
                     view.dir === "next" ? "jr-flip-out" : "jr-flip-in"
                   }`}
                   aria-hidden="true"
@@ -291,7 +303,7 @@ export default function LibraryJourneyPage() {
           ) : (
             // ── 한 쪽 넘김 ──
             <>
-              <div className="absolute inset-0 overflow-hidden rounded-lg border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
+              <div className="absolute inset-0 overflow-hidden rounded-lg border border-line bg-sheet shadow-[0_18px_44px_-12px_rgba(34,38,43,0.38)]">
                 <span
                   className="pointer-events-none absolute inset-y-0 left-0 w-5 rounded-l-lg"
                   style={{ background: "linear-gradient(90deg, rgba(34,38,43,0.1), transparent)" }}
@@ -317,7 +329,7 @@ export default function LibraryJourneyPage() {
               {view.dir && (
                 <div
                   onAnimationEnd={commitFlip}
-                  className={`absolute inset-0 origin-left rounded-lg border border-line bg-sheet shadow-[0_10px_30px_rgba(34,38,43,0.12)] ${
+                  className={`absolute inset-0 origin-left rounded-lg border border-line bg-sheet shadow-[0_18px_44px_-12px_rgba(34,38,43,0.38)] ${
                     view.dir === "next" ? "jr-flip-out" : "jr-flip-in"
                   }`}
                   aria-hidden="true"
@@ -327,7 +339,8 @@ export default function LibraryJourneyPage() {
           )}
         </div>
 
-        <p className="mt-2.5 text-center font-mono text-[11px] text-faint">
+        {/* 벽(나무) 위에 앉으므로 text-faint가 그대로면 안 읽힌다 — 책과 같은 종이 조각에 얹는다 */}
+        <p className="mx-auto mt-3 w-fit rounded-full bg-sheet/95 px-3 py-1 text-center font-mono text-[11px] text-faint">
           {wide
             ? `${base / 2 + 1} / ${nav.total / 2} 펼침 · 접힌 모서리 = 넘김`
             : `${dispP + 1} / ${nav.total} 쪽 · 좌우 가장자리 탭 = 넘김`}
@@ -353,7 +366,8 @@ export default function LibraryJourneyPage() {
   const spineColor = (v: number) =>
     vols[v].length < VOL_CAP ? "#6b93b8" : v % 2 === 0 ? "#39536b" : "#4d7fa3";
   return (
-    <main className="flex flex-1 flex-col p-4 md:p-6">
+    // 벽이 늘 보이게 — 책장은 벽 위 영역 안에서만 스크롤한다 (#68)
+    <main className="flex h-[calc(100dvh-var(--shelf-h)-var(--shelf-lip))] flex-col overflow-y-auto p-4 md:p-6">
       <header className="mb-5 flex items-start justify-between gap-3 md:mb-8">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>

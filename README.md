@@ -6,6 +6,16 @@
 - **스택**: Next.js + Tailwind + Supabase, 호스팅은 집 PC + Tailscale — 근거는 [docs/02](docs/02-tech-stack.md)
 - **설계 문서**: [docs/](docs/README.md) — 아키텍처·모듈 설계·ERD/DDL·요구사항 명세(SRS)·인프라 해설(§16)
 
+## 화면
+
+![펼친 책 — 여정 지면](docs/assets/library-book.png)
+
+**책** — 서재에서 책등을 고르면 지면이 펼쳐지고, 접힌 모서리를 누르면 넘어간다. 벽·책장·펭귄은 세 서랍이 함께 쓰는 한 장면이고, 화면은 그 앞에 놓인다.
+
+| 홈 — 세 서랍 | 언어 — 오늘 복습 |
+| :---: | :---: |
+| ![홈 화면](docs/assets/home.png) | ![언어 세션](docs/assets/language.png) |
+
 ## 개발
 
 ```bash

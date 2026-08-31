@@ -50,6 +50,9 @@ body {
   --shelf-h: max(20dvh, 132px);
   --shelf-lip: 6px;
   --shelf-tile: 96px; /* 48×28 타일의 렌더 폭 — 반드시 48의 정수배(도트가 정수 픽셀에 떨어지게) */
+  /* 벽 앞에서 읽는 펭귄들이 앉은 띠 — 펼친 책은 벽 위로 내려오되 여기는 덮지 않는다.
+     가장 큰 펭귄이 bottom:12px에서 56px까지 오므로 16px 여유를 둔 값 */
+  --shelf-figures: 72px;
   --tab-h: 53px; /* 모바일 탭바 — TabBar와 ChatterScene 바닥이 같은 값을 쓴다 */
 }
 
