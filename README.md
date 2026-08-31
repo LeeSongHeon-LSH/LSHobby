@@ -12,9 +12,9 @@
 
 **책** — 서재에서 책등을 고르면 지면이 펼쳐지고, 접힌 모서리를 누르면 넘어간다. 벽·책장·펭귄은 세 서랍이 함께 쓰는 한 장면이고, 화면은 그 앞에 놓인다.
 
-| 홈 — 세 서랍 | 언어 — 오늘 복습 |
-| :---: | :---: |
-| ![홈 화면](docs/assets/home.png) | ![언어 세션](docs/assets/language.png) |
+| 홈 — 세 서랍 | 서재 — 독서 여정 | 언어 — 오늘 복습 |
+| :---: | :---: | :---: |
+| ![홈 화면](docs/assets/home.png) | ![서재 책장](docs/assets/library-shelf.png) | ![언어 세션](docs/assets/language.png) |
 
 ## 개발
 
