@@ -2,8 +2,8 @@
 
 > **작성일**: 2026-08-14 (모듈·ERD/DDL·와이어프레임 확정: 2026-08-14)
 > **앱 이름**: **LSHobby** — GitHub 리포 `LeeSongHeon-LSH/LSHobby` (구 Spanish-Practice에서 개명 완료)
-> **상태**: **2026-08-30 분리·이전(#73) 완료** — 공개 CV는 별도 리포(GitHub Pages)로, 앱 본체는 Vercel에서 **집 PC 로컬 호스팅 + Tailscale**로. 홈 4서랍(책/언어/CV↗/생각) · 독서 여정 책장 · 펭귄 리테마
-> **프로덕션**: `https://leesongheon.tailc7c4e0.ts.net:8443` (테일넷 전용, §16.5) · **공개 CV**: https://leesongheon-lsh.github.io (§17)
+> **상태**: **2026-08-30 분리·이전(#73) 완료** — 공개 CV는 별도 리포(GitHub Pages)로, 앱 본체는 Vercel에서 **집 PC 로컬 호스팅 + Tailscale**로. 홈 3서랍(책/언어/생각, #69) · 독서 여정 책장 · 펭귄 리테마
+> **프로덕션**: `https://<호스트>.ts.net:8443` (테일넷 전용, §16.5) · **공개 CV**: https://leesongheon-lsh.github.io (§17)
 > **다음 작업**: PWA 아이콘 PNG 재제작(구 팔레트) · 데스크톱 레이아웃 — 이후는 사용하며 발견하는 개선
 
 ## 1. 프로젝트 개요

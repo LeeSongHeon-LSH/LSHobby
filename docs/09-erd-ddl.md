@@ -5,7 +5,7 @@
 ## 9. 전체 ERD 및 DDL — 확정 (2026-08-14) · 개정 (2026-08-20, #57·#58)
 
 컷오버 시 이 DDL이 Supabase 마이그레이션 파일의 원본이 된다.
-2026-08-20 구조 개편으로 `quote`·`concept`·`concept_link` 3테이블과 CS 이미지용 `attachments` Storage 버킷을 drop — 현행 **16테이블**.
+2026-08-20 구조 개편으로 `quote`·`concept`·`concept_link` 3테이블과 CS 이미지용 `attachments` Storage 버킷을 drop, 2026-08-30 CV 분리(#73)로 `cv_document`까지 drop — 현행 **17테이블**(마이그레이션 `create table` 21 − `drop table` 4, 라이브 DB 실측 일치).
 영어 확장(2026-08-18, #54)으로 `en_*` 4개 테이블이 추가됐다 — `es_*`와 동일 구조에서 `gender`(언어 특수 필드)만 제외.
 이때 예문 원문 컬럼을 일반화했다: `es_sentences.es_text` → `text` (언어가 늘어도 스키마가 자연스럽도록).
 

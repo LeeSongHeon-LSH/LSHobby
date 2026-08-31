@@ -110,7 +110,7 @@ async function summarizeDay(thoughts) {
 }
 
 // ---------- activity 사실 한 줄 (LLM 없이 집계) ----------
-const DOMAIN_LABELS = { language: "언어", library: "책", cv: "CV" };
+const DOMAIN_LABELS = { language: "언어", library: "책" };
 
 async function activityLine(day) {
   const { from, to } = dayRange(day);

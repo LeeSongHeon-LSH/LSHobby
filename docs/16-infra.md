@@ -25,7 +25,7 @@ flowchart LR
     subgraph supa["Supabase (백엔드, 서울 리전)"]
         AUTH["Auth (GoTrue)<br/>로그인·JWT 발급"]
         REST["PostgREST<br/>테이블 자동 REST API"]
-        DB[("PostgreSQL 17<br/>19개 테이블 + RLS")]
+        DB[("PostgreSQL 17<br/>17개 테이블 + RLS")]
         STG["Storage<br/>(버킷 아직 없음)"]
     end
     U["브라우저 (모바일/PC)"]
@@ -98,26 +98,39 @@ Vercel을 내리고 **이 PC가 프로덕션**이 됐다. 공개할 것은 CV �
 ```mermaid
 flowchart LR
     A[git push main] --> T["lshobby-deploy.timer<br/>2분마다 origin/main 대조"]
-    T --> B["git merge --ff-only<br/>+ npm run build"]
-    B --> C["systemctl --user restart lshobby"]
-    C --> D["next start :3000"]
+    T --> CI{"GitHub CI 초록?"}
+    CI -. 대기·실패 .-> G["교체 안 함<br/>직전 빌드가 계속 서빙"]
+    CI -- 통과 --> B["git merge --ff-only<br/>+ .next-staging에 빌드"]
+    B -. 빌드 실패 .-> G
+    B -- 성공 --> S["mv .next-staging .next<br/>+ restart + 헬스체크"]
+    S -. 헬스체크 실패 .-> R["직전 .next로 롤백"]
+    S -- 통과 --> D["next start :3000"]
     D --> E["tailscale serve :8443"]
-    E --> F["https://leesongheon.tailc7c4e0.ts.net:8443<br/>(테일넷 기기에서만)"]
-    B -. 빌드 실패 .-> G["재시작 안 함<br/>직전 빌드가 계속 서빙"]
+    E --> F["테일넷 주소 :8443<br/>(테일넷 기기에서만)"]
 ```
 
-- **배포 = `main` 푸시** (2026-08-30 자동화). `systemd --user` 타이머 `lshobby-deploy.timer`가 **2분마다** `scripts/deploy-local.sh`를 돌려 origin/main과 대조하고, 새 커밋이 있을 때만 받아서 빌드·재시작한다. 손으로 하려면 같은 두 줄이 그대로 통한다:
+- **배포 = `main` 푸시** (2026-08-30 자동화). `systemd --user` 타이머 `lshobby-deploy.timer`가 **2분마다** `scripts/deploy-local.sh`를 돌려 origin/main과 대조하고, 새 커밋이 있을 때만 받아서 빌드·교체한다. 손으로 하려면 같은 두 줄이 그대로 통한다:
   ```bash
   npm run build && systemctl --user restart lshobby
   ```
-  자동 배포의 안전장치 — 하나라도 걸리면 **돌던 사이트는 그대로 둔다**:
+  스크립트의 계약은 **"돌던 사이트를 내리지 않는다"** 다. `next build`는 `cleanDistDir` 기본값 때문에 컴파일 **전에** distDir을 비우므로, `.next`에 대고 빌드하면 빌드가 실패한 순간 사이트가 통째로 깨진다(재시작을 안 해도 소용없다 — 읽을 파일이 이미 없다). 그래서 빌드는 `NEXT_DIST_DIR=.next-staging`으로 딴 데 짓고, **빌드 성공 + 새 `BUILD_ID`가 실제로 200을 내는 것**까지 확인한 뒤에야 `mv`로 갈아끼운다:
 
   | 상황 | 동작 |
   |---|---|
   | 작업 트리가 더럽거나 `main`이 아님 | 건너뜀 (개발 중일 수 있다 — 이 PC가 개발기이자 서버다) |
-  | 로컬 `main`이 origin과 갈라짐 | `--ff-only` 실패 → 멈춤, 손이 개입 |
+  | 이 체크아웃에서 `npm run dev`가 돌고 있음 | 건너뜀 — 교체·재시작이 dev 서버를 깬다 |
+  | 로컬 `main`이 origin보다 앞섬(푸시 전) | 건너뜀 — 배포할 것이 없다 |
+  | 로컬 `main`이 origin과 **갈라짐** | 타이머를 **정지**시키고 `notify-send`로 부른다. 정리 후 `systemctl --user start lshobby-deploy.timer` |
+  | CI가 아직 안 끝남 | 대기(2분 뒤 재시도). 30분을 넘기면 한 번 알린다 |
+  | **CI 실패** | 배포하지 않고 해당 sha를 기록 — 고친 커밋이 올라와야 다시 시도 |
   | `package-lock.json`이 바뀐 커밋 | `npm ci` 먼저 |
-  | 빌드 실패 | 재시작을 안 한다 → **직전 빌드가 계속 서빙** |
+  | 빌드 실패 | `.next`를 건드린 적이 없다 → **직전 빌드가 계속 서빙** |
+  | 새 빌드가 30초 안에 응답 못 함 | 직전 `.next`로 **롤백** 후 재시작 |
+
+  - **CI 게이트**(NFR-06): `.githooks/pre-push`는 `--no-verify`와 GitHub UI 머지를 못 막는다. 그래서 스크립트가 `gh api .../check-runs`로 그 sha의 CI를 직접 확인하고 **초록일 때만** 올린다. CI를 못 쓸 때의 탈출구는 `DEPLOY_SKIP_CI=1 scripts/deploy-local.sh`.
+  - **실패한 sha 기록**: `~/.lshobby/deploy-state`. 같은 실패를 2분마다 720번 반복하지 않기 위한 것으로, 새 커밋이 오면 sha가 달라져 저절로 풀린다.
+  - **`tsconfig.json` 되돌리기**: `next build`가 distDir 타입 경로를 tsconfig에 써넣는다. 스테이징 경로가 남으면 다음 tick이 "작업 트리 더러움"으로 영영 건너뛰므로 빌드 직후 `git checkout`으로 되돌린다.
+  - **폰트 캐시**: `.next/cache`를 스테이징에 복사해 물려준다 — 안 그러면 매 배포가 `fonts.gstatic.com` 접속에 걸린다.
 
   로그는 `journalctl --user -u lshobby-deploy`. 잠깐 끄려면 `systemctl --user stop lshobby-deploy.timer`.
 - **상시 구동**: `~/.config/systemd/user/lshobby.service` (`Restart=always`) + 배포 타이머 `lshobby-deploy.{service,timer}`, 그리고 `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**를 쓴다(노드를 올리면 유닛도 고쳐야 한다).
@@ -144,7 +157,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 | | 개발 (`npm run dev`) | 프로덕션 |
 |---|---|---|
-| 화면 | localhost:3000 | `https://leesongheon.tailc7c4e0.ts.net:8443` (같은 PC의 :3000을 프록시) |
+| 화면 | localhost:3000 | `https://<호스트>.ts.net:8443` (같은 PC의 :3000을 프록시) |
 | 실행 | 터미널에서 직접 | `systemd --user lshobby` (`next start`) |
 | 환경변수 | `.env` 파일 | 같은 `.env` 파일 |
 | DB | **같은 Supabase를 바라봄** | 같음 |
@@ -177,7 +190,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 |---|---|
 | Supabase 프로젝트 | `pxozfdypiexwakocfofs` (서울 ap-northeast-2) |
 | Supabase URL | `https://pxozfdypiexwakocfofs.supabase.co` |
-| 프로덕션 URL | `https://leesongheon.tailc7c4e0.ts.net:8443` (테일넷 전용) |
+| 프로덕션 URL | `https://<호스트>.ts.net:8443` (테일넷 전용) — 실제 값은 `tailscale serve status` |
 | 서비스 유닛 | `~/.config/systemd/user/lshobby.service` |
 | 공개 CV | https://leesongheon-lsh.github.io (리포 `LeeSongHeon-LSH.github.io`, §17) |
 | 구 Vercel 프로젝트 | `lshobby` (팀 `lsh12`) — GitHub 연동 해제됨 (2026-08-30) |

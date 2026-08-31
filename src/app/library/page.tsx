@@ -73,6 +73,20 @@ function ShelfBoard() {
 // 넘치는 쪽(목차 10줄)은 잘리는 대신 지면 안에서 스크롤한다. 아래 여백은 쪽번호 자리.
 const LEAF = "h-full overflow-y-auto overscroll-contain px-6 pb-8 pt-6 md:px-7 md:pt-7";
 
+// 지면 가장자리 탭 = 넘김. 안쪽 버튼·링크를 누른 것은 넘기지 않는다
+const turnByEdge =
+  (hasPrev: boolean, hasNext: boolean, flip: (dir: "next" | "prev") => void) =>
+  (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    const { left, width } = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - left;
+    if (x < 64) {
+      if (hasPrev) flip("prev");
+    } else if (x > width - 64) {
+      if (hasNext) flip("next");
+    }
+  };
+
 const pageNo = (page: Page) =>
   page.t === "rec" ? `p.${page.no}` : page.t === "toc" ? (page.half === 0 ? "목차 i" : "목차 ii") : "";
 
@@ -283,21 +297,21 @@ export default function LibraryJourneyPage() {
                   style={{ background: "linear-gradient(90deg, rgba(34,38,43,0.1), transparent)" }}
                   aria-hidden="true"
                 />
-                <div className={LEAF}>{face(pages[dispP])}</div>
+                {/* 좌우 64px 넘김 탭존. 버튼을 지면 위에 얹으면 스크롤러(LEAF)가 그 버튼의 조상이
+                    아니게 되어 탭존에서 시작한 드래그가 아무것도 스크롤하지 못한다 — 그래서 지면
+                    자신의 클릭으로 받는다. 스크롤한 탭은 click을 내지 않으므로 둘이 겹치지 않는다.
+                    키보드·스크린리더용 넘김은 아래 모서리 버튼이 그대로 맡는다. */}
+                <div className={LEAF} onClick={turnByEdge(hasPrev, hasNext, flip)}>
+                  {face(pages[dispP])}
+                </div>
                 <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-faint">
                   {pages[dispP] ? pageNo(pages[dispP]) : ""}
                 </p>
                 {hasPrev && (
-                  <>
-                    <button onClick={() => flip("prev")} aria-label="이전 쪽" className="absolute bottom-16 left-0 top-0 w-16" />
-                    <button onClick={() => flip("prev")} aria-label="이전 쪽" className="jr-corner-l" />
-                  </>
+                  <button onClick={() => flip("prev")} aria-label="이전 쪽" className="jr-corner-l" />
                 )}
                 {hasNext && (
-                  <>
-                    <button onClick={() => flip("next")} aria-label="다음 쪽" className="absolute bottom-16 right-0 top-0 w-16" />
-                    <button onClick={() => flip("next")} aria-label="다음 쪽" className="jr-corner-r" />
-                  </>
+                  <button onClick={() => flip("next")} aria-label="다음 쪽" className="jr-corner-r" />
                 )}
               </div>
               {view.dir && (

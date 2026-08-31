@@ -4,7 +4,7 @@
 @theme {
   --color-paper: #eef1f4; /* 바탕 눈밭 */
   --color-card: #ffffff;
-  --color-sheet: #fffdf7; /* 책 페이지·CV 종이 */
+  --color-sheet: #fffdf7; /* 책 페이지 */
   --color-ink: #22262b; /* 먹(턱시도) */
   --color-faint: #8a9099; /* 보조 텍스트 */
   --color-line: #d9dee4; /* 괘선 */
@@ -12,8 +12,6 @@
   --color-lib-soft: #e8f0f6;
   --color-lang: #d9821f; /* 언어 — 부리 주황 */
   --color-lang-soft: #fbf0e1;
-  --color-cv: #c05e7c; /* CV — 잠옷 로즈 */
-  --color-cv-soft: #f6e7ec;
   --color-thought: #6f66a8; /* 생각 — 오로라 보라 */
   --color-thought-soft: #edeaf5;
   --color-night-ink: #f5f3ff; /* 밤하늘 위 제목 (생각 세션 전용) */

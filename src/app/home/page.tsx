@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
@@ -20,15 +20,7 @@ import { IceScene } from "../ui/scene";
 
 // #69 — 서랍 = 각 세션 장면을 들여다보는 창: 배경은 세션 하늘·시그니처, 내용은 흰 테두리 + 소프트색 판.
 // 모듈 스코프에 둔다 — 컴포넌트 안이면 설정 시트 입력 한 글자마다 장면 JSX 수백 개가 새로 만들어진다
-const DRAWERS: {
-  href: string;
-  name: string;
-  icon: ReactNode;
-  tab: string;
-  card: string;
-  plate: string;
-  scene: ReactNode;
-}[] = [
+const DRAWERS = [
   {
     href: "/library",
     name: "책",
@@ -156,7 +148,7 @@ function Hub() {
         </button>
       </header>
 
-      <nav className="grid min-h-0 flex-1 grid-cols-1 grid-rows-3 gap-3 md:my-auto md:max-h-[600px] md:grid-cols-3 md:grid-rows-1 md:gap-5">
+      <nav className="grid min-h-0 flex-1 auto-rows-fr grid-flow-row gap-3 md:my-auto md:max-h-[600px] md:auto-cols-fr md:grid-flow-col md:gap-5">
         {DRAWERS.map((d, i) => (
           <Link
             key={d.href}

@@ -11,3 +11,7 @@
 next-env.d.ts
 npm-debug.log*
 .DS_Store
+
+# 배포가 쓰는 임시 빌드 디렉토리 (scripts/deploy-local.sh)
+/.next-staging/
+/.next-prev/
