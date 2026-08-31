@@ -35,6 +35,7 @@ interface Question {
 
 const speak = (text: string, lang: string) => {
   try {
+    speechSynthesis.cancel(); // 앞 문제의 발음이 밀려 있으면 끊는다 — 항상 지금 단어를 읽게
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang;
     speechSynthesis.speak(u);
@@ -60,6 +61,8 @@ export default function QuizPage() {
   // 정답 화면에 머무는 동안 다음 문제(예문 페치 포함)를 미리 준비 — "다음" 탭이 즉시가 되게
   const upcoming = useRef<Promise<Question | null> | null>(null);
   const advancing = useRef(false); // next() 진행 중 — 중복 호출이 문제를 건너뛰지 못하게
+  // 채점 화면이 실제로 그려진 뒤에만 "다음"을 받는다 — 제출 제스처의 꼬리가 화면을 건너뛰지 못하게
+  const canAdvance = useRef(false);
 
   const buildQuestion = async (): Promise<Question | null> => {
     const remaining = pool.current;
@@ -106,6 +109,10 @@ export default function QuizPage() {
   };
 
   useEffect(() => {
+    if (phase === "answered") canAdvance.current = true;
+  }, [phase]);
+
+  useEffect(() => {
     const hard = window.location.search.includes("hard=1");
     (async () => {
       const { words, pool: due, stats: st } = await todayPool(config);
@@ -136,8 +143,9 @@ export default function QuizPage() {
     const expected = q.dir === "sk" ? q.word.meaning : q.word.word;
     const res = gradeAnswer(input, expected, q.dir === "sk" ? "toMeaning" : "toWord", config);
     setResult(res);
+    canAdvance.current = false;
     setPhase("answered");
-    if (q.dir !== "sk") speak(q.word.word, config.speechLang);
+    speak(q.word.word, config.speechLang); // 방향·유형과 무관하게 항상 한 번 읽는다
 
     // 로컬 통계 갱신 (가중치·어려운 단어 판정용)
     const s = stats.current.get(q.word.id) ?? { reviews: 0, correct: 0 };
@@ -328,7 +336,9 @@ export default function QuizPage() {
             </p>
             <p className="mt-1 text-faint">{q.word.meaning}</p>
             <button
-              onClick={next}
+              onClick={() => {
+                if (canAdvance.current) next();
+              }}
               onKeyDown={(e) => {
                 // Enter를 누른 채로 두면 오토리핏이 채점 화면을 연달아 넘긴다.
                 // keydown을 취소하면 버튼을 누르는 keypress 자체가 생기지 않는다
