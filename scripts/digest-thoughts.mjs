@@ -26,16 +26,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-// 로컬(이 PC) 기준 날짜 키 — src/modules/thought/service.ts dayKey와 같은 축
-const dayKey = (iso) => {
-  const d = new Date(iso);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
-};
+// KST 고정 — 앱의 하루 경계를 따른다 (sync-notion-backup.mjs kstDate와 같은 축).
+// 이 PC의 타임존으로 계산하면 안 된다: 서버는 UTC로 도는데 앱은 브라우저(KST) 기준이라,
+// KST 00:00~09:00에 쓴 메모가 전날로 묶여 앱이 보여 주는 날짜와 어긋난다
+const KST_OFFSET_MS = 9 * 3600e3;
+const dayKey = (iso) => new Date(new Date(iso).getTime() + KST_OFFSET_MS).toISOString().slice(0, 10);
 const dayRange = (day) => {
-  const [y, m, d] = day.split("-").map(Number);
-  const from = new Date(y, m - 1, d);
+  const from = new Date(Date.parse(`${day}T00:00:00Z`) - KST_OFFSET_MS); // 그날 00:00 KST
   const to = new Date(from.getTime() + 24 * 60 * 60 * 1000);
   return { from: from.toISOString(), to: to.toISOString() };
 };
@@ -129,8 +126,7 @@ async function activityLine(day) {
 }
 
 // ---------- 본체 ----------
-const todayStart = new Date();
-todayStart.setHours(0, 0, 0, 0);
+const todayStart = new Date(dayRange(dayKey(new Date().toISOString())).from); // 오늘 00:00 KST
 
 const { data: allThoughts, error: tErr } = await supabase
   .from("thought")
