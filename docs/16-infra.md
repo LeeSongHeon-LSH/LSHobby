@@ -222,7 +222,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 | 삭제 | 반영 안 함 | 백업이므로 앱에서 지워도 사본은 남긴다 |
 | thought | 다루지 않음 | 생각 데이터 외부 반출 금지(§16.11) |
 | Notion 구조 | 기존 LSHobby DB 안의 "📦 LSHobby 백업" 페이지 아래 인라인 DB 2개 | integration이 접근 가능한 유일한 컨테이너 (API는 워크스페이스 루트에 DB 생성 불가) |
-| 비밀 | `.env`의 `NOTION_TOKEN`·`NOTION_BOOK_DB_ID`·`NOTION_WORD_DB_ID` | (구 `NOTION_DB_ID`는 활동 DB — 부모 페이지 생성 시에만 쓰였다) |
+| 비밀 | `.env`의 `NOTION_TOKEN`·`NOTION_BACKUP_DB_ID` | 책·단어가 DB 하나를 같이 쓰고 `유형` select로 갈린다 (2026-08-31). 구 `NOTION_BOOK_DB_ID`·`NOTION_WORD_DB_ID`는 사라진 DB를 가리켜 404였다. 구 `NOTION_DB_ID`는 활동 DB — 부모 페이지 생성 시에만 쓰였다 |
 | 실패 정책 | 로그만(`~/.local/state/lshobby-notion-backup.log`), 알림 없음 | PC 꺼짐·Notion 장애는 다음 실행이 따라잡는다 (#45와 같은 1인 규모 판단) |
 
 구 활동 미러의 행들은 Notion에 그대로 남아 있다(삭제는 수동). 백업 DB를 Notion에서 다른 위치로 옮기면 integration 공유가 끊길 수 있다 — 옮긴 뒤에는 해당 페이지에 integration을 다시 연결해야 한다.

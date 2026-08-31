@@ -7,6 +7,8 @@
 //   속성 + 본문으로 upsert. sync_hash가 같으면 건너뛴다 (커서 없음 — 매일 전체 수렴)
 // - 단어: 언어×날짜 1행, review_log에서 Asia/Seoul 경계로 집계 — 오늘(KST)은 아직
 //   확정 전이라 제외, 지난 날짜는 값이 달라졌으면 갱신 (PC 타임존과 무관)
+// - Notion 쪽은 DB 하나에 두 종류 행이 같이 산다 — "유형" select("책 여정"/"단어 대시보드")로
+//   갈라 읽고, 새 행을 만들 때도 그 값을 박는다 (DB를 나누지 않기로 함, 2026-08-31)
 // - 삭제는 반영하지 않는다 — 백업이므로 앱에서 지워도 Notion 사본은 남긴다
 // - thought 도메인 데이터는 다루지 않는다 (생각 데이터 외부 반출 금지, §16.11)
 
@@ -18,11 +20,14 @@ const LANGS = [
   { code: "en", label: "영어", reviewLogTable: "en_review_log", dailyStatsFn: "en_daily_stats" },
 ];
 
-const { NOTION_TOKEN, NOTION_BOOK_DB_ID, NOTION_WORD_DB_ID } = process.env;
-if (!NOTION_TOKEN || !NOTION_BOOK_DB_ID || !NOTION_WORD_DB_ID) {
-  console.error("NOTION_TOKEN / NOTION_BOOK_DB_ID / NOTION_WORD_DB_ID가 .env에 없습니다");
+const { NOTION_TOKEN, NOTION_BACKUP_DB_ID } = process.env;
+if (!NOTION_TOKEN || !NOTION_BACKUP_DB_ID) {
+  console.error("NOTION_TOKEN / NOTION_BACKUP_DB_ID가 .env에 없습니다");
   process.exit(1);
 }
+const TYPE_BOOK = "책 여정";
+const TYPE_WORD = "단어 대시보드";
+const typeProp = (name) => ({ 유형: { select: { name } } });
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -44,13 +49,14 @@ const notion = async (path, body, method = "POST") => {
   return res.json();
 };
 
-/** DB 전체 페이지 조회 (백업 규모 전제 — 수백 건) */
-async function queryAll(dbId) {
+/** 한 유형의 페이지 전체 조회 (백업 규모 전제 — 수백 건) */
+async function queryAll(type) {
   const out = [];
   let cursor;
   do {
-    const data = await notion(`databases/${dbId}/query`, {
+    const data = await notion(`databases/${NOTION_BACKUP_DB_ID}/query`, {
       page_size: 100,
+      filter: { property: "유형", select: { equals: type } },
       ...(cursor ? { start_cursor: cursor } : {}),
     });
     out.push(...data.results);
@@ -162,7 +168,7 @@ async function replaceChildren(pageId, blocks) {
 async function syncBooks() {
   const books = await fetchBooks();
   const numbers = journeyNo(books);
-  const pages = await queryAll(NOTION_BOOK_DB_ID);
+  const pages = await queryAll(TYPE_BOOK);
   const pageByBookId = new Map(pages.map((p) => [p.properties.book_id?.number, p]));
 
   let created = 0, updated = 0;
@@ -179,8 +185,8 @@ async function syncBooks() {
       updated += 1;
     } else {
       await notion("pages", {
-        parent: { database_id: NOTION_BOOK_DB_ID },
-        properties: { ...bookProps(b, no), sync_hash: { rich_text: rt(hash) } },
+        parent: { database_id: NOTION_BACKUP_DB_ID },
+        properties: { ...bookProps(b, no), ...typeProp(TYPE_BOOK), sync_hash: { rich_text: rt(hash) } },
         children: bookBlocks(b),
       });
       created += 1;
@@ -193,7 +199,7 @@ async function syncBooks() {
 
 async function syncWords() {
   const today = kstDate();
-  const pages = await queryAll(NOTION_WORD_DB_ID);
+  const pages = await queryAll(TYPE_WORD);
   const byKey = new Map(
     pages.map((p) => [`${p.properties.언어?.select?.name}|${p.properties.날짜?.date?.start}`, p]),
   );
@@ -218,7 +224,10 @@ async function syncWords() {
         await notion(`pages/${page.id}`, { properties: props }, "PATCH");
         updated += 1;
       } else {
-        await notion("pages", { parent: { database_id: NOTION_WORD_DB_ID }, properties: props });
+        await notion("pages", {
+          parent: { database_id: NOTION_BACKUP_DB_ID },
+          properties: { ...props, ...typeProp(TYPE_WORD) },
+        });
         created += 1;
       }
     }
