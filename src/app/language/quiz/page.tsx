@@ -6,6 +6,7 @@ import { PixelFlame } from "../../ui/pixel";
 import {
   answerWord,
   articleFor,
+  promptMeaning,
   useCurrentConfig,
   gradeAnswer,
   isHard,
@@ -253,7 +254,7 @@ export default function QuizPage() {
               )}
               {q.sentence.text.slice(q.blankAt + q.word.word.length)}
             </p>
-            <p className="mt-2 text-sm text-faint">뜻: {q.word.meaning}</p>
+            <p className="mt-2 text-sm text-faint">뜻: {promptMeaning(q.word.meaning)}</p>
             {answered && (q.sentence.ko_text || q.sentence.en_text) && (
               <p className="mt-2 text-sm text-faint">{q.sentence.ko_text ?? q.sentence.en_text}</p>
             )}
@@ -268,7 +269,7 @@ export default function QuizPage() {
                 {q.word.word}
               </>
             ) : (
-              `"${q.word.meaning}"`
+              `"${promptMeaning(q.word.meaning)}"`
             )}
           </p>
         )}

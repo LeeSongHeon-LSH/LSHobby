@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { esConfig } from "./es";
 import { enConfig } from "./en";
 import { configFor, languageConfigs } from "./registry";
-import { articleFor, stateLabel } from "./display";
+import { articleFor, promptMeaning, stateLabel } from "./display";
 import { answerAlternatives, gradeAnswer } from "./grading";
 import {
   applyAnswer,
@@ -92,6 +92,12 @@ describe("표시 규칙 (§11.4.3)", () => {
   it("stateLabel: FSRS 상태 0~3 라벨, 범위 밖은 ?", () => {
     expect([0, 1, 2, 3].map(stateLabel)).toEqual(["신규", "학습중", "복습", "재학습"]);
     expect(stateLabel(9)).toBe("?");
+  });
+  it("promptMeaning: 제시문에는 앞의 두 뜻까지만 (채점은 전체를 받는다)", () => {
+    expect(promptMeaning("도착하다, 도달하다, 당도하다, 다다르다")).toBe("도착하다, 도달하다");
+    expect(promptMeaning("소년, 남자아이")).toBe("소년, 남자아이");
+    expect(promptMeaning("소년")).toBe("소년");
+    expect(promptMeaning(" 나라 ,  국가 ")).toBe("나라, 국가"); // 공백은 정리된다
   });
 });
 
