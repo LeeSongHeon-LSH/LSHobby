@@ -59,6 +59,7 @@ export default function QuizPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   // 정답 화면에 머무는 동안 다음 문제(예문 페치 포함)를 미리 준비 — "다음" 탭이 즉시가 되게
   const upcoming = useRef<Promise<Question | null> | null>(null);
+  const advancing = useRef(false); // next() 진행 중 — 중복 호출이 문제를 건너뛰지 못하게
 
   const buildQuestion = async (): Promise<Question | null> => {
     const remaining = pool.current;
@@ -83,18 +84,25 @@ export default function QuizPage() {
   };
 
   const next = async () => {
-    const built = await (upcoming.current ?? buildQuestion());
-    upcoming.current = null;
-    if (!built) {
-      setSummary(await todayReviewSummary(config));
-      setPhase("done");
-      return;
+    // 연타·더블클릭 가드 — await 사이에 두 번째 호출이 끼면 첫 문제가 출제 없이 소모된다
+    if (advancing.current) return;
+    advancing.current = true;
+    try {
+      const built = await (upcoming.current ?? buildQuestion());
+      upcoming.current = null;
+      if (!built) {
+        setSummary(await todayReviewSummary(config));
+        setPhase("done");
+        return;
+      }
+      setQ(built);
+      setInput("");
+      setResult(null);
+      setPhase("question");
+      setTimeout(() => inputRef.current?.focus(), 0);
+    } finally {
+      advancing.current = false;
     }
-    setQ(built);
-    setInput("");
-    setResult(null);
-    setPhase("question");
-    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   useEffect(() => {
@@ -269,7 +277,7 @@ export default function QuizPage() {
                 onKeyDown(e);
                 // preventDefault 없으면 이 Enter의 keypress가 방금 autoFocus된 "다음" 버튼으로 가
                 // 곧바로 next()까지 실행됨 — 정답/오답 화면이 안 보이고 넘어감
-                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing && !e.repeat) {
                   e.preventDefault();
                   submit();
                 }
@@ -321,6 +329,11 @@ export default function QuizPage() {
             <p className="mt-1 text-faint">{q.word.meaning}</p>
             <button
               onClick={next}
+              onKeyDown={(e) => {
+                // Enter를 누른 채로 두면 오토리핏이 채점 화면을 연달아 넘긴다.
+                // keydown을 취소하면 버튼을 누르는 keypress 자체가 생기지 않는다
+                if (e.key === "Enter" && e.repeat) e.preventDefault();
+              }}
               autoFocus
               className="mt-5 w-full rounded-md bg-lang py-3 font-medium text-white"
             >
