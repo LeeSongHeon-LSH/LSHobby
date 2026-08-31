@@ -267,7 +267,12 @@ export default function QuizPage() {
               onBlur={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
                 onKeyDown(e);
-                if (e.key === "Enter" && !e.nativeEvent.isComposing) submit();
+                // preventDefault 없으면 이 Enter의 keypress가 방금 autoFocus된 "다음" 버튼으로 가
+                // 곧바로 next()까지 실행됨 — 정답/오답 화면이 안 보이고 넘어감
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                  e.preventDefault();
+                  submit();
+                }
               }}
               placeholder={showTargetInput ? config.inputPlaceholder : "한국어 뜻..."}
               className="w-full rounded-md border border-line bg-card px-4 py-3"
