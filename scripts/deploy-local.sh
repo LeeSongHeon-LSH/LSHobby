@@ -47,10 +47,13 @@ for pid in $(pgrep -f 'next dev|next-server' 2>/dev/null || true); do
 done
 
 # --- 배포할 것이 있나 -------------------------------------------------------
+# 기준은 "지금 서빙 중인 빌드가 어느 커밋인가"다. HEAD와 origin을 비교하면, 이 PC가 개발기이자
+# 서버라 여기서 직접 커밋할 때 둘이 함께 올라가 배포할 것이 없다고 판정되어 영영 돌지 않는다.
 git fetch --quiet origin main
 old=$(git rev-parse HEAD)
 new=$(git rev-parse origin/main)
-[ "$old" != "$new" ] || exit 0
+deployed=$(cat .next/DEPLOYED_SHA 2>/dev/null || true)
+[ "$deployed" != "$new" ] || exit 0
 
 state=$(cat "$STATE" 2>/dev/null || true)
 state_sha=${state%% *}
@@ -105,11 +108,16 @@ if [ "${DEPLOY_SKIP_CI:-}" != 1 ]; then
 fi
 
 # --- 배포 -------------------------------------------------------------------
-echo "배포 시작: $(git rev-parse --short "$old") → $(git rev-parse --short "$new")"
+# 비교 기준은 마지막으로 배포된 커밋이다. 기록이 없거나(이 방식 도입 전 빌드) 그 커밋이
+# 사라졌으면 HEAD로 대신한다 — 최악이라도 npm ci 한 번을 건너뛰는 정도다
+base=$deployed
+git rev-parse --quiet --verify "${base:-@invalid@}^{commit}" >/dev/null 2>&1 || base=$old
+
+echo "배포 시작: $(git rev-parse --short "$base") → $(git rev-parse --short "$new")"
 git merge --ff-only origin/main
 
 # 의존성이 바뀐 커밋이면 먼저 설치 — 안 그러면 빌드가 엉뚱한 이유로 깨진다
-if ! git diff --quiet "$old" "$new" -- package-lock.json; then
+if ! git diff --quiet "$base" "$new" -- package-lock.json; then
   echo "package-lock.json 변경 — npm ci"
   npm ci
 fi
@@ -132,6 +140,10 @@ if [ "$build_ok" = 0 ]; then
   alert "빌드 실패 ($(git rev-parse --short "$new")) — 직전 빌드가 계속 서빙 중. 고쳐 푸시하면 다시 시도한다"
   exit 1
 fi
+
+# 이 빌드가 어느 커밋인지 빌드와 함께 옮긴다 — 다음 tick의 배포 판단 기준이고,
+# 헬스체크 실패로 .next-prev를 되돌릴 때 그 기록도 같이 따라간다
+printf '%s\n' "$new" > .next-staging/DEPLOYED_SHA
 
 # 교체는 mv 두 번 + 재시작 — 사이트가 비는 창이 빌드 시간이 아니라 재시작 시간으로 줄어든다
 rm -rf .next-prev

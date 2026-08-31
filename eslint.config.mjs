@@ -9,6 +9,9 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    // 배포가 쓰는 임시 빌드 디렉토리 — .gitignore와 같은 범위 (scripts/deploy-local.sh)
+    ".next-staging/**",
+    ".next-prev/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
