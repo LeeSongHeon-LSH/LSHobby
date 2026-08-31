@@ -15,3 +15,6 @@ npm-debug.log*
 # 배포가 쓰는 임시 빌드 디렉토리 (scripts/deploy-local.sh)
 /.next-staging/
 /.next-prev/
+
+# 뜻 동의어 백필의 검수용 제안 파일 (scripts/backfill-meanings.mjs)
+/meaning-proposals.*.json
