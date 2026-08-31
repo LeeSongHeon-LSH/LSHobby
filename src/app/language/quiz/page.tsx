@@ -2,19 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { PixelFlame } from "../../ui/pixel";
 import {
   answerWord,
   articleFor,
   promptMeaning,
   useCurrentConfig,
   gradeAnswer,
-  isHard,
   ensureSentences,
-  pickWeight,
-  todayPool,
+  loadDeck,
+  practiceOrder,
   todayReviewSummary,
-  weightedPick,
   type GradeResult,
   type Sentence,
   type Word,
@@ -23,6 +20,10 @@ import {
 
 // §11.4.2 퀴즈 — 3방향: 스→한(sk)·한→스(ks) 타이핑 + 30% 확률로 예문 있으면 cloze (결정 #41 현행 이식)
 // 받아쓰기(listen)·관사(gender) 문제는 이식 제외 (#41 범위, 2026-08-15 확정)
+//
+// 모드는 하나다 (2026-08-31). 하루 할당도 끝도 없고, 종료를 누를 때까지 이어진다.
+// 출제 순서는 practiceOrder가 정하며, 한 바퀴(전체 단어)를 다 돌면 그 시점 정답률로
+// 다시 정렬해 새 바퀴를 시작한다 — 같은 단어가 한 바퀴 안에 두 번 나오지 않는다.
 
 type Dir = "sk" | "ks" | "cloze";
 type Phase = "loading" | "question" | "answered" | "done" | "empty";
@@ -48,15 +49,14 @@ const speak = (text: string, lang: string) => {
 export default function QuizPage() {
   const config = useCurrentConfig(); // 전환은 랜딩에서만 일어남 (#54)
   const [phase, setPhase] = useState<Phase>("loading");
-  const [mode, setMode] = useState<"due" | "free" | "hard">("due");
-  const [total, setTotal] = useState(0);
-  const [remaining, setRemaining] = useState(0); // pool.current.length 미러 — 렌더용 (ref 직접 읽기 금지)
+  const [seen, setSeen] = useState(0); // 이번 세션에 푼 문제 수 — 진행률 대신 표시
   const [q, setQ] = useState<Question | null>(null);
   const [input, setInput] = useState("");
   const [result, setResult] = useState<GradeResult | null>(null);
   const [summary, setSummary] = useState<{ count: number; correct: number } | null>(null);
 
-  const pool = useRef<Word[]>([]);
+  const queue = useRef<Word[]>([]); // practiceOrder가 정한 이번 바퀴의 순서
+  const cursor = useRef(0);
   const stats = useRef<Map<number, WordStat>>(new Map());
   const inputRef = useRef<HTMLInputElement>(null);
   // 정답 화면에 머무는 동안 다음 문제(예문 페치 포함)를 미리 준비 — "다음" 탭이 즉시가 되게
@@ -66,12 +66,14 @@ export default function QuizPage() {
   const canAdvance = useRef(false);
 
   const buildQuestion = async (): Promise<Question | null> => {
-    const remaining = pool.current;
-    if (remaining.length === 0) return null;
-    const word = weightedPick(remaining, (w) => {
-      const s = stats.current.get(w.id);
-      return s ? pickWeight(s.reviews, s.correct) : 1;
-    })!;
+    if (queue.current.length === 0) return null;
+    if (cursor.current >= queue.current.length) {
+      // 한 바퀴 끝 — 이번 세션에서 쌓인 정답률로 다시 정렬해 새 바퀴 (FSRS 필드는 세션 시작 시점 기준)
+      queue.current = practiceOrder(queue.current, stats.current);
+      cursor.current = 0;
+    }
+    const word = queue.current[cursor.current];
+    cursor.current += 1;
     let dir: Dir = Math.random() < 0.5 ? "sk" : "ks";
     let sentence: Sentence | null = null;
     let blankAt = -1;
@@ -87,6 +89,11 @@ export default function QuizPage() {
     return { word, dir, sentence, blankAt };
   };
 
+  const finish = async () => {
+    setSummary(await todayReviewSummary(config));
+    setPhase("done");
+  };
+
   const next = async () => {
     // 연타·더블클릭 가드 — await 사이에 두 번째 호출이 끼면 첫 문제가 출제 없이 소모된다
     if (advancing.current) return;
@@ -95,8 +102,7 @@ export default function QuizPage() {
       const built = await (upcoming.current ?? buildQuestion());
       upcoming.current = null;
       if (!built) {
-        setSummary(await todayReviewSummary(config));
-        setPhase("done");
+        await finish();
         return;
       }
       setQ(built);
@@ -114,26 +120,12 @@ export default function QuizPage() {
   }, [phase]);
 
   useEffect(() => {
-    const hard = window.location.search.includes("hard=1");
     (async () => {
-      const { words, pool: due, stats: st } = await todayPool(config);
+      const { words, stats: st } = await loadDeck(config);
       stats.current = st;
-      if (hard) {
-        setMode("hard");
-        pool.current = words.filter((w) => {
-          const s = st.get(w.id);
-          return s ? isHard(s.reviews, s.correct) : false;
-        });
-      } else if (due.length > 0) {
-        setMode("due");
-        pool.current = [...due];
-      } else {
-        setMode("free");
-        pool.current = [...words];
-      }
-      setTotal(pool.current.length);
-      setRemaining(pool.current.length);
-      if (pool.current.length === 0) setPhase("empty");
+      queue.current = practiceOrder(words, st);
+      cursor.current = 0;
+      if (queue.current.length === 0) setPhase("empty");
       else next();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,11 +143,7 @@ export default function QuizPage() {
     // 로컬 통계 갱신 (가중치·어려운 단어 판정용)
     const s = stats.current.get(q.word.id) ?? { reviews: 0, correct: 0 };
     stats.current.set(q.word.id, { reviews: s.reviews + 1, correct: s.correct + (res.ok ? 1 : 0) });
-    // 정답이면 풀에서 제거, 오답은 남겨 재출제 (자유 연습은 계속 순환)
-    if (res.ok && mode !== "free") {
-      pool.current = pool.current.filter((w) => w.id !== q.word.id);
-      setRemaining(pool.current.length);
-    }
+    setSeen((n) => n + 1);
     answerWord(config, q.word, res.ok).catch(() => {});
     upcoming.current = buildQuestion(); // 프리페치 — 오답 재출제 확률도 그대로 반영됨
   };
@@ -181,7 +169,7 @@ export default function QuizPage() {
     }
   };
 
-  const progress = mode === "free" ? "자유 연습" : `진행 ${total - remaining}/${total}`;
+  const progress = `${seen}문제`;
 
   if (phase === "loading")
     return (
@@ -206,7 +194,7 @@ export default function QuizPage() {
   if (phase === "done")
     return (
       <main className="p-4 text-center">
-        <p className="mt-16 font-display text-2xl font-bold">오늘 학습 끝 🎉</p>
+        <p className="mt-16 font-display text-2xl font-bold">연습 끝 🎉</p>
         {summary && summary.count > 0 && (
           <p className="mt-3 font-mono text-sm text-faint">
             오늘 {summary.count}회 복습 · 정답률 {Math.round((summary.correct / summary.count) * 100)}%
@@ -228,13 +216,14 @@ export default function QuizPage() {
   return (
     <main className="p-4">
       <header className="mb-6 flex items-center justify-between text-sm text-faint">
-        <Link
-          href="/language"
+        <button
+          type="button"
+          onClick={finish}
           className="inline-flex min-h-11 items-center rounded-lg border border-lang/40 bg-lang-soft px-3.5 font-mono text-xs text-lang"
         >
-          ← 덱
-        </Link>
-        <span className="inline-flex items-center gap-1 font-mono text-xs">{mode === "hard" && <PixelFlame size={11} />}{progress}</span>
+          종료
+        </button>
+        <span className="font-mono text-xs">{progress}</span>
       </header>
 
       <div

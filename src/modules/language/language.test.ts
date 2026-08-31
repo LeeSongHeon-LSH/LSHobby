@@ -6,17 +6,13 @@ import { articleFor, promptMeaning, stateLabel } from "./display";
 import { answerAlternatives, gradeAnswer } from "./grading";
 import {
   applyAnswer,
-  duePool,
   fromCard,
-  isDue,
-  isHard,
-  isNew,
-  pickWeight,
   toCard,
-  weightedPick,
-  type PoolWord,
   type SrsFields,
 } from "./srs";
+import { practiceOrder } from "./session";
+import type { Word } from "./words";
+import type { WordStat } from "./review-stats";
 
 const NOW = new Date("2026-08-14T12:00:00Z");
 
@@ -168,27 +164,40 @@ describe("FSRS 래퍼 (§6.3 — 정답=Good/오답=Again)", () => {
   });
 });
 
-describe("duePool (구 _due_pool 이식 — 새 단어 일일 한도)", () => {
+describe("practiceOrder (출제 순서 — 하루 할당 폐지, 2026-08-31)", () => {
   const past = "2026-08-13T00:00:00Z";
   const future = "2026-08-20T00:00:00Z";
-  const w = (id: number, over: Partial<SrsFields> = {}): PoolWord => ({ id, ...newRow(over) });
+  const w = (id: number, over: Partial<SrsFields> = {}): Word =>
+    ({ id, word: `w${id}`, meaning: `뜻${id}`, norm: `w${id}`, created_at: past, ...newRow(over) }) as Word;
+  const stat = (pairs: [number, number, number][]): Map<number, WordStat> =>
+    new Map(pairs.map(([id, reviews, correct]) => [id, { reviews, correct }]));
+  const ids = (list: Word[]) => list.map((x) => x.id);
+  const fixed = () => 0.5; // 랜덤 동률은 고정해 결과를 결정적으로
 
-  it("due 지난 복습은 전부, 미래 due는 제외", () => {
-    const words = [w(1, { state: 2, due: past }), w(2, { state: 2, due: future })];
-    expect(duePool(words, NOW, 0).map((x) => x.id)).toEqual([1]);
+  it("구간 순서: due 복습 → 신규 → 아직 due 아닌 것", () => {
+    const words = [w(1, { state: 2, due: future }), w(2), w(3, { state: 2, due: past })];
+    expect(ids(practiceOrder(words, stat([[1, 2, 2], [3, 2, 2]]), NOW, fixed))).toEqual([3, 2, 1]);
   });
-  it("새 단어는 남은 한도만큼 id 순으로", () => {
+  it("구간 안에서는 정답률 낮은 순", () => {
+    const words = [w(1, { state: 2, due: past }), w(2, { state: 2, due: past })];
+    expect(ids(practiceOrder(words, stat([[1, 4, 4], [2, 4, 1]]), NOW, fixed))).toEqual([2, 1]);
+  });
+  it("정답률이 같으면 오래 안 본 순", () => {
+    const words = [
+      w(1, { state: 2, due: past, last_review: "2026-08-12T00:00:00Z" }),
+      w(2, { state: 2, due: past, last_review: "2026-08-01T00:00:00Z" }),
+    ];
+    expect(ids(practiceOrder(words, stat([[1, 2, 1], [2, 2, 1]]), NOW, fixed))).toEqual([2, 1]);
+  });
+  it("신규는 집계가 없어 0%지만 별도 구간이라 등록 순으로 나간다", () => {
     const words = [w(3), w(1), w(2)];
-    expect(duePool(words, NOW, 0, 2).map((x) => x.id)).toEqual([1, 2]);
+    expect(ids(practiceOrder(words, stat([]), NOW, fixed))).toEqual([1, 2, 3]);
   });
-  it("오늘 이미 시작한 새 단어 수만큼 한도에서 차감", () => {
-    const words = [w(1), w(2), w(3)];
-    expect(duePool(words, NOW, 19).map((x) => x.id)).toEqual([1]);
-    expect(duePool(words, NOW, 20)).toEqual([]);
-  });
-  it("복습 + 새 단어 혼합", () => {
-    const words = [w(5, { state: 2, due: past }), w(1), w(2)];
-    expect(duePool(words, NOW, 0, 1).map((x) => x.id)).toEqual([5, 1]);
+  it("한 바퀴에 모든 단어가 정확히 한 번씩 들어간다", () => {
+    const words = [w(1, { state: 2, due: past }), w(2), w(3, { state: 2, due: future })];
+    const out = practiceOrder(words, stat([[1, 1, 0], [3, 1, 1]]), NOW, fixed);
+    expect(out).toHaveLength(3);
+    expect(new Set(ids(out))).toEqual(new Set([1, 2, 3]));
   });
 });
 
@@ -201,16 +210,6 @@ describe("통계 집계 (구 stats.py 이식)", () => {
     expect(computeStreak(["2026-08-14", "2026-08-13"], today)).toBe(2); // 어제까지 인정
     expect(computeStreak(["2026-08-13"], today)).toBe(0); // 이틀 전 = 끊김
     expect(computeStreak(["2026-08-15", "2026-08-13"], today)).toBe(1); // 중간 공백
-  });
-  it("countNewStartedToday: 최초 복습이 오늘 자정 이후인 단어만 센다 (성능 P1)", async () => {
-    const { countNewStartedToday } = await import("./session");
-    const now = new Date("2026-08-14T12:00:00");
-    const stats = new Map([
-      [1, { reviews: 3, correct: 2, firstReviewedAt: "2026-08-14T01:00:00" }], // 오늘 시작
-      [2, { reviews: 5, correct: 5, firstReviewedAt: "2026-08-13T23:59:00" }], // 어제 시작
-      [3, { reviews: 1, correct: 1 }], // 로컬 갱신 객체 — 시각 없음
-    ]);
-    expect(countNewStartedToday(stats, now)).toBe(1);
   });
 
   it("aggregateDaily: 사전 집계 행에서 aggregate와 같은 결과 (성능 P1)", async () => {
@@ -284,30 +283,5 @@ describe("Tatoeba 추출 (구 _extract 이식)", () => {
     expect(out[0].en_text).toBeNull();
     expect(out[1].ko_text).toBeNull(); // kor 모드에선 eng 번역 무시
     expect(out[0].source_url).toContain("/sentences/show/1");
-  });
-});
-
-describe("파생 판정·가중치 (구 is_hard/_weight 이식)", () => {
-  it("isHard: 4회 이상 + 정답률 60% 미만", () => {
-    expect(isHard(4, 2)).toBe(true); // 50%
-    expect(isHard(3, 0)).toBe(false); // 횟수 부족
-    expect(isHard(5, 3)).toBe(false); // 정확히 60%는 어려움 아님
-    expect(isHard(10, 4)).toBe(true); // 40%
-  });
-  it("pickWeight: 미출제 1.0, 오답 많을수록 큼", () => {
-    expect(pickWeight(0, 0)).toBe(1);
-    expect(pickWeight(4, 4)).toBeCloseTo(0.2);
-    expect(pickWeight(4, 0)).toBe(1);
-  });
-  it("weightedPick: 빈 풀은 null, rand 주입으로 결정적", () => {
-    expect(weightedPick([], () => 1)).toBeNull();
-    const pool = ["a", "b"];
-    expect(weightedPick(pool, (x) => (x === "a" ? 1 : 9), () => 0.05)).toBe("a");
-    expect(weightedPick(pool, (x) => (x === "a" ? 1 : 9), () => 0.5)).toBe("b");
-  });
-  it("isNew/isDue 기본 동작", () => {
-    expect(isNew(newRow())).toBe(true);
-    expect(isDue(newRow(), NOW)).toBe(true); // due null = 즉시 대상
-    expect(isDue(newRow({ due: "2026-08-20T00:00:00Z" }), NOW)).toBe(false);
   });
 });

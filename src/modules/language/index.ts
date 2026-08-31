@@ -5,7 +5,7 @@ export { enConfig } from "./en";
 export { setCurrentLang, useCurrentConfig } from "./current";
 export { gradeAnswer, answerAlternatives, type GradeResult } from "./grading";
 export { addWord, countWords, deleteWord, findByNorm, listWords, updateWord, type Word } from "./words";
-export { countNewStartedToday, todayPool } from "./session";
+export { loadDeck, practiceOrder } from "./session";
 export { reviewStats, type WordStat } from "./review-stats";
 export { answerWord } from "./answer";
 export { ensureSentences, type Sentence } from "./sentences";
@@ -24,14 +24,8 @@ export {
 export { articleFor, promptMeaning, stateLabel } from "./display";
 export {
   applyAnswer,
-  duePool,
   isDue,
-  isHard,
   isNew,
-  pickWeight,
   ratingFor,
-  weightedPick,
-  DAILY_NEW_LIMIT,
-  type PoolWord,
   type SrsFields,
 } from "./srs";
