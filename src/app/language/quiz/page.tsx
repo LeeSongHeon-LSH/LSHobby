@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   answerWord,
   articleFor,
+  clozeIndex,
   promptMeaning,
   useCurrentConfig,
   gradeAnswer,
@@ -54,6 +55,7 @@ export default function QuizPage() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState<GradeResult | null>(null);
   const [summary, setSummary] = useState<{ count: number; correct: number } | null>(null);
+  const [saveFailures, setSaveFailures] = useState(0); // DB에 안 남은 답안 수 — 조용히 잃지 않게 표시
 
   const queue = useRef<Word[]>([]); // practiceOrder가 정한 이번 바퀴의 순서
   const cursor = useRef(0);
@@ -81,7 +83,7 @@ export default function QuizPage() {
       const candidates = await ensureSentences(config, word.id).catch(() => [] as Sentence[]);
       if (candidates.length > 0) {
         sentence = candidates[Math.floor(Math.random() * candidates.length)];
-        blankAt = sentence.text.toLowerCase().indexOf(word.word.toLowerCase());
+        blankAt = clozeIndex(sentence.text, word.word);
         if (blankAt >= 0) dir = "cloze";
         else sentence = null;
       }
@@ -144,7 +146,7 @@ export default function QuizPage() {
     const s = stats.current.get(q.word.id) ?? { reviews: 0, correct: 0 };
     stats.current.set(q.word.id, { reviews: s.reviews + 1, correct: s.correct + (res.ok ? 1 : 0) });
     setSeen((n) => n + 1);
-    answerWord(config, q.word, res.ok).catch(() => {});
+    answerWord(config, q.word, res.ok).catch(() => setSaveFailures((n) => n + 1));
     upcoming.current = buildQuestion(); // 프리페치 — 오답 재출제 확률도 그대로 반영됨
   };
 
@@ -170,6 +172,7 @@ export default function QuizPage() {
   };
 
   const progress = `${seen}문제`;
+  const failed = saveFailures > 0 ? `저장 실패 ${saveFailures}` : null;
 
   if (phase === "loading")
     return (
@@ -200,6 +203,7 @@ export default function QuizPage() {
             오늘 {summary.count}회 복습 · 정답률 {Math.round((summary.correct / summary.count) * 100)}%
           </p>
         )}
+        {failed && <p className="mt-3 font-mono text-sm text-err">{failed}</p>}
         <Link
           href="/language"
           className="mt-8 inline-block rounded-md bg-lang px-6 py-3 font-medium text-white"
@@ -223,7 +227,10 @@ export default function QuizPage() {
         >
           종료
         </button>
-        <span className="font-mono text-xs">{progress}</span>
+        <span className="font-mono text-xs">
+          {failed && <span className="mr-2 text-err">{failed}</span>}
+          {progress}
+        </span>
       </header>
 
       <div

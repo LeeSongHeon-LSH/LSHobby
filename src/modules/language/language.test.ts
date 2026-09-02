@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { esConfig } from "./es";
 import { enConfig } from "./en";
 import { configFor, languageConfigs } from "./registry";
-import { articleFor, promptMeaning, stateLabel } from "./display";
+import { articleFor, clozeIndex, promptMeaning, stateLabel } from "./display";
 import { answerAlternatives, gradeAnswer } from "./grading";
 import {
   applyAnswer,
@@ -94,6 +94,14 @@ describe("표시 규칙 (§11.4.3)", () => {
     expect(promptMeaning("소년, 남자아이")).toBe("소년, 남자아이");
     expect(promptMeaning("소년")).toBe("소년");
     expect(promptMeaning(" 나라 ,  국가 ")).toBe("나라, 국가"); // 공백은 정리된다
+  });
+  it("clozeIndex: 단어 경계를 보고 찾는다 — 다른 단어 안에 든 같은 철자는 건너뛴다", () => {
+    expect(clozeIndex("Solo quiero sol.", "sol")).toBe(12);
+    expect(clozeIndex("¿Tienen casa?", "casa")).toBe(8);
+    expect(clozeIndex("Feliz cumpleaños, es tu año.", "año")).toBe(24); // cumpleaños 안은 아님
+    expect(clozeIndex("Mi casa es tu casa.", "Casa")).toBe(3); // 대소문자 무시
+    expect(clozeIndex("Está solá.", "sol")).toBe(-1); // 악센트 글자도 단어의 일부
+    expect(clozeIndex("No hay nada.", "sol")).toBe(-1);
   });
 });
 

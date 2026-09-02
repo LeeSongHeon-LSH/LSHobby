@@ -16,3 +16,14 @@ export const stateLabel = (state: number): string =>
  */
 export const promptMeaning = (meaning: string): string =>
   answerAlternatives(meaning).slice(0, 2).join(", ");
+
+/**
+ * 빈칸 문제에서 단어가 든 자리 (없으면 -1) — 단어 경계를 보고 찾는다.
+ * 단순 indexOf는 "Solo quiero sol"에서 sol을 Solo 안에서 먼저 잡아 빈칸이 엉뚱한 자리에 뚫린다.
+ * 경계는 유니코드 글자·숫자 기준이라 á·ñ 같은 악센트 글자도 단어의 일부로 본다.
+ */
+export const clozeIndex = (text: string, word: string): number => {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const m = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "iu").exec(text);
+  return m ? m.index : -1;
+};

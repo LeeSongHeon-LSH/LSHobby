@@ -21,7 +21,7 @@ export {
   type DailyRow,
   type LangStats,
 } from "./stats";
-export { articleFor, promptMeaning, stateLabel } from "./display";
+export { articleFor, clozeIndex, promptMeaning, stateLabel } from "./display";
 export {
   applyAnswer,
   isDue,
