@@ -5,19 +5,19 @@ import { useEffect, useRef, useState } from "react";
 import { HomeButton } from "../ui/home-button";
 import { PixelPenguinBubble } from "../ui/pixel";
 import {
+  countWords,
   languageConfigs,
-  loadDeck,
   setCurrentLang,
   todayReviewSummary,
   useCurrentConfig,
 } from "@/modules/language";
 
-// §11.4.1 학습 (세션 랜딩) — 덱 + 칩(대상 있을 때만) + 오늘 요약. 헤더 ▾로 언어 전환 (#54)
+// §11.4.1 학습 (세션 랜딩) — 퀴즈 카드 + 오늘 요약. 헤더 ▾로 언어 전환 (#54)
+// 카드에 숫자를 두지 않는다 (2026-09-02) — 하루 할당·복습 대기 수는 퀴즈와 어긋나 버그만 낳았다
 export default function LanguageHome() {
   const config = useCurrentConfig();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [dueCount, setDueCount] = useState<number | null>(null);
   const [total, setTotal] = useState(0);
   const [today, setToday] = useState<{ count: number; correct: number } | null>(null);
 
@@ -25,16 +25,15 @@ export default function LanguageHome() {
     let stale = false;
     (async () => {
       try {
-        const [{ words, due }, summary] = await Promise.all([
-          loadDeck(config),
+        const [count, summary] = await Promise.all([
+          countWords(config),
           todayReviewSummary(config),
         ]);
         if (stale) return;
-        setTotal(words.length);
-        setDueCount(due.length);
+        setTotal(count);
         setToday(summary);
       } catch {
-        if (!stale) setDueCount(0);
+        /* 요약은 장식 — 실패해도 시작 버튼은 그대로 */
       }
     })();
     return () => {
@@ -62,13 +61,11 @@ export default function LanguageHome() {
   const switchLang = (code: string) => {
     setMenuOpen(false);
     if (code === config.code) return;
-    setDueCount(null);
     setTotal(0);
     setToday(null);
     setCurrentLang(code);
   };
 
-  const free = dueCount === 0;
   return (
     <main className="flex flex-1 flex-col p-4">
       <header className="mb-7 flex items-start justify-between gap-3">
@@ -126,8 +123,7 @@ export default function LanguageHome() {
       <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-lg border border-line bg-card p-8 text-center">
         <span className="absolute left-4 top-0 h-1 w-10 bg-lang" aria-hidden="true" />
         <div className="mb-2.5 flex justify-center"><PixelPenguinBubble size={44} /></div>
-        <p className="text-sm text-faint">{free ? "연습" : "복습 대기"}</p>
-        <p className="my-3 font-mono text-5xl font-medium tabular-nums">{free ? "∞" : (dueCount ?? "–")}</p>
+        <p className="mb-5 font-display text-xl font-bold">단어 퀴즈</p>
         <Link
           href="/language/quiz"
           className="block w-full rounded-md bg-lang py-3 font-medium text-white"
