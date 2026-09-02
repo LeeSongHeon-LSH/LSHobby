@@ -172,7 +172,7 @@ describe("FSRS 래퍼 (§6.3 — 정답=Good/오답=Again)", () => {
   });
 });
 
-describe("practiceOrder (출제 순서 — 하루 할당 폐지, 2026-08-31)", () => {
+describe("practiceOrder (출제 순서 — 복습·신규 섞어 내기, 2026-09-02)", () => {
   const past = "2026-08-13T00:00:00Z";
   const future = "2026-08-20T00:00:00Z";
   const w = (id: number, over: Partial<SrsFields> = {}): Word =>
@@ -182,9 +182,17 @@ describe("practiceOrder (출제 순서 — 하루 할당 폐지, 2026-08-31)", (
   const ids = (list: Word[]) => list.map((x) => x.id);
   const fixed = () => 0.5; // 랜덤 동률은 고정해 결과를 결정적으로
 
-  it("구간 순서: due 복습 → 신규 → 아직 due 아닌 것", () => {
+  it("구간 순서: due 복습·신규 교대 → 아직 due 아닌 것", () => {
     const words = [w(1, { state: 2, due: future }), w(2), w(3, { state: 2, due: past })];
     expect(ids(practiceOrder(words, stat([[1, 2, 2], [3, 2, 2]]), NOW, fixed))).toEqual([3, 2, 1]);
+  });
+  it("복습과 신규를 1:1로 번갈아 내고, 한쪽이 끝나면 남은 쪽을 잇는다", () => {
+    const words = [w(1), w(2), w(3), w(10, { state: 2, due: past }), w(11, { state: 2, due: past })];
+    expect(ids(practiceOrder(words, stat([[10, 2, 1], [11, 2, 2]]), NOW, fixed))).toEqual([10, 1, 11, 2, 3]);
+  });
+  it("복습이 신규보다 많아도 신규가 앞쪽에 섞여 나온다", () => {
+    const words = [w(1), w(10, { state: 2, due: past }), w(11, { state: 2, due: past }), w(12, { state: 2, due: past })];
+    expect(ids(practiceOrder(words, stat([[10, 2, 0], [11, 2, 1], [12, 2, 2]]), NOW, fixed))).toEqual([10, 1, 11, 12]);
   });
   it("구간 안에서는 정답률 낮은 순", () => {
     const words = [w(1, { state: 2, due: past }), w(2, { state: 2, due: past })];
@@ -197,7 +205,7 @@ describe("practiceOrder (출제 순서 — 하루 할당 폐지, 2026-08-31)", (
     ];
     expect(ids(practiceOrder(words, stat([[1, 2, 1], [2, 2, 1]]), NOW, fixed))).toEqual([2, 1]);
   });
-  it("신규는 집계가 없어 0%지만 별도 구간이라 등록 순으로 나간다", () => {
+  it("신규는 등록 순으로 나간다", () => {
     const words = [w(3), w(1), w(2)];
     expect(ids(practiceOrder(words, stat([]), NOW, fixed))).toEqual([1, 2, 3]);
   });

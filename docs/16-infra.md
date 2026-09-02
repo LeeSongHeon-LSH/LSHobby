@@ -2,6 +2,8 @@
 
 ## 16. 인프라 구조 해설 — 현재 상태 (2026-08-30 로컬 호스팅 전환 반영)
 
+> **개정 (2026-09-02, 코드 대조)**: 배포 판정 기준이 `DEPLOYED_SHA`(#77), CI는 트리거가 아니라 게이트, 스크립트 사본 re-exec·deploy-state 두 상태·수동 배포 경로 정정(§16.2·16.5). 비밀 표에 Gemini·Notion 추가(§16.4). 다이제스트 KST 축(#78, §16.11). Notion은 DB 하나 + 유형 select(#80, §16.12). 수동·반자동 배치 절 신설(§16.13). Storage는 미사용.
+
 §2(스택 선정 이유)·§12(보안 요구)의 결과물로 **실제로 세워진 인프라가 어떻게 맞물려 도는지**를 학습용으로 풀어쓴 문서. 규칙의 원본은 §12, 여기는 "왜 이렇게 생겼고 요청이 어디로 흐르는가"를 설명한다.
 
 ### 16.1 전체 그림
@@ -9,13 +11,13 @@
 ```mermaid
 flowchart LR
     subgraph dev["개발 (이 서버)"]
-        CODE["리포 Spanish-Practice<br/>(Next.js + 구 파이썬 공존)"]
+        CODE["리포 LSHobby (Next.js)<br/>이 PC의 체크아웃"]
     end
     subgraph gh["GitHub"]
         REPO["LeeSongHeon-LSH/LSHobby<br/>main 브랜치"]
     end
     subgraph home["집 PC (호스팅, 이 서버)"]
-        BUILD["npm run build"]
+        BUILD["lshobby-deploy.timer<br/>.next-staging 빌드 → mv 교체"]
         PROD["systemd --user lshobby<br/>next start :3000"]
         TS["tailscale serve :8443"]
     end
@@ -26,12 +28,12 @@ flowchart LR
         AUTH["Auth (GoTrue)<br/>로그인·JWT 발급"]
         REST["PostgREST<br/>테이블 자동 REST API"]
         DB[("PostgreSQL 17<br/>17개 테이블 + RLS")]
-        STG["Storage<br/>(버킷 아직 없음)"]
+        STG["Storage<br/>(미사용 — 버킷 없음)"]
     end
     U["브라우저 (모바일/PC)"]
 
     CODE -- git push --> REPO
-    CODE -- npm run build<br/>+ systemctl restart --> BUILD --> PROD --> TS
+    REPO -- 2분마다 fetch<br/>CI 초록 확인 --> BUILD --> PROD --> TS
     U -- "HTML·JS·CSS<br/>(테일넷 안에서만)" --> TS
     U -- supabase-js<br/>(anon key + JWT) --> AUTH & REST
     REST --> DB
@@ -47,14 +49,14 @@ flowchart LR
 
 | 구성요소 | 역할 | 우리 설정 |
 |---|---|---|
-| **GitHub** | 소스 저장 + CI | `main`·PR 푸시에 `npm run lint` + `npm test` (배포 트리거 아님 — 2026-08-30 Vercel 연동 해제) |
-| **집 PC** | 빌드·호스팅 | `systemd --user lshobby` = `next start :3000`, 배포는 손으로 (§16.5) |
+| **GitHub** | 소스 저장 + CI | `main`·PR 푸시에 `npm run lint` + `npm test`. 푸시가 배포를 **시작시키지는 않지만**(2026-08-30 Vercel 연동 해제), 배포 타이머가 이 CI 결과를 **게이트**로 읽는다(§16.5) |
+| **집 PC** | 빌드·호스팅 | `systemd --user lshobby` = `next start :3000`. 배포는 `lshobby-deploy.timer`가 **2분 주기 자동**(§16.5, 수동 실행도 같은 스크립트) |
 | **Tailscale** | 외부 접근 | `tailscale serve :8443` — **테일넷 안에서만** 열린다. 인터넷 공개(funnel) 아님 |
 | **Next.js** | 화면 + (필요 시) 서버 코드 | 16.x, App Router, `src/` 구조 — 모듈 경계는 §3 |
 | **Supabase Auth** | 로그인·세션(JWT) | 이메일 로그인, **가입 서버 차단**(SEC-01), 계정 1개 |
 | **PostgREST** | 테이블 → REST API 자동화 | supabase-js가 클라이언트. 모든 요청에 RLS 적용 |
 | **PostgreSQL** | 데이터 원본 | §9 DDL = `supabase/migrations/` 파일로 형상 관리 |
-| **Storage** | 파일(이미지) | CS 모듈 때 private 버킷 생성 예정(SEC-04) |
+| **Storage** | 파일(이미지) | **현재 사용처 없음** — CS 폐기(#57)로 버킷·정책 drop. 이미지 기능이 생기면 private 버킷 생성(SEC-04 조건부) |
 
 ### 16.3 데이터 요청 한 번이 흐르는 길
 
@@ -88,6 +90,10 @@ sequenceDiagram
 | DB 비밀번호 | 비공개 | `~/.lshobby/db-password` | `pg_dump` 백업(NFR-04), `supabase link` |
 | 앱 로그인 비밀번호 | 본인만 | `~/.lshobby/app-password` (+비밀번호 관리자) | 앱 로그인. 분실 시 SEC-08 런북 |
 | Supabase 대시보드 계정 | **최상위 복구 수단** | GitHub 로그인 | 모든 것의 마스터 키 |
+| `GEMINI_API_KEY` | 비공개 (외부 API 실비밀) | `.env` | 배치 전용 — 예문·뜻 동의어 백필(§16.13). 앱 코드는 안 읽는다 |
+| `NOTION_TOKEN` · `NOTION_BACKUP_DB_ID` | 비공개 | `.env` | Notion 백업 미러(§16.12). 구 `NOTION_DB_ID`·`NOTION_BOOK_DB_ID`·`NOTION_WORD_DB_ID`는 읽는 코드가 없다 |
+
+> **정리 대상 (2026-09-02 확인)**: `.env`에 Vercel CLI가 남긴 `VERCEL_OIDC_TOKEN`, 그리고 코드 참조가 없는 `SUPABASE_SECRET_KEY`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`가 남아 있다 — 제거해도 되는 잔여물. 반대로 `NOTION_BACKUP_DB_ID`는 **아직 `.env`에 없어** 백업 스크립트가 시작 즉시 종료한다(§16.12 참조).
 
 규칙(SEC-03): 비밀은 `.env`(gitignore)로만 — 코드·리포에 하드코딩 금지. 호스팅이 집 PC로 내려오면서 원격 환경변수 저장소는 아예 없어졌다. **`NEXT_PUBLIC_` 접두사가 붙은 변수만 브라우저 번들에 들어간다**는 Next.js 규칙이 anon(공개)과 service_role(서버 전용)의 경계를 코드 레벨에서 지켜준다.
 
@@ -97,7 +103,7 @@ Vercel을 내리고 **이 PC가 프로덕션**이 됐다. 공개할 것은 CV �
 
 ```mermaid
 flowchart LR
-    A[git push main] --> T["lshobby-deploy.timer<br/>2분마다 origin/main 대조"]
+    A[git push main] --> T["lshobby-deploy.timer<br/>2분마다 origin/main vs<br/>.next/DEPLOYED_SHA 대조"]
     T --> CI{"GitHub CI 초록?"}
     CI -. 대기·실패 .-> G["교체 안 함<br/>직전 빌드가 계속 서빙"]
     CI -- 통과 --> B["git merge --ff-only<br/>+ .next-staging에 빌드"]
@@ -109,9 +115,9 @@ flowchart LR
     E --> F["테일넷 주소 :8443<br/>(테일넷 기기에서만)"]
 ```
 
-- **배포 = `main` 푸시** (2026-08-30 자동화). `systemd --user` 타이머 `lshobby-deploy.timer`가 **2분마다** `scripts/deploy-local.sh`를 돌려 origin/main과 대조하고, 새 커밋이 있을 때만 받아서 빌드·교체한다. 손으로 하려면 같은 두 줄이 그대로 통한다:
+- **배포 = `main` 푸시** (2026-08-30 자동화). `systemd --user` 타이머 `lshobby-deploy.timer`가 **2분마다** `scripts/deploy-local.sh`를 돌린다. 판정 기준은 **"지금 서빙 중인 빌드가 어느 커밋인가"** — `.next/DEPLOYED_SHA`와 origin/main이 다를 때만 받아서 빌드·교체한다(#77, 2026-08-31). HEAD와 origin을 비교하면 이 PC에서 직접 커밋·푸시할 때 둘이 함께 올라가 "받을 것 없음"이 되어 영영 배포되지 않는다. `DEPLOYED_SHA`는 빌드 성공 시 스테이징에 쓰고 `mv`와 함께 옮기므로 롤백하면 기록도 같이 되돌아간다. 손으로 하려면 **같은 스크립트**를 부른다(아래 계약을 전부 태우기 위해 — 맨손 `npm run build`는 `.next`를 먼저 비우고 `DEPLOYED_SHA`도 안 남긴다):
   ```bash
-  npm run build && systemctl --user restart lshobby
+  DEPLOY_SKIP_CI=1 scripts/deploy-local.sh
   ```
   스크립트의 계약은 **"돌던 사이트를 내리지 않는다"** 다. `next build`는 `cleanDistDir` 기본값 때문에 컴파일 **전에** distDir을 비우므로, `.next`에 대고 빌드하면 빌드가 실패한 순간 사이트가 통째로 깨진다(재시작을 안 해도 소용없다 — 읽을 파일이 이미 없다). 그래서 빌드는 `NEXT_DIST_DIR=.next-staging`으로 딴 데 짓고, **빌드 성공 + 새 `BUILD_ID`가 실제로 200을 내는 것**까지 확인한 뒤에야 `mv`로 갈아끼운다:
 
@@ -122,13 +128,14 @@ flowchart LR
   | 로컬 `main`이 origin보다 앞섬(푸시 전) | 건너뜀 — 배포할 것이 없다 |
   | 로컬 `main`이 origin과 **갈라짐** | 타이머를 **정지**시키고 `notify-send`로 부른다. 정리 후 `systemctl --user start lshobby-deploy.timer` |
   | CI가 아직 안 끝남 | 대기(2분 뒤 재시도). 30분을 넘기면 한 번 알린다 |
-  | **CI 실패** | 배포하지 않고 해당 sha를 기록 — 고친 커밋이 올라와야 다시 시도 |
-  | `package-lock.json`이 바뀐 커밋 | `npm ci` 먼저 |
+  | **CI 실패** | 배포하지 않고 해당 sha를 `blocked`로 기록 — 고친 커밋이 올라와야 다시 시도 |
+  | `package-lock.json`이 바뀐 커밋 | `npm ci` 먼저 — 비교 구간은 **직전 배포 커밋(`DEPLOYED_SHA`) → 새 커밋**(기록이 없거나 그 커밋이 사라졌으면 HEAD로 폴백, 최악이라도 `npm ci` 한 번 건너뛰는 정도) |
   | 빌드 실패 | `.next`를 건드린 적이 없다 → **직전 빌드가 계속 서빙** |
   | 새 빌드가 30초 안에 응답 못 함 | 직전 `.next`로 **롤백** 후 재시작 |
 
   - **CI 게이트**(NFR-06): `.githooks/pre-push`는 `--no-verify`와 GitHub UI 머지를 못 막는다. 그래서 스크립트가 `gh api .../check-runs`로 그 sha의 CI를 직접 확인하고 **초록일 때만** 올린다. CI를 못 쓸 때의 탈출구는 `DEPLOY_SKIP_CI=1 scripts/deploy-local.sh`.
-  - **실패한 sha 기록**: `~/.lshobby/deploy-state`. 같은 실패를 2분마다 720번 반복하지 않기 위한 것으로, 새 커밋이 오면 sha가 달라져 저절로 풀린다.
+  - **상태 기록**: `~/.lshobby/deploy-state`에 `<sha> blocked|stalled` 한 줄. `blocked` = CI 실패·빌드 실패·헬스체크 실패(그 sha는 다시 시도하지 않음), `stalled` = CI 30분 정체 알림을 이미 보냈다는 표시(알림 1회만). 같은 실패를 2분마다 720번 반복하지 않기 위한 것으로, 새 커밋이 오면 sha가 달라져 저절로 풀리고 배포 성공 시 지운다.
+  - **사본 re-exec**: 스크립트 자신이 배포 대상이라 `git merge`가 실행 중인 파일을 바꾸면 sh(dash)가 남은 구간을 새 파일의 같은 오프셋에서 읽어 조용히 건너뛴다 — `DEPLOY_REEXEC` 가드로 `mktemp` 사본에 붙어서 돈다.
   - **`tsconfig.json` 되돌리기**: `next build`가 distDir 타입 경로를 tsconfig에 써넣는다. 스테이징 경로가 남으면 다음 tick이 "작업 트리 더러움"으로 영영 건너뛰므로 빌드 직후 `git checkout`으로 되돌린다.
   - **폰트 캐시**: `.next/cache`를 스테이징에 복사해 물려준다 — 안 그러면 매 배포가 `fonts.gstatic.com` 접속에 걸린다.
 
@@ -161,6 +168,8 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 | 실행 | 터미널에서 직접 | `systemd --user lshobby` (`next start`) |
 | 환경변수 | `.env` 파일 | 같은 `.env` 파일 |
 | DB | **같은 Supabase를 바라봄** | 같음 |
+
+`scripts/deploy-local.sh`의 `REPO`는 서버 계정의 체크아웃 경로로 고정돼 있다 — 다른 계정·홈 디렉터리에서 개발용 체크아웃을 따로 두고 작업할 수 있고, 그 경우 타이머는 서버 쪽 체크아웃만 본다(2026-09-02 확인: 개발 체크아웃과 `REPO` 경로가 다름).
 
 이제 개발과 프로덕션이 **같은 PC·같은 파일**을 쓴다 — `npm run dev`를 띄워도 3000 포트가 이미 서비스에 잡혀 있으므로, 개발할 때는 서비스를 멈추거나(`systemctl --user stop lshobby`) 다른 포트로 띄운다. 로컬 개발도 프로덕션 DB를 직접 쓴다 — 1인 프로젝트라 dev/prod DB 분리를 하지 않았다(단순성 우선). 파괴적인 실험이 필요하면 그때 `supabase start`(로컬 Docker DB)를 검토.
 
@@ -201,6 +210,9 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 생각 세션의 하루 요약 배치(`scripts/digest-thoughts.mjs`, 집 PC cron 00:30)는 이 PC의 **로컬 Ollama**(`localhost:11434`, 기본 바인딩)로 exaone3.5:7.8b를 돌린다. 정책은 단순하다 — **생각 데이터는 어떤 외부 API로도 보내지 않는다.** 그래서 클라우드 추론은 쓰지 않고, Ollama는 네트워크에 노출하지 않는다.
 
+- **날짜 축은 KST 고정**(#78, 2026-08-31) — 서버는 UTC로 도는데 앱은 브라우저(KST) 기준이라, 시스템 타임존으로 자르면 KST 00~09시 메모가 전날 요약에 묶인다. `dayKey`·`dayRange`·"오늘 00:00"을 전부 KST로 계산하며 `sync-notion-backup.mjs`의 `kstDate`와 같은 축이다. 앱 쪽 `dayKey`는 브라우저 로컬 기준(한국에서 쓰는 한 같음)
+- **오버라이드**: `OLLAMA_URL`(기본 `http://localhost:11434`)·`DIGEST_MODEL`(기본 `exaone3.5:7.8b`) 환경변수
+
 > **철회 기록 (#63)**: 철학 정보 탭(브라우저→Ollama 문답 + 한↔영 통역)과 그를 위한 tailnet 노출(`tailscale serve :8443`, `OLLAMA_HOST` tailscale IP 바인딩, CORS, Vercel `NEXT_PUBLIC_OLLAMA_URL`)은 2026-08-24 당일 도입·철회했다. 구성과 근거는 git 히스토리에 보존(커밋 505629d 시점의 §16.11). 브라우저에서 Ollama를 다시 부를 일이 생기면 그 기록대로 재구성하면 된다.
 
 ### 16.12 Notion 백업 미러 (#64 → 백업 형태로 개편 2026-08-26)
@@ -209,9 +221,10 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 ```
 집 PC cron 00:40(UTC, =KST 09:40) → node --env-file=.env scripts/sync-notion-backup.mjs
-  ① 책 여정 백업 DB — 페이지 = 책 1권. 저자·출판사·태그·여정 번호·회독·완독일·별점은
-     속성으로, 노트·완독 기록·감상(reflection)은 본문 블록으로 upsert (book_id가 키)
-  ② 단어 대시보드 DB — 언어×날짜 1행 (복습·정답·정답률). review_log에서 daily_stats
+  DB 하나("LSHobby")에 두 유형의 행이 같이 산다 — `유형` select로 갈라 읽고 만든다 (#80)
+  ① 유형 "책 여정" — 페이지 = 책 1권. 저자·출판사·태그·여정 번호·회독·완독일·별점은
+     속성으로, 노트·독서 기록·감상(reflection)은 본문 블록으로 upsert (book_id가 키)
+  ② 유형 "단어 대시보드" — 언어×날짜 1행 (복습·정답·정답률). review_log에서 daily_stats
      RPC(tz=Asia/Seoul)로 집계 — 오늘(KST)은 확정 전이라 제외, 지난 날짜는 값 변경 시 갱신
 ```
 
@@ -221,8 +234,24 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 | 하루 경계 | 스크립트가 KST(Asia/Seoul)로 직접 계산 | 집 PC는 UTC — 시스템 타임존에 기대면 경계가 9시간 어긋난다 |
 | 삭제 | 반영 안 함 | 백업이므로 앱에서 지워도 사본은 남긴다 |
 | thought | 다루지 않음 | 생각 데이터 외부 반출 금지(§16.11) |
-| Notion 구조 | 기존 LSHobby DB 안의 "📦 LSHobby 백업" 페이지 아래 인라인 DB 2개 | integration이 접근 가능한 유일한 컨테이너 (API는 워크스페이스 루트에 DB 생성 불가) |
+| Notion 구조 | **DB 1개**(최상위 "LSHobby")에 책·단어 행이 공존, `유형` select("책 여정"/"단어 대시보드")로 분리 (#80, 2026-08-31) | ~~"📦 LSHobby 백업" 아래 인라인 DB 2개~~는 합쳐진 상태로 발견됐고, 기록 보관 성격이라 다시 나누지 않았다. 유형은 생성 경로에만 박는다(속성 해시에 넣으면 전 권이 재동기화) |
 | 비밀 | `.env`의 `NOTION_TOKEN`·`NOTION_BACKUP_DB_ID` | 책·단어가 DB 하나를 같이 쓰고 `유형` select로 갈린다 (2026-08-31). 구 `NOTION_BOOK_DB_ID`·`NOTION_WORD_DB_ID`는 사라진 DB를 가리켜 404였다. 구 `NOTION_DB_ID`는 활동 DB — 부모 페이지 생성 시에만 쓰였다 |
-| 실패 정책 | 로그만(`~/.local/state/lshobby-notion-backup.log`), 알림 없음 | PC 꺼짐·Notion 장애는 다음 실행이 따라잡는다 (#45와 같은 1인 규모 판단) |
+| 실패 정책 | 로그만(`~/.local/state/lshobby-notion-backup.log`), 알림 없음 | PC 꺼짐·Notion 장애는 다음 실행이 따라잡는다 (#45와 같은 1인 규모 판단). **단, 08-27~31 닷새간 404로 조용히 실패해 백업 0건이었다**(#80) — 알림 없는 cron은 실패해도 모른다. 가끔 로그를 본다 |
 
 구 활동 미러의 행들은 Notion에 그대로 남아 있다(삭제는 수동). 백업 DB를 Notion에서 다른 위치로 옮기면 integration 공유가 끊길 수 있다 — 옮긴 뒤에는 해당 페이지에 integration을 다시 연결해야 한다.
+
+> **2026-09-02 확인**: 개발 체크아웃의 `.env`에는 `NOTION_BACKUP_DB_ID`가 아직 없고 구 3변수만 남아 있다(§16.4). 이 상태로는 스크립트가 시작 즉시 종료한다 — 서버 체크아웃의 `.env`도 같은지 확인할 것.
+
+### 16.13 수동·반자동 배치 (`scripts/`)
+
+cron이 아니라 **사람이 필요할 때 손으로** 돌리는 스크립트들. 전부 `node --env-file=.env scripts/<이름>`이며 Supabase는 `SUPABASE_SERVICE_ROLE_KEY`(RLS 우회)로 붙는다.
+
+| 스크립트 | 하는 일 | 비밀 | 재실행 안전 |
+|---|---|---|---|
+| `backfill-sentences.mjs [es\|en] [--budget N]` | 예문 0개인 단어에 Tatoeba 원문(단어당 최대 3개)을 채우고, 번역·부족분만 **Gemini** | `GEMINI_API_KEY` | 예문 있는 단어 건너뜀. 429는 1분 후 1회 재시도, 일일 한도면 중단(실측 ~20회/일) |
+| `backfill-meanings.mjs [es\|en] [--budget N] [--apply]` | 뜻에 동의어 덧붙이기(#79). **2단계**: 플래그 없이 → Gemini 제안을 `meaning-proposals.<code>.json`에 기록(DB 안 건드림) → 파일을 **사람이 검수** → `--apply`로 반영(Gemini 호출 없음) | `GEMINI_API_KEY`(1단계만) | 제안 파일이 기록 — 이미 있는 단어(동의어 없음 판정 포함)·이미 콤마 있는 뜻은 건너뜀. 파일은 gitignore |
+| `seed-es-words.mjs` · `seed-en-words.mjs` | 시드 218·300단어 — **빈 테이블일 때만** | — | 행이 하나라도 있으면 종료 |
+| `generate-icons.mjs` | `src/app/ui/pixel.tsx`의 마스코트 그리드에서 PWA 아이콘 4종 + favicon 생성(#60) | — (`sharp` 필요 — package.json 직접 의존이 아니라 전이 의존) | 덮어쓰기 |
+| `deploy-local.sh` | §16.5 배포 — 타이머가 부르지만 `DEPLOY_SKIP_CI=1`로 수동 실행 가능 | `gh` 인증 | 자체 가드 |
+
+**정책 경계**: 단어 데이터(단어·뜻·예문)는 Gemini로 **나간다** — 학습 자료라 반출해도 되는 것으로 본다. 생각 데이터는 어떤 외부 API로도 **안 나간다**(§16.11) — 다이제스트는 로컬 Ollama뿐이고 Notion 백업도 thought를 뺀다(§16.12). LLM 출력을 DB에 넣는 경로는 반드시 사람 검수를 거친다(#79 — 잘못된 동의어 하나가 그 단어를 영영 헐겁게 채점한다).

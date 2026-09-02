@@ -1,5 +1,6 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
+> **개정 (2026-09-02, 코드 대조)**: 생각 세션의 `thought`·`thought_digest`(마이그레이션 20260821120000) DDL·ERD 추가, `activity_feed` 주석을 실제 발행값으로, `reflection_thread.subject_type`에 `'en_word'`, §9.3의 "하루 신규 20개 한도" 삭제(#81).
 > **개정 (2026-08-20, 결정 #57~61 반영 완료)**: CS 세션 제거 · 인용구 삭제가 코드(커밋 6246582~)와 DB(마이그레이션 20260820090000 · 20260820100000)에 모두 반영됐다. 본문은 현행 상태로 개정됨 — CS/quote 관련 폐기 항목은 사료 표시.
 
 ## 9. 전체 ERD 및 DDL — 확정 (2026-08-14) · 개정 (2026-08-20, #57·#58)
@@ -7,6 +8,7 @@
 컷오버 시 이 DDL이 Supabase 마이그레이션 파일의 원본이 된다.
 2026-08-20 구조 개편으로 `quote`·`concept`·`concept_link` 3테이블과 CS 이미지용 `attachments` Storage 버킷을 drop, 2026-08-30 CV 분리(#73)로 `cv_document`까지 drop — 현행 **17테이블**(마이그레이션 `create table` 21 − `drop table` 4, 라이브 DB 실측 일치).
 영어 확장(2026-08-18, #54)으로 `en_*` 4개 테이블이 추가됐다 — `es_*`와 동일 구조에서 `gender`(언어 특수 필드)만 제외.
+생각 세션(2026-08-21, grill 결정)으로 `thought`·`thought_digest` 2테이블이 추가됐다 — 마이그레이션 `20260821120000`, FK 없는 독립 테이블(§4.6).
 이때 예문 원문 컬럼을 일반화했다: `es_sentences.es_text` → `text` (언어가 늘어도 스키마가 자연스럽도록).
 
 ### 9.1 ERD
@@ -25,11 +27,14 @@ erDiagram
     %% shared
     reflection_thread ||--o{ reflection_entry : "append-only"
     tag ||--o{ tagging : ""
+    %% thought — FK 없는 독립 2테이블 (digest는 day 축으로만 대응, scripts/digest-thoughts.mjs)
+    thought
+    thought_digest
 ```
 
 FK 없는 다형 참조(그림에 없는 연결, §4.5):
 
-- `reflection_thread(subject_type, subject_id)` ⇢ book · es_words
+- `reflection_thread(subject_type, subject_id)` ⇢ book · es_words · en_words (UI는 book만 — §4.3)
 - `tagging(subject_type, subject_id)` ⇢ book
 - `activity_feed(entity_type, entity_id)` ⇢ 전 도메인 (summary 비정규화라 원본 참조 자체가 불필요)
 
@@ -56,7 +61,7 @@ create index idx_tagging_subject on tagging (subject_type, subject_id);
 
 create table reflection_thread (
   id           bigint generated always as identity primary key,
-  subject_type text not null,      -- 'book' | 'es_word'
+  subject_type text not null,      -- 'book' | 'es_word' | 'en_word'  (`{lang}_word`, §9.3)
   subject_id   bigint not null,    -- FK 없음: 다형 참조
   created_at   timestamptz not null default now(),
   unique (subject_type, subject_id)   -- 엔티티당 스레드 1개
@@ -73,10 +78,11 @@ create index idx_reflection_entry_thread on reflection_entry (thread_id);
 
 create table activity_feed (
   id          bigint generated always as identity primary key,
-  domain      text not null,       -- 'library' | 'language' ('knowledge'는 과거 이벤트에만)
-  entity_type text not null,       -- 'book' | 'es_word' | 'reflection' …
-  entity_id   bigint not null,     -- FK 없음: 엔티티 삭제 후에도 이벤트는 남는다 (§9.3)
-  action      text not null,       -- 'created' | 'updated' | 'reflected' | 'completed' …
+  domain      text not null,       -- 'library' | 'language' | 'thought' ('knowledge'는 과거 이벤트에만)
+  entity_type text not null,       -- 'book' | 'es_word' | 'en_word' | 'es_review_day' | 'en_review_day' | 'thought'
+                                   --   (reflection은 이벤트를 내지 않는다 — 발행 코드 없음)
+  entity_id   bigint not null,     -- FK 없음: 엔티티 삭제 후에도 이벤트는 남는다 (§9.3). 일별 요약은 0
+  action      text not null,       -- 'created' | 'completed' | 'noted' | 'reviewed'  (실제 발행값 전부)
   summary     text not null,       -- 타임라인 한 줄 (비정규화 — 홈은 이 테이블만 읽음)
   occurred_at timestamptz not null default now()
 );
@@ -158,6 +164,27 @@ create table es_sentence_fetch (
 -- en_words / en_review_log / en_sentences / en_sentence_fetch (#54):
 -- 위 es_* 4테이블과 동일 구조·인덱스·RLS. 차이는 en_words에 gender 컬럼이 없는 것뿐 (§6.2)
 
+-- ============ thought (생각 세션, 2026-08-21 — 마이그레이션 20260821120000) ============
+-- append-only: 수정·삭제 없음(reflection과 같은 원칙). topics는 로컬 워커가 채우는 기계 주석.
+
+create table thought (
+  id         bigint generated always as identity primary key,
+  content    text not null,
+  topics     text[],                  -- 로컬 워커가 붙이는 주제 키워드 (null = 미분석)
+  created_at timestamptz not null default now()
+);
+create index idx_thought_created on thought (created_at desc);
+
+create table thought_digest (
+  id         bigint generated always as identity primary key,
+  day        date not null unique,    -- 요약 대상 날짜 — 배치는 KST 고정 (#78)
+  summary    text not null,           -- 하루 요약 3~5줄
+  topics     text[] not null default '{}',  -- 그날의 주제 키워드 (궤적 축적)
+  model      text not null,           -- 생성한 로컬 모델 (예: exaone3.5:7.8b)
+  created_at timestamptz not null default now()
+);
+-- RLS는 아래 블록과 동일(authenticated_all) — 마이그레이션에서 두 테이블에 같은 정책을 건다
+
 -- ============ cv (§17) — 2026-08-30 #73으로 drop, CV는 별도 리포의 cv.md가 원본 ============
 
 -- ============ RLS: 전 테이블 "authenticated 전부 허용" ============
@@ -180,7 +207,7 @@ end $$;
 - **PK**: 전 테이블 `bigint generated always as identity`. uuid 기각 — 분산·오프라인 생성이 없는 1인 서버 생성 구조에서 정수가 모든 면에서 가벼움
 - **RLS**: 켜되 정책은 "authenticated 전부 허용", **`user_id` 컬럼 없음** — 계정이 본인 하나뿐이라 "로그인함 = 본인". 다중 사용자로 확장하면 그때 컬럼 추가 마이그레이션. Storage는 미사용(CS 이미지용 attachments 버킷은 #57로 삭제). **예외 없음** — 유일한 anon SELECT였던 `cv_document`가 #73으로 사라지면서 anon은 전 테이블 거부로 돌아왔다 (§17)
 - **다형 참조 값 규칙**: `subject_type`/`entity_type`은 테이블을 특정하는 값(`'es_word'`, 영어 추가 시 `'en_word'`) — §4.4 초안의 `'vocab'` 정정. 컬럼 하나로 대상 테이블까지 식별
-- **학습 카운터 컬럼 없음**: 현행 앱의 `test_count`/`correct_count` 이중 저장을 제거 — 통계·스트릭·하루 신규 20개 한도·어려운 단어 판정 전부 `es_review_log`에서 파생 집계
+- **학습 카운터 컬럼 없음**: 현행 앱의 `test_count`/`correct_count` 이중 저장을 제거 — 통계·스트릭·정답률 기반 출제 순서(§6.3) 전부 `*_review_log`에서 파생 집계(RPC `*_word_stats`·`*_daily_stats`, #62). ~~하루 신규 20개 한도·어려운 단어 판정~~은 #81로 폐기
 - **cascade 이원화**: 진짜 FK는 DB `on delete cascade`, 다형 참조 행(reflection·tagging)은 앱 레이어가 삭제 (§4.5 "무결성은 앱 레이어" 결정의 귀결. 트리거는 숨은 로직이 되기 쉬워 배제)
 - **activity_feed 영구 보존**: 엔티티를 삭제해도 과거 이벤트는 타임라인에 남김 — 일어난 역사이고 `summary` 비정규화라 표시에 원본이 필요 없음. 원본 없는 이벤트는 UI에서 링크 비활성 처리
 - **시간 타입**: 시각은 `timestamptz`, 하루 단위 사실(완독일)은 `date`

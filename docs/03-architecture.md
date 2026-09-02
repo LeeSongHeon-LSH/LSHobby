@@ -1,5 +1,6 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
+> **개정 (2026-09-02, 코드 대조)**: `thought` 도메인 모듈·`shared/markdown` 추가, `app/` 트리를 실제 라우트대로, `search/`는 빈 스텁 표시, §3.4 규칙의 알려진 예외 2건 기록(#83).
 > **개정 (2026-08-20, 결정 #57~61 반영 완료)**: CS 세션 제거 · 인용구 삭제가 코드(커밋 6246582~)와 DB(마이그레이션 20260820090000 · 20260820100000)에 모두 반영됐다. 본문은 현행 상태로 개정됨 — CS/quote 관련 폐기 항목은 사료 표시.
 
 ## 3. 아키텍처 (확정) — Modular Monolith
@@ -26,18 +27,27 @@ MSA로 쪼개면 이런 교차 케이스마다 서비스 간 조인이 필요해
 ```
 src/
 ├── modules/
-│   ├── library/          # 책
-│   ├── language/         # 언어 (기존 스페인어 코드 흡수)
+│   ├── library/          # 책 — books.ts(CRUD·회독·노트) + journey.ts(독서 여정 책장 계산)
+│   ├── language/         # 언어 — config 주입(es/en), srs·session·answer·grading·stats·sentences
+│   ├── thought/          # 생각 세션 (2026-08-21~) — append-only 스트림, 다이제스트는 읽기만
 │   └── shared/
-│       ├── reflection/   # ★ 생각 기록 타임라인 (핵심)
-│       ├── activity/     # 활동 피드
+│       ├── reflection/   # ★ 생각 기록 타임라인 (핵심) — 렌더 블록 포함
+│       ├── activity/     # 활동 피드 (앱 화면 소비처 없음 — 배치가 읽는다, §15.6-4)
 │       ├── tag/
-│       ├── search/
-│       └── auth/
+│       ├── markdown/     # 마크다운 렌더 (sanitize, SEC-05)
+│       ├── search/       # 빈 스텁 (export {}) — 검색은 도메인별 구현
+│       └── auth/         # 클라이언트 + AuthGuard + 서버 라우트용 client
 └── app/
-    ├── home/             # 통합 홈 (허브)
-    ├── library/          # 세션별 전용 공간
-    └── language/
+    ├── page.tsx          # 입구(/) — 마스코트 → 로그인, 세션 있으면 /home
+    ├── login/
+    ├── home/             # 통합 홈 (허브, 서랍 3개)
+    ├── library/          # 세션별 전용 공간 (+ record/)
+    ├── language/         # (+ add/ quiz/ stats/ words/)
+    ├── thoughts/
+    ├── api/sentence/     # Tatoeba 수집 서버 라우트
+    ├── ui/               # 공용 UI — pixel(도트 스프라이트)·scene·tab-bar·home-button·icons
+    ├── manifest.ts · sw-register.tsx   # PWA
+    └── layout.tsx
 ```
 
 > 공개 CV(§17)는 2026-08-30 별도 리포로 분리됐다 — `cv` 모듈·`app/cv/`는 더 이상 없다.
@@ -46,16 +56,17 @@ src/
 
 ```
 ┌─────────────────────────────────────────────┐
-│  library      │  language                    │  ← 도메인 모듈
-└───────┬───────┴───────┬──────────────────────┘
-        │               │
-        └───────────────┤
-                        ▼
+│  library   │  language   │  thought          │  ← 도메인 모듈
+└──────┬─────┴──────┬──────┴──────┬────────────┘
+       │            │             │
+       └────────────┴─────────────┤
+                                  ▼
         ┌───────────────────────────────┐
         │  shared                        │
         │  ├── reflection (생각 타임라인) │  ← 핵심
         │  ├── activity   (활동 피드)     │
-        │  ├── tag / search / auth       │
+        │  ├── tag / markdown / auth     │
+        │  └── search (빈 스텁)          │
         └───────────────────────────────┘
 ```
 
@@ -68,4 +79,8 @@ src/
 5. 도메인 모듈은 `shared`에 의존 가능, **역방향 의존 금지**
 
 > 이 규칙들은 향후 정적 검사(import 경로 lint 규칙 등)로 강제하는 것을 검토.
+
+**알려진 예외** (2026-09-02 대조에서 발견, #83 — 코드 수정 대기):
+- 규칙 1 위반: `app/api/sentence/[lang]/[wordId]/route.ts`가 `modules/language/tatoeba`를 직접 import한다(`fetchFromTatoeba`가 `index.ts`에 미노출). 해법은 재노출 한 줄
+- 규칙 2 위반: `modules/language/words.ts`의 `deleteWord`가 shared 소유 `reflection_thread`를 직접 select/delete한다. 같은 일을 하는 공개 API `removeThread`가 있고 library는 그걸 쓴다
 
