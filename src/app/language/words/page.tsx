@@ -95,7 +95,7 @@ export default function WordsPage() {
           className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
         />
       </div>
-      <p className="mb-3 flex items-center gap-1.5 font-mono text-xs text-faint">
+      <p className="mb-3 flex items-center gap-1.5 font-mono text-[11px] text-faint">
         <PixelPenguinBubble size={20} />
         {query ? t.lang.words.countFiltered(filtered.length, words.length) : t.lang.words.count(words.length)}
       </p>

@@ -17,7 +17,7 @@ export function HomeButton({ accent }: { accent: keyof typeof ACCENT }) {
   return (
     <Link
       href="/home"
-      className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 font-mono text-xs tracking-[0.08em] ${a.pill} ${a.text}`}
+      className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 font-mono text-[11px] tracking-[0.08em] ${a.pill} ${a.text}`}
     >
       <PixelDrawer size={14} accent={a.hex} />{t.common.home}
     </Link>

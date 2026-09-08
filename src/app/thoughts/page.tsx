@@ -57,7 +57,7 @@ function ThoughtCard({ t, onTopic }: { t: Thought; onTopic: (topic: string) => v
             <button
               key={topic}
               onClick={() => onTopic(topic)}
-              className="rounded-full bg-thought-soft px-2 py-0.5 font-mono text-[10px] text-thought"
+              className="rounded-full bg-thought-soft px-2 py-0.5 font-mono text-[11px] text-thought"
             >
               {topic}
             </button>
@@ -117,7 +117,7 @@ function DaySheet({
           {digest && (
             <div className="relative mb-2.5 overflow-hidden rounded-md border border-thought/40 bg-thought-soft p-3.5">
               <span className="absolute left-4 top-0 h-1 w-10 bg-thought" aria-hidden="true" />
-              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-thought">
+              <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-thought">
                 {t.thoughts.digestHead(digest.model)}
               </p>
               <p className="mt-1.5 whitespace-pre-wrap text-sm">{digest.summary}</p>

@@ -166,7 +166,7 @@ function Hub() {
             >
               <span className="pg-waddle">{d.icon}</span>
               <span className="font-display text-lg font-bold">{t.home.drawers[d.key]}</span>
-              <span className="min-h-4 font-mono text-xs text-ink/70">{counts[d.href]}</span>
+              <span className="min-h-4 font-mono text-[11px] text-ink/70">{counts[d.href]}</span>
             </span>
           </Link>
         ))}

@@ -197,7 +197,7 @@ export function BookSheet({
                 <ul className="rounded-md border border-line bg-card px-4 py-2 text-sm">
                   {readings.map((r, i) => (
                     <li key={r.id} className="flex justify-between py-1.5">
-                      <span className="font-mono text-xs">{t.library.sheet.readingRow(readings.length - i, fmtDate(r.finished_on))}</span>
+                      <span className="font-mono text-[11px]">{t.library.sheet.readingRow(readings.length - i, fmtDate(r.finished_on))}</span>
                       <span className="text-star">{stars(r.rating)}</span>
                     </li>
                   ))}
@@ -227,7 +227,7 @@ export function BookSheet({
                       onBlur={(e) => setNoteDraft(e.target.value)}
                       rows={8}
                       placeholder={t.library.sheet.notePlaceholder}
-                      className="w-full rounded-md border border-line bg-card px-3 py-2 font-mono text-sm"
+                      className="w-full rounded-md border border-line bg-card px-3 py-2 font-mono text-[11px]"
                       autoFocus
                     />
                     <div className="flex gap-2">

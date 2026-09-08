@@ -195,12 +195,12 @@ export default function LibraryJourneyPage() {
                     {/* 줄 높이가 늘었다 줄었다 하므로 글자는 안쪽에서 세로 가운데에 놓는다.
                         번호·제목·점선·쪽번호가 한 밑선에 서는 것은 이 안쪽 줄이 계속 맡는다 */}
                     <span className="flex w-full items-baseline gap-2">
-                      <span className={`w-5 shrink-0 font-mono text-[10px] ${item ? "text-lib" : "text-line"}`}>
+                      <span className={`w-5 shrink-0 font-mono text-[11px] ${item ? "text-lib" : "text-line"}`}>
                         {String(no).padStart(2, "0")}
                       </span>
                       <span className="truncate font-display">{item?.title ?? ""}</span>
                       <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
-                      <span className="shrink-0 font-mono text-[10px] text-faint">{item ? `p.${no}` : ""}</span>
+                      <span className="shrink-0 font-mono text-[11px] text-faint">{item ? `p.${no}` : ""}</span>
                     </span>
                   </button>
                 );
@@ -218,7 +218,7 @@ export default function LibraryJourneyPage() {
             <p className="mt-1.5 text-[13px] text-faint">{page.item.author}</p>
             <Ornament />
             {page.item.tags.length > 0 && (
-              <p className="font-mono text-xs text-lib">{page.item.tags.map((t) => `#${t}`).join(" ")}</p>
+              <p className="font-mono text-[11px] text-lib">{page.item.tags.map((t) => `#${t}`).join(" ")}</p>
             )}
             <p className="mt-3.5 font-mono text-[11px] text-faint">
               {fmtDate(page.item.firstFinishedOn)} · {t.library.readCount(page.item.readCount)}
@@ -234,13 +234,13 @@ export default function LibraryJourneyPage() {
       return (
         <div className="flex min-h-full flex-col items-center justify-center gap-2 text-line">
           <span className="text-2xl">✳</span>
-          <span className="font-mono text-xs">{t.library.waiting(page.next)}</span>
+          <span className="font-mono text-[11px]">{t.library.waiting(page.next)}</span>
         </div>
       );
     };
 
     const navBtn =
-      "inline-flex min-h-11 w-[76px] items-center justify-center rounded-lg border border-lib/40 bg-lib-soft font-mono text-xs text-lib";
+      "inline-flex min-h-11 w-[76px] items-center justify-center rounded-lg border border-lib/40 bg-lib-soft font-mono text-[11px] text-lib";
 
     return (
       // 펼친 책은 벽 앞에 떠 있다 — 책장의 "벽 위에서만"(#68) 규칙을 벗어나 뷰포트 전체를 쓰고,
@@ -250,7 +250,7 @@ export default function LibraryJourneyPage() {
           <button onClick={() => setView({ t: "shelf" })} className={navBtn}>{t.library.shelf}</button>
           <div className="flex-1 text-center">
             <p className="font-display text-lg font-bold leading-snug">{t.library.vol(vol + 1)}</p>
-            <p className="font-mono text-[10px] tracking-[0.08em] text-faint">
+            <p className="font-mono text-[11px] tracking-[0.08em] text-faint">
               {items.length} / {VOL_CAP}{items.length >= VOL_CAP ? t.library.complete : t.library.inProgress}
             </p>
           </div>
@@ -411,7 +411,7 @@ export default function LibraryJourneyPage() {
                     </span>
                     <span className="z-[1] flex flex-col items-center gap-1">
                       <PixelPenguinBook size={30} />
-                      <span className="rounded-full bg-sheet/95 px-1.5 py-0.5 font-mono text-[9px]">
+                      <span className="rounded-full bg-sheet/95 px-1.5 py-0.5 font-mono text-[11px]">
                         {v.length}/{VOL_CAP}
                       </span>
                     </span>
@@ -423,7 +423,7 @@ export default function LibraryJourneyPage() {
                   className="flex w-full max-w-[62px] flex-col items-center justify-center rounded-md border-2 border-dashed border-line text-center"
                   style={{ height: SPINE_H }}
                 >
-                  <span className="font-mono text-[10px] tracking-[0.12em] text-faint [writing-mode:vertical-rl]">
+                  <span className="font-mono text-[11px] tracking-[0.12em] text-faint [writing-mode:vertical-rl]">
                     {t.library.vol(vols.length + 1)}
                   </span>
                 </div>

@@ -137,7 +137,7 @@ flowchart LR
   - **상태 기록**: `~/.lshobby/deploy-state`에 `<sha> blocked|stalled` 한 줄. `blocked` = CI 실패·빌드 실패·헬스체크 실패(그 sha는 다시 시도하지 않음), `stalled` = CI 30분 정체 알림을 이미 보냈다는 표시(알림 1회만). 같은 실패를 2분마다 720번 반복하지 않기 위한 것으로, 새 커밋이 오면 sha가 달라져 저절로 풀리고 배포 성공 시 지운다.
   - **사본 re-exec**: 스크립트 자신이 배포 대상이라 `git merge`가 실행 중인 파일을 바꾸면 sh(dash)가 남은 구간을 새 파일의 같은 오프셋에서 읽어 조용히 건너뛴다 — `DEPLOY_REEXEC` 가드로 `mktemp` 사본에 붙어서 돈다.
   - **`tsconfig.json` 되돌리기**: `next build`가 distDir 타입 경로를 tsconfig에 써넣는다. 스테이징 경로가 남으면 다음 tick이 "작업 트리 더러움"으로 영영 건너뛰므로 빌드 직후 `git checkout`으로 되돌린다.
-  - **폰트 캐시**: `.next/cache`를 스테이징에 복사해 물려준다 — 안 그러면 매 배포가 `fonts.gstatic.com` 접속에 걸린다.
+  - **빌드 캐시**: `.next/cache`를 스테이징에 복사해 물려준다. 원래는 `next/font/google`의 `fonts.gstatic.com` 접속을 피하려던 것인데, #90부터 글꼴이 `src/fonts`에 자체 보관되어 빌드가 외부에 닿지 않는다 — 복사는 컴파일 캐시 재사용 목적으로 남긴다.
 
   로그는 `journalctl --user -u lshobby-deploy`. 잠깐 끄려면 `systemctl --user stop lshobby-deploy.timer`.
 - **상시 구동**: `~/.config/systemd/user/lshobby.service` (`Restart=always`) + 배포 타이머 `lshobby-deploy.{service,timer}`, 그리고 `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**를 쓴다(노드를 올리면 유닛도 고쳐야 한다).

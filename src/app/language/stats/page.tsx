@@ -75,7 +75,7 @@ export default function StatsPage() {
           { v: acc === null ? "–" : `${acc}%`, l: t.lang.stats.accuracy },
         ].map((t) => (
           <div key={t.l} className="rounded-md border border-line bg-card p-4 text-center">
-            <p className="font-mono text-2xl font-medium tabular-nums">{t.v}</p>
+            <p className="font-mono text-[22px] font-medium tabular-nums">{t.v}</p>
             <p className="mt-1 text-xs text-faint">{t.l}</p>
           </div>
         ))}
@@ -103,7 +103,7 @@ export default function StatsPage() {
             <div key={state} className="flex items-center gap-2 text-sm">
               <span className="w-14 shrink-0 text-faint">{t.lang.states[state] ?? "?"}</span>
               <div className="h-3 rounded-sm bg-lang" style={{ width: `${(n / maxState) * 70}%` }} />
-              <span className="font-mono text-xs tabular-nums text-faint">{n}</span>
+              <span className="font-mono text-[11px] tabular-nums text-faint">{n}</span>
             </div>
           ))}
         </div>

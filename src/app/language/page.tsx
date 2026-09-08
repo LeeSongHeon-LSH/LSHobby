@@ -107,7 +107,7 @@ export default function LanguageHome() {
                     {t.lang.languageNames[c.code] ?? c.label}
                   </span>
                   <span
-                    className={`font-mono text-[10px] uppercase tracking-[0.15em] ${
+                    className={`font-mono text-[11px] uppercase tracking-[0.15em] ${
                       active ? "text-lang" : "text-faint"
                     }`}
                   >
@@ -134,7 +134,7 @@ export default function LanguageHome() {
         </Link>
       </div>
 
-      <p className="mt-6 text-center font-mono text-xs text-faint">
+      <p className="mt-6 text-center font-mono text-[11px] text-faint">
         {today && today.count > 0
           ? `${t.lang.todaySummary(today.count, Math.round((today.correct / today.count) * 100))} · `
           : ""}

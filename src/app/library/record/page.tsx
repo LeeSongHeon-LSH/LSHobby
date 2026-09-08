@@ -112,7 +112,7 @@ export default function RecordPage() {
           </div>
           <button
             onClick={() => setPicked(null)}
-            className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-xs text-lib"
+            className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-[11px] text-lib"
           >
             {t.library.record.pickBook}
           </button>
@@ -191,7 +191,7 @@ export default function RecordPage() {
         </div>
         <Link
           href="/library"
-          className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-xs text-lib"
+          className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-[11px] text-lib"
         >
           {t.library.shelf}
         </Link>
@@ -223,12 +223,12 @@ export default function RecordPage() {
                   onClick={() => setPicked(b)}
                   className="mb-2 flex w-full items-baseline gap-2 rounded-md border border-lib/35 bg-lib-soft/60 px-3.5 py-3 text-left text-[13px]"
                 >
-                  <span className="w-5 shrink-0 font-mono text-[10px] text-lib">
+                  <span className="w-5 shrink-0 font-mono text-[11px] text-lib">
                     {no ? String(no).padStart(2, "0") : "—"}
                   </span>
                   <span className="truncate font-display">{b.title}</span>
                   <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
-                  <span className="shrink-0 font-mono text-[10px] text-faint">
+                  <span className="shrink-0 font-mono text-[11px] text-faint">
                     {t.library.record.rereadRow(b.readCount, b.readCount + 1)}
                   </span>
                 </button>
