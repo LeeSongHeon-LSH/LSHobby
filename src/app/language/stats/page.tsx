@@ -46,7 +46,7 @@ export default function StatsPage() {
     return (
       <main className="p-4">
         <header>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{langName}</p>
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">{langName}</p>
           <h1 className="font-display text-2xl font-bold">{t.lang.stats.title}</h1>
         </header>
         <p className="mt-16 text-center text-sm text-faint">{t.common.loading}</p>
@@ -62,7 +62,7 @@ export default function StatsPage() {
     <main className="flex flex-1 flex-col p-4">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{langName}</p>
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">{langName}</p>
           <h1 className="font-display text-2xl font-bold">{t.lang.stats.title}</h1>
         </div>
         <HomeButton accent="lang" />
@@ -75,7 +75,7 @@ export default function StatsPage() {
           { v: acc === null ? "–" : `${acc}%`, l: t.lang.stats.accuracy },
         ].map((t) => (
           <div key={t.l} className="rounded-md border border-line bg-card p-4 text-center">
-            <p className="font-mono text-[22px] font-medium tabular-nums">{t.v}</p>
+            <p className="font-dot text-dot-lg tabular-nums">{t.v}</p>
             <p className="mt-1 text-xs text-faint">{t.l}</p>
           </div>
         ))}
@@ -103,7 +103,7 @@ export default function StatsPage() {
             <div key={state} className="flex items-center gap-2 text-sm">
               <span className="w-14 shrink-0 text-faint">{t.lang.states[state] ?? "?"}</span>
               <div className="h-3 rounded-sm bg-lang" style={{ width: `${(n / maxState) * 70}%` }} />
-              <span className="font-mono text-[11px] tabular-nums text-faint">{n}</span>
+              <span className="font-dot text-dot tabular-nums text-faint">{n}</span>
             </div>
           ))}
         </div>

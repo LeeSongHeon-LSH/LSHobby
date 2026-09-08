@@ -2,22 +2,17 @@
 
 import Link from "next/link";
 import { PixelDrawer } from "./pixel";
+import { ACCENT, type Accent } from "./accent";
 import { useT } from "@/modules/shared/i18n";
 
 // #59 — 탭바의 [홈] 슬롯을 대체하는 우상단 홈 버튼: 도트 서랍 + 도메인색 손잡이
-const ACCENT = {
-  lib: { text: "text-lib", pill: "border-lib/40 bg-lib-soft", hex: "#4d7fa3" },
-  lang: { text: "text-lang", pill: "border-lang/40 bg-lang-soft", hex: "#d9821f" },
-  thought: { text: "text-thought", pill: "border-thought/40 bg-thought-soft", hex: "#6f66a8" },
-} as const;
-
-export function HomeButton({ accent }: { accent: keyof typeof ACCENT }) {
+export function HomeButton({ accent }: { accent: Accent }) {
   const a = ACCENT[accent];
   const t = useT();
   return (
     <Link
       href="/home"
-      className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 font-mono text-[11px] tracking-[0.08em] ${a.pill} ${a.text}`}
+      className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 font-dot text-dot tracking-dot ${a.pill} ${a.text}`}
     >
       <PixelDrawer size={14} accent={a.hex} />{t.common.home}
     </Link>

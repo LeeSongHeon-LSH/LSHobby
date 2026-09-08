@@ -1,6 +1,6 @@
 @import "tailwindcss";
-/* #90 Pretendard 동적 서브셋 — 조각 woff2는 번들러가 /_next/static/media로 해시 복사한다 */
-@import "../fonts/pretendard/pretendardvariable-dynamic-subset.css";
+/* #90·#92 Pretendard 동적 서브셋 — npm 패키지의 CSS 그대로, 조각 woff2는 번들러가 /_next/static/media로 해시 복사한다 */
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 
 /* #60 펭귄 리테마 — 눈밭+먹 위에 도메인 3색 인덱스 (docs/10 #55·#57·#60) */
 @theme {
@@ -24,10 +24,20 @@
   --color-wood-dark: #6f5738; /* 선반 그림자면 */
   --color-ok: #2e7d46;
   --color-err: #c23b3b;
-  --font-display: "Pretendard Variable", Pretendard, sans-serif;
   --font-sans: "Pretendard Variable", Pretendard, sans-serif;
-  /* 도트 글꼴 — 11px·22px(정수 배)에서만 픽셀이 맞는다. font-mono 자리는 늘 이 두 크기로 */
-  --font-mono: var(--font-galmuri), Galmuri11, monospace;
+  /* 제목 역할 토큰 — #90에서 본문과 같은 서체로 합쳐졌다. 제목 서체를 따로 두려면 이 줄만 바꾼다 */
+  --font-display: var(--font-sans);
+  /* 도트 글꼴(Galmuri11) — 수치·상태·말풍선 전용. 11px·22px(정수 배)에서만 픽셀이 맞으므로
+     크기·자간을 아래 dot 토큰으로만 쓴다 (src/design.test.ts 가 지킨다).
+     --font-mono 는 건드리지 않는다 — Tailwind preflight 가 code·pre 에 그대로 쓰는 토큰이라
+     도트 글꼴을 넣으면 마크다운 코드 블록까지 격자 밖 크기로 찍힌다 */
+  --font-dot: var(--font-galmuri), monospace;
+  --text-dot: 11px;
+  --text-dot--line-height: 16px;
+  --text-dot-lg: 22px;
+  --text-dot-lg--line-height: 32px;
+  --tracking-dot: 1px;
+  --tracking-dot-wide: 2px;
 }
 
 body {
@@ -215,9 +225,9 @@ body {
   background: #fff;
   border-radius: 2px;
   padding: 2px 7px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.5;
+  font-family: var(--font-dot);
+  font-size: var(--text-dot);
+  line-height: var(--text-dot--line-height);
   color: #22262b;
   white-space: nowrap;
   box-shadow: 2px 2px 0 rgba(34, 38, 43, 0.12);

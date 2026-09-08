@@ -29,7 +29,7 @@ function Sidebar() {
   const tabs = useTabs();
   return (
     <aside className="sticky top-0 hidden h-dvh w-[220px] shrink-0 flex-col border-r border-line bg-card px-4 pb-5 pt-6 md:flex">
-      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">Language</p>
+      <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">Language</p>
       <p className="mb-5 mt-0.5 font-display text-xl font-bold">{t.lang.title}</p>
       <nav className="flex flex-col gap-1">
         {tabs.map((tab) => {

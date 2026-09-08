@@ -49,7 +49,7 @@ const firstLine = (s: string): string => s.trimStart().split("\n")[0];
 function ThoughtCard({ t, onTopic }: { t: Thought; onTopic: (topic: string) => void }) {
   return (
     <li className="rounded-md border border-line bg-card p-3.5">
-      <p className="font-mono text-[11px] text-faint">{timeOf(t.created_at)}</p>
+      <p className="font-dot text-dot text-faint">{timeOf(t.created_at)}</p>
       <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">{t.content}</p>
       {t.topics && t.topics.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -57,7 +57,7 @@ function ThoughtCard({ t, onTopic }: { t: Thought; onTopic: (topic: string) => v
             <button
               key={topic}
               onClick={() => onTopic(topic)}
-              className="rounded-full bg-thought-soft px-2 py-0.5 font-mono text-[11px] text-thought"
+              className="rounded-full bg-thought-soft px-2 py-0.5 font-dot text-dot text-thought"
             >
               {topic}
             </button>
@@ -108,7 +108,7 @@ function DaySheet({
         <header className="flex items-center justify-between gap-3 border-b border-line/70 px-5 pb-3 pt-2.5">
           <h2 className="flex items-baseline gap-2">
             <span className="font-display text-lg font-bold">{title}</span>
-            <span className="font-mono text-[11px] text-faint">{t.thoughts.count(items.length)}</span>
+            <span className="font-dot text-dot text-faint">{t.thoughts.count(items.length)}</span>
           </h2>
           <button onClick={onClose} aria-label={t.common.close} className="p-2 text-faint">✕</button>
         </header>
@@ -117,7 +117,7 @@ function DaySheet({
           {digest && (
             <div className="relative mb-2.5 overflow-hidden rounded-md border border-thought/40 bg-thought-soft p-3.5">
               <span className="absolute left-4 top-0 h-1 w-10 bg-thought" aria-hidden="true" />
-              <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-thought">
+              <p className="font-dot text-dot uppercase tracking-dot-wide text-thought">
                 {t.thoughts.digestHead(digest.model)}
               </p>
               <p className="mt-1.5 whitespace-pre-wrap text-sm">{digest.summary}</p>
@@ -127,7 +127,7 @@ function DaySheet({
                     <button
                       key={topic}
                       onClick={() => onTopic(topic)}
-                      className="rounded-full border border-thought/40 bg-card px-2.5 py-0.5 font-mono text-[11px] text-thought"
+                      className="rounded-full border border-thought/40 bg-card px-2.5 py-0.5 font-dot text-dot text-thought"
                     >
                       {topic}
                     </button>
@@ -283,7 +283,7 @@ function ThoughtStream() {
       <NightScene />
       <header className="focus-night mb-6 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-night-faint">Thought</p>
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-night-faint">Thought</p>
           <h1 className="font-display text-2xl font-bold text-night-ink">{t.thoughts.title}</h1>
         </div>
         <HomeButton accent="thought" />
@@ -322,12 +322,12 @@ function ThoughtStream() {
         <div className="mt-5 space-y-3">
           {trajectory.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-mono text-[11px] text-night-faint">{t.thoughts.recentTopics}</span>
+              <span className="font-dot text-dot text-night-faint">{t.thoughts.recentTopics}</span>
               {trajectory.map(([topic, n]) => (
                 <button
                   key={topic}
                   onClick={() => setQuery(topic)}
-                  className="focus-night rounded-full bg-thought-soft px-2.5 py-0.5 font-mono text-[11px] text-thought"
+                  className="focus-night rounded-full bg-thought-soft px-2.5 py-0.5 font-dot text-dot text-thought"
                 >
                   {topic} <span className="opacity-60">{n}</span>
                 </button>
@@ -336,7 +336,7 @@ function ThoughtStream() {
           )}
           {echoes.length > 0 && (
             <div>
-              <p className="font-mono text-[11px] text-night-faint">{t.thoughts.echoesHeading}</p>
+              <p className="font-dot text-dot text-night-faint">{t.thoughts.echoesHeading}</p>
               {echoes.map((e) => (
                 <button
                   key={e.key}
@@ -345,7 +345,7 @@ function ThoughtStream() {
                   className="focus-night flex w-full items-baseline gap-2 py-1.5 text-left"
                 >
                   <span className="shrink-0 font-display font-bold text-night-ink">{t.thoughts.echoes[e.key]}</span>
-                  <span className="shrink-0 font-mono text-[11px] text-night-faint">{t.thoughts.count(e.items.length)}</span>
+                  <span className="shrink-0 font-dot text-dot text-night-faint">{t.thoughts.count(e.items.length)}</span>
                   <span className="min-w-0 flex-1 truncate text-sm text-night-faint">
                     {firstLine(e.items[0].content)}
                   </span>
@@ -367,7 +367,7 @@ function ThoughtStream() {
               <section key={g.day}>
                 <h2 className="mb-2.5 flex items-baseline gap-2">
                   <span className="font-display font-bold text-night-ink">{dayLabel(g.day, t)}</span>
-                  <span className="font-mono text-[11px] text-night-faint">{t.thoughts.count(g.items.length)}</span>
+                  <span className="font-dot text-dot text-night-faint">{t.thoughts.count(g.items.length)}</span>
                 </h2>
                 <ul className="space-y-2">
                   {g.items.map((t) => (
@@ -405,7 +405,7 @@ function ThoughtStream() {
 
           <div className="mt-2 grid grid-cols-7 gap-1">
             {t.thoughts.weekdays.map((w) => (
-              <div key={w} className="py-1 text-center font-mono text-[11px] text-faint">
+              <div key={w} className="py-1 text-center font-dot text-dot text-faint">
                 {w}
               </div>
             ))}
@@ -420,7 +420,7 @@ function ThoughtStream() {
               const cell = `flex aspect-square flex-col items-center gap-0.5 rounded-md pt-1 ${
                 isToday ? "border border-thought/50" : ""
               }`;
-              const num = `font-mono text-[11px] ${
+              const num = `font-dot text-dot ${
                 items ? "text-ink" : future ? "text-faint/50" : "text-faint"
               }`;
               return items ? (

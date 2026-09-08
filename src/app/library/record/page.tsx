@@ -20,6 +20,7 @@ import { setTags } from "@/modules/shared/tag";
 import { SearchIcon } from "../../ui/icons";
 import { PixelPenguinBook } from "../../ui/pixel";
 import { useT } from "@/modules/shared/i18n";
+import { pill } from "../../ui/accent";
 
 const todayStr = () => {
   const d = new Date();
@@ -107,12 +108,12 @@ export default function RecordPage() {
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4">
         <header className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+            <p className="font-dot text-dot uppercase tracking-dot-wide text-lib">Library</p>
             <h1 className="font-display text-2xl font-bold">{t.library.record.title}</h1>
           </div>
           <button
             onClick={() => setPicked(null)}
-            className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-[11px] text-lib"
+            className={pill("lib")}
           >
             {t.library.record.pickBook}
           </button>
@@ -121,7 +122,7 @@ export default function RecordPage() {
         <div className="relative flex-1 rounded-lg border border-line bg-sheet px-6 pb-8 pt-9 shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
           <div className="flex flex-col items-center text-center">
             <PixelPenguinBook size={36} />
-            <p className="mt-3 font-mono text-[11px] tracking-[0.18em] text-lib">
+            <p className="mt-3 font-dot text-dot tracking-dot-wide text-lib">
               {t.library.vol(vol)} · {t.library.journeyOf(inVol, VOL_CAP)} ·{" "}
               {readCount > 0 ? t.library.record.nthReading(readCount + 1) : t.library.record.firstReading}
             </p>
@@ -134,7 +135,7 @@ export default function RecordPage() {
 
           <div className="mx-auto mt-2 max-w-[300px] space-y-5">
             <div>
-              <label className="mb-1.5 block text-center font-mono text-[11px] tracking-[0.08em] text-faint">
+              <label className="mb-1.5 block text-center font-dot text-dot tracking-dot text-faint">
                 {t.library.record.finishedOn}
               </label>
               <input
@@ -145,7 +146,7 @@ export default function RecordPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-center font-mono text-[11px] tracking-[0.08em] text-faint">
+              <label className="mb-1.5 block text-center font-dot text-dot tracking-dot text-faint">
                 {t.library.record.rating}
               </label>
               <div className="flex justify-center gap-1.5 text-3xl">
@@ -169,12 +170,12 @@ export default function RecordPage() {
               {t.library.record.complete}
             </button>
           </div>
-          <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-line">
+          <p className="absolute inset-x-0 bottom-3 text-center font-dot text-dot text-line">
             p.{inVol}
           </p>
         </div>
 
-        <p className="mt-3 text-center font-mono text-[11px] text-faint">
+        <p className="mt-3 text-center font-dot text-dot text-faint">
           {t.library.record.afterHint}
         </p>
       </main>
@@ -186,12 +187,12 @@ export default function RecordPage() {
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col p-4">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-lib">Library</p>
           <h1 className="font-display text-2xl font-bold">{t.library.record.title}</h1>
         </div>
         <Link
           href="/library"
-          className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-[11px] text-lib"
+          className={pill("lib")}
         >
           {t.library.shelf}
         </Link>
@@ -212,7 +213,7 @@ export default function RecordPage() {
             />
           </div>
           <div className="rounded-lg border border-line bg-sheet px-5 py-3 shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
-            <p className="mb-2.5 pt-1 text-center font-mono text-[11px] tracking-[0.2em] text-lib">
+            <p className="mb-2.5 pt-1 text-center font-dot text-dot tracking-dot-wide text-lib">
               {t.library.record.rereadHeading}
             </p>
             {matches.map((b) => {
@@ -223,12 +224,12 @@ export default function RecordPage() {
                   onClick={() => setPicked(b)}
                   className="mb-2 flex w-full items-baseline gap-2 rounded-md border border-lib/35 bg-lib-soft/60 px-3.5 py-3 text-left text-[13px]"
                 >
-                  <span className="w-5 shrink-0 font-mono text-[11px] text-lib">
+                  <span className="w-5 shrink-0 font-dot text-dot text-lib">
                     {no ? String(no).padStart(2, "0") : "—"}
                   </span>
                   <span className="truncate font-display">{b.title}</span>
                   <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
-                  <span className="shrink-0 font-mono text-[11px] text-faint">
+                  <span className="shrink-0 font-dot text-dot text-faint">
                     {t.library.record.rereadRow(b.readCount, b.readCount + 1)}
                   </span>
                 </button>
@@ -252,7 +253,7 @@ export default function RecordPage() {
         </>
       ) : (
         <div className="rounded-lg border border-line bg-sheet px-6 py-6 shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
-          <p className="mb-4 text-center font-mono text-[11px] tracking-[0.18em] text-lib">
+          <p className="mb-4 text-center font-dot text-dot tracking-dot-wide text-lib">
             {t.library.record.willBeJourney(nextJourneyNo)}
           </p>
           <div className="space-y-3">

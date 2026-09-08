@@ -80,7 +80,7 @@ export default function WordsPage() {
     <main className="p-4">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{t.lang.languageNames[config.code] ?? config.label}</p>
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">{t.lang.languageNames[config.code] ?? config.label}</p>
           <h1 className="font-display text-2xl font-bold">{t.lang.words.title}</h1>
         </div>
         <HomeButton accent="lang" />
@@ -95,7 +95,7 @@ export default function WordsPage() {
           className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
         />
       </div>
-      <p className="mb-3 flex items-center gap-1.5 font-mono text-[11px] text-faint">
+      <p className="mb-3 flex items-center gap-1.5 font-dot text-dot text-faint">
         <PixelPenguinBubble size={20} />
         {query ? t.lang.words.countFiltered(filtered.length, words.length) : t.lang.words.count(words.length)}
       </p>
@@ -113,7 +113,7 @@ export default function WordsPage() {
                 {w.word}
               </span>
               <span className="flex-1 truncate text-faint">{w.meaning}</span>
-              <span className="shrink-0 rounded-sm bg-lang-soft px-2 py-0.5 font-mono text-[11px] text-lang">
+              <span className="shrink-0 rounded-sm bg-lang-soft px-2 py-0.5 font-dot text-dot text-lang">
                 {t.lang.states[w.state] ?? "?"}
               </span>
             </button>

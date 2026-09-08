@@ -58,7 +58,7 @@ export default function AddPage() {
     <main className="flex flex-1 flex-col p-4">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{t.lang.languageNames[config.code] ?? config.label}</p>
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">{t.lang.languageNames[config.code] ?? config.label}</p>
           <h1 className="font-display text-2xl font-bold">{t.lang.add.title}</h1>
         </div>
         <HomeButton accent="lang" />

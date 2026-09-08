@@ -140,7 +140,7 @@ export function BookSheet({
         <div className="mx-auto mt-2.5 h-1 w-11 shrink-0 rounded-full bg-line md:hidden" aria-hidden="true" />
         <header className="flex items-start justify-between gap-3 border-b border-line/70 px-5 pb-3.5 pt-3">
           <div>
-            <p className="font-mono text-[11px] tracking-[0.18em] text-lib">{t.library.sheet.head(journeyNo)}</p>
+            <p className="font-dot text-dot tracking-dot-wide text-lib">{t.library.sheet.head(journeyNo)}</p>
             <h2 className="mt-1 font-display text-lg font-bold leading-snug">{title}</h2>
             {book && (
               <p className="mt-0.5 text-xs text-faint">
@@ -197,7 +197,7 @@ export function BookSheet({
                 <ul className="rounded-md border border-line bg-card px-4 py-2 text-sm">
                   {readings.map((r, i) => (
                     <li key={r.id} className="flex justify-between py-1.5">
-                      <span className="font-mono text-[11px]">{t.library.sheet.readingRow(readings.length - i, fmtDate(r.finished_on))}</span>
+                      <span className="font-dot text-dot">{t.library.sheet.readingRow(readings.length - i, fmtDate(r.finished_on))}</span>
                       <span className="text-star">{stars(r.rating)}</span>
                     </li>
                   ))}
@@ -227,7 +227,7 @@ export function BookSheet({
                       onBlur={(e) => setNoteDraft(e.target.value)}
                       rows={8}
                       placeholder={t.library.sheet.notePlaceholder}
-                      className="w-full rounded-md border border-line bg-card px-3 py-2 font-mono text-[11px]"
+                      className="w-full rounded-md border border-line bg-card px-3 py-2 text-sm"
                       autoFocus
                     />
                     <div className="flex gap-2">

@@ -125,7 +125,7 @@ fi
 # next build는 cleanDistDir 기본값 때문에 distDir을 먼저 비운다. 그러니 .next가 아닌 곳에 짓는다
 rm -rf .next-staging
 mkdir -p .next-staging
-# 컴파일 캐시가 여기 산다 (글꼴은 #90부터 src/fonts 자체 보관 — 빌드가 외부에 닿지 않는다).
+# 컴파일 캐시가 여기 산다 (글꼴은 #92부터 npm 패키지 — 빌드가 외부에 닿지 않는다).
 # cleanDistDir이 cache는 안 지우므로 원래 흐름에서는 저절로 유지되던 것이다
 [ -d .next/cache ] && cp -a .next/cache .next-staging/cache
 if NEXT_DIST_DIR=.next-staging npm run build; then build_ok=1; else build_ok=0; fi

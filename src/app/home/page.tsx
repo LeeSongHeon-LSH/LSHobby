@@ -166,7 +166,8 @@ function Hub() {
             >
               <span className="pg-waddle">{d.icon}</span>
               <span className="font-display text-lg font-bold">{t.home.drawers[d.key]}</span>
-              <span className="min-h-4 font-mono text-[11px] text-ink/70">{counts[d.href]}</span>
+              {/* min-h-4 = text-dot 줄높이(16px): 수치가 오기 전 빈 칸도 같은 높이 */}
+              <span className="min-h-4 font-dot text-dot text-ink/70">{counts[d.href]}</span>
             </span>
           </Link>
         ))}

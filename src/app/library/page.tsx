@@ -176,9 +176,9 @@ export default function LibraryJourneyPage() {
           // 정해져서, 쪽을 아무리 키워도 조금 짧은 화면에서 다시 넘친다 (#75). 줄이 좁아질 수
           // 있는 하한(min-h-9)까지 줄어들고, 그보다 짧은 화면에서만 LEAF의 스크롤이 받는다
           <div className="flex h-full flex-col">
-            <p className="text-center font-mono text-[11px] tracking-[0.2em] text-lib">CONTENTS</p>
+            <p className="text-center font-dot text-dot tracking-dot-wide text-lib">CONTENTS</p>
             <p className="mt-0.5 text-center font-display text-xl font-bold">{t.library.toc}</p>
-            <p className="mb-3 mt-0.5 text-center font-mono text-[11px] tracking-[0.08em] text-faint">
+            <p className="mb-3 mt-0.5 text-center font-dot text-dot tracking-dot text-faint">
               {t.library.journeyRange(page.half === 0 ? "1–10" : "11–20")}
             </p>
             <div className="flex flex-1 flex-col">
@@ -195,12 +195,12 @@ export default function LibraryJourneyPage() {
                     {/* 줄 높이가 늘었다 줄었다 하므로 글자는 안쪽에서 세로 가운데에 놓는다.
                         번호·제목·점선·쪽번호가 한 밑선에 서는 것은 이 안쪽 줄이 계속 맡는다 */}
                     <span className="flex w-full items-baseline gap-2">
-                      <span className={`w-5 shrink-0 font-mono text-[11px] ${item ? "text-lib" : "text-line"}`}>
+                      <span className={`w-5 shrink-0 font-dot text-dot ${item ? "text-lib" : "text-line"}`}>
                         {String(no).padStart(2, "0")}
                       </span>
                       <span className="truncate font-display">{item?.title ?? ""}</span>
                       <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
-                      <span className="shrink-0 font-mono text-[11px] text-faint">{item ? `p.${no}` : ""}</span>
+                      <span className="shrink-0 font-dot text-dot text-faint">{item ? `p.${no}` : ""}</span>
                     </span>
                   </button>
                 );
@@ -211,16 +211,16 @@ export default function LibraryJourneyPage() {
       if (page.t === "rec")
         return (
           <div className="flex min-h-full flex-col items-center justify-center pb-4 text-center">
-            <p className="font-mono text-[11px] tracking-[0.18em] text-lib">{t.library.journeyOf(page.no, VOL_CAP)}</p>
+            <p className="font-dot text-dot tracking-dot-wide text-lib">{t.library.journeyOf(page.no, VOL_CAP)}</p>
             <h2 className="mt-4 max-w-[262px] font-display text-[26px] font-bold leading-snug md:text-2xl">
               {page.item.title}
             </h2>
             <p className="mt-1.5 text-[13px] text-faint">{page.item.author}</p>
             <Ornament />
             {page.item.tags.length > 0 && (
-              <p className="font-mono text-[11px] text-lib">{page.item.tags.map((t) => `#${t}`).join(" ")}</p>
+              <p className="font-dot text-dot text-lib">{page.item.tags.map((t) => `#${t}`).join(" ")}</p>
             )}
-            <p className="mt-3.5 font-mono text-[11px] text-faint">
+            <p className="mt-3.5 font-dot text-dot text-faint">
               {fmtDate(page.item.firstFinishedOn)} · {t.library.readCount(page.item.readCount)}
             </p>
             <button
@@ -234,13 +234,13 @@ export default function LibraryJourneyPage() {
       return (
         <div className="flex min-h-full flex-col items-center justify-center gap-2 text-line">
           <span className="text-2xl">✳</span>
-          <span className="font-mono text-[11px]">{t.library.waiting(page.next)}</span>
+          <span className="font-dot text-dot">{t.library.waiting(page.next)}</span>
         </div>
       );
     };
 
     const navBtn =
-      "inline-flex min-h-11 w-[76px] items-center justify-center rounded-lg border border-lib/40 bg-lib-soft font-mono text-[11px] text-lib";
+      "inline-flex min-h-11 w-[76px] items-center justify-center rounded-lg border border-lib/40 bg-lib-soft font-dot text-dot text-lib";
 
     return (
       // 펼친 책은 벽 앞에 떠 있다 — 책장의 "벽 위에서만"(#68) 규칙을 벗어나 뷰포트 전체를 쓰고,
@@ -250,7 +250,7 @@ export default function LibraryJourneyPage() {
           <button onClick={() => setView({ t: "shelf" })} className={navBtn}>{t.library.shelf}</button>
           <div className="flex-1 text-center">
             <p className="font-display text-lg font-bold leading-snug">{t.library.vol(vol + 1)}</p>
-            <p className="font-mono text-[11px] tracking-[0.08em] text-faint">
+            <p className="font-dot text-dot tracking-dot text-faint">
               {items.length} / {VOL_CAP}{items.length >= VOL_CAP ? t.library.complete : t.library.inProgress}
             </p>
           </div>
@@ -281,7 +281,7 @@ export default function LibraryJourneyPage() {
                     aria-hidden="true"
                   />
                   <div className={LEAF}>{face(pg)}</div>
-                  <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-faint">
+                  <p className="absolute inset-x-0 bottom-3 text-center font-dot text-dot text-faint">
                     {pg ? pageNo(pg, t) : ""}
                   </p>
                   {side === 0 && hasPrev && (
@@ -318,7 +318,7 @@ export default function LibraryJourneyPage() {
                 <div className={LEAF} onClick={turnByEdge(hasPrev, hasNext, flip)}>
                   {face(pages[dispP])}
                 </div>
-                <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-faint">
+                <p className="absolute inset-x-0 bottom-3 text-center font-dot text-dot text-faint">
                   {pages[dispP] ? pageNo(pages[dispP], t) : ""}
                 </p>
                 {hasPrev && (
@@ -342,7 +342,7 @@ export default function LibraryJourneyPage() {
         </div>
 
         {/* 벽(나무) 위에 앉으므로 text-faint가 그대로면 안 읽힌다 — 책과 같은 종이 조각에 얹는다 */}
-        <p className="mx-auto mt-3 w-fit rounded-full bg-sheet/95 px-3 py-1 text-center font-mono text-[11px] text-faint">
+        <p className="mx-auto mt-3 w-fit rounded-full bg-sheet/95 px-3 py-1 text-center font-dot text-dot text-faint">
           {wide
             ? t.library.spreadHint(base / 2 + 1, nav.total / 2)
             : t.library.pageHint(dispP + 1, nav.total)}
@@ -372,7 +372,7 @@ export default function LibraryJourneyPage() {
     <main className="flex h-[calc(100dvh-var(--shelf-h)-var(--shelf-lip))] flex-col overflow-y-auto p-4 md:p-6">
       <header className="mb-5 flex items-start justify-between gap-3 md:mb-8">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-lib">Library</p>
           <h1 className="font-display text-2xl font-bold">{t.library.title}</h1>
         </div>
         <HomeButton accent="lib" />
@@ -411,7 +411,7 @@ export default function LibraryJourneyPage() {
                     </span>
                     <span className="z-[1] flex flex-col items-center gap-1">
                       <PixelPenguinBook size={30} />
-                      <span className="rounded-full bg-sheet/95 px-1.5 py-0.5 font-mono text-[11px]">
+                      <span className="rounded-full bg-sheet/95 px-1.5 py-0.5 font-dot text-dot">
                         {v.length}/{VOL_CAP}
                       </span>
                     </span>
@@ -423,7 +423,7 @@ export default function LibraryJourneyPage() {
                   className="flex w-full max-w-[62px] flex-col items-center justify-center rounded-md border-2 border-dashed border-line text-center"
                   style={{ height: SPINE_H }}
                 >
-                  <span className="font-mono text-[11px] tracking-[0.12em] text-faint [writing-mode:vertical-rl]">
+                  <span className="font-dot text-dot tracking-dot text-faint [writing-mode:vertical-rl]">
                     {t.library.vol(vols.length + 1)}
                   </span>
                 </div>

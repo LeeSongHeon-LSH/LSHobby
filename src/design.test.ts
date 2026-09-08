@@ -1,13 +1,18 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// 화면을 띄우지 않고 지킬 수 있는 디자인 불변식 — 도트 격자, 모션 축소, 밤하늘 대비.
-// 셋 다 눈으로만 확인해 오다 실제로 한 번씩 어긋났던 것들이라 값이 아니라 규칙을 고정한다.
+// 화면을 띄우지 않고 지킬 수 있는 디자인 불변식 — 도트 격자(스프라이트·글꼴), 모션 축소, 밤하늘 대비.
+// 전부 눈으로만 확인해 오다 실제로 한 번씩 어긋났던 것들이라 값이 아니라 규칙을 고정한다.
 
 const ROOT = process.cwd();
 const css = readFileSync(join(ROOT, "src/app/globals.css"), "utf8");
 const pixelSrc = readFileSync(join(ROOT, "src/app/ui/pixel.tsx"), "utf8");
+
+const walk = (dir: string): string[] =>
+  readdirSync(join(ROOT, dir), { withFileTypes: true }).flatMap((d) =>
+    d.isDirectory() ? walk(join(dir, d.name)) : d.name.endsWith(".tsx") ? [join(dir, d.name)] : [],
+  );
 
 /** `start`의 `{`부터 짝이 맞는 `}`까지 (중첩 포함) */
 const blockAt = (src: string, start: number): { body: string; end: number } => {
@@ -58,6 +63,48 @@ describe("도트 스프라이트 격자 (PixelArt)", () => {
   it.each(sprites.map((s) => [s.gridName, s] as const))("%s — 쓰인 색이 palette에 다 있다", (_n, s) => {
     const used = new Set(s.rows.flatMap((r) => [...r]).filter((ch) => ch !== "."));
     expect([...used].filter((ch) => !s.keys.includes(ch))).toEqual([]);
+  });
+});
+
+describe("도트 글꼴 격자 (Galmuri11, #91)", () => {
+  // 도트 글꼴은 11px·22px에서만 픽셀이 맞고 자간도 정수 px여야 한다. 크기·자간을 손으로 친 값이
+  // 65곳에 흩어져 있던 것을 dot 토큰으로 묶었으니, 토큰 밖의 값이 끼어들면 여기서 잡는다.
+  const lines = walk("src/app").flatMap((f) =>
+    readFileSync(join(ROOT, f), "utf8")
+      .split("\n")
+      .map((line, i) => ({ at: `${f}:${i + 1}`, line })),
+  );
+  const dotLines = lines.filter(({ line }) => /\bfont-dot\b/.test(line));
+
+  it("도트 글꼴 자리를 하나도 빠뜨리지 않고 읽어냈다", () => {
+    expect(dotLines.length).toBeGreaterThan(50);
+  });
+
+  it.each(dotLines.map(({ at, line }) => [at, line]))("%s 가 dot 크기·자간 토큰만 쓴다", (_at, line) => {
+    expect(line).toMatch(/\btext-dot(-lg)?\b/);
+    expect(line).not.toMatch(/\btext-(\[|xs|sm|base|lg|xl|\dxl)\b/);
+    for (const m of line.matchAll(/\btracking-[\w[\]./-]+/g)) expect(m[0]).toMatch(/^tracking-dot(-wide)?$/);
+  });
+
+  it("font-mono 는 화면에 쓰지 않는다 — code·pre 몫으로 남겨 둔다", () => {
+    expect(lines.filter(({ line }) => /\bfont-mono\b/.test(line)).map(({ at }) => at)).toEqual([]);
+    expect(css).not.toMatch(/--font-mono\s*:/);
+  });
+
+  it("globals.css 의 도트 글꼴 규칙도 dot 토큰으로 크기를 잡는다", () => {
+    const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    const rules = [...bare.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) => /var\(--font-dot\)/.test(m[2]));
+    expect(rules.length).toBeGreaterThan(0);
+    for (const m of rules) expect(m[2]).toMatch(/font-size:\s*var\(--text-dot(-lg)?\)/);
+  });
+
+  it("dot 토큰이 격자 값 그대로다", () => {
+    expect(css).toMatch(/--text-dot:\s*11px/);
+    expect(css).toMatch(/--text-dot-lg:\s*22px/);
+    for (const m of css.matchAll(/--tracking-dot(?:-\w+)?:\s*([\d.]+)(\w+)/g)) {
+      expect(m[2]).toBe("px");
+      expect(Number(m[1]) % 1).toBe(0);
+    }
   });
 });
 

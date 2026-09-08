@@ -1,5 +1,6 @@
 // 기본 캐싱만 (결정 #19 — 오프라인 퀴즈 없음):
 // 해시 붙은 불변 정적 자산·아이콘만 cache-first, 페이지·API는 항상 네트워크
+// 이름이 바뀔 때만 저장소를 비운다 — 글꼴(#92 npm 패키지)을 바꾸면 옛 조각이 남으므로 그 커밋에서 v를 올린다
 const CACHE = "lshobby-static-v1";
 
 self.addEventListener("install", () => self.skipWaiting());
