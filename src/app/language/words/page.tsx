@@ -9,25 +9,21 @@ import {
   useCurrentConfig,
   deleteWord,
   listWords,
-  stateLabel,
   updateWord,
   type Word,
 } from "@/modules/language";
 import type { Gender } from "@/modules/language";
+import { useT } from "@/modules/shared/i18n";
 
 // 검색용: 모든 악센트 무시 (구 index.html deaccent — 검색은 ñ도 관대)
 const deaccent = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-const GENDERS: { value: Gender; label: string }[] = [
-  { value: "none", label: "없음" },
-  { value: "m", label: "남성" },
-  { value: "f", label: "여성" },
-  { value: "n", label: "양성" },
-];
+const GENDERS: Gender[] = ["none", "m", "f", "n"];
 
 // §11.4.3 단어장 — 검색·상태 뱃지, 행 탭 → 편집/삭제
 export default function WordsPage() {
   const config = useCurrentConfig();
+  const t = useT();
   const [words, setWords] = useState<Word[]>([]);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Word | null>(null);
@@ -69,7 +65,7 @@ export default function WordsPage() {
   };
 
   const removeEditing = async () => {
-    if (!editing || !confirm(`"${editing.word}"를 삭제할까요?`)) return;
+    if (!editing || !confirm(t.lang.words.confirmDelete(editing.word))) return;
     setBusy(true);
     try {
       await deleteWord(config, editing.id);
@@ -84,8 +80,8 @@ export default function WordsPage() {
     <main className="p-4">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
-          <h1 className="font-display text-2xl font-bold">단어장</h1>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{t.lang.languageNames[config.code] ?? config.label}</p>
+          <h1 className="font-display text-2xl font-bold">{t.lang.words.title}</h1>
         </div>
         <HomeButton accent="lang" />
       </header>
@@ -95,13 +91,13 @@ export default function WordsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onBlur={(e) => setQuery(e.target.value)}
-          placeholder="단어·뜻 검색"
+          placeholder={t.lang.words.search}
           className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
         />
       </div>
       <p className="mb-3 flex items-center gap-1.5 font-mono text-xs text-faint">
         <PixelPenguinBubble size={20} />
-        {query ? `${filtered.length} / ${words.length}단어` : `${words.length}단어`}
+        {query ? t.lang.words.countFiltered(filtered.length, words.length) : t.lang.words.count(words.length)}
       </p>
       <ul className="divide-y divide-line rounded-md border border-line bg-card">
         {filtered.map((w) => (
@@ -118,13 +114,13 @@ export default function WordsPage() {
               </span>
               <span className="flex-1 truncate text-faint">{w.meaning}</span>
               <span className="shrink-0 rounded-sm bg-lang-soft px-2 py-0.5 font-mono text-[11px] text-lang">
-                {stateLabel(w.state)}
+                {t.lang.states[w.state] ?? "?"}
               </span>
             </button>
           </li>
         ))}
         {filtered.length === 0 && (
-          <li className="px-4 py-8 text-center text-sm text-faint">단어가 없습니다</li>
+          <li className="px-4 py-8 text-center text-sm text-faint">{t.lang.words.empty}</li>
         )}
       </ul>
 
@@ -139,28 +135,28 @@ export default function WordsPage() {
               onChange={(e) => setForm({ ...form, word: e.target.value })}
               onBlur={(e) => setForm({ ...form, word: e.target.value })}
               className="w-full rounded-md border border-line px-4 py-2.5"
-              placeholder="단어"
+              placeholder={t.lang.words.word}
             />
             <input
               value={form.meaning}
               onChange={(e) => setForm({ ...form, meaning: e.target.value })}
               onBlur={(e) => setForm({ ...form, meaning: e.target.value })}
               className="w-full rounded-md border border-line px-4 py-2.5"
-              placeholder="뜻"
+              placeholder={t.lang.words.meaning}
             />
             {config.hasGender && (
               <div className="flex gap-2">
                 {GENDERS.map((g) => (
                   <button
-                    key={g.value}
-                    onClick={() => setForm({ ...form, gender: g.value })}
+                    key={g}
+                    onClick={() => setForm({ ...form, gender: g })}
                     className={`flex-1 rounded-md border py-2 text-sm ${
-                      form.gender === g.value
+                      form.gender === g
                         ? "border-lang bg-lang text-white"
                         : "border-lang/30 bg-lang-soft/40 text-faint"
                     }`}
                   >
-                    {g.label}
+                    {t.lang.genders[g]}
                   </button>
                 ))}
               </div>
@@ -171,14 +167,14 @@ export default function WordsPage() {
                 disabled={busy}
                 className="rounded-md border border-err/40 px-4 py-2.5 text-sm text-err disabled:opacity-50"
               >
-                삭제
+                {t.common.delete}
               </button>
               <button
                 onClick={saveEdit}
                 disabled={busy || !form.word.trim() || !form.meaning.trim()}
                 className="flex-1 rounded-md bg-lang py-2.5 font-medium text-white disabled:opacity-50"
               >
-                저장
+                {t.common.save}
               </button>
             </div>
           </div>

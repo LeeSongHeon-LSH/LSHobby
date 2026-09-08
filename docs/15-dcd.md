@@ -66,11 +66,18 @@ classDiagram
     class Markdown {
         +Markdown(children, components?) 컴포넌트 — remark-gfm + rehype-sanitize
     }
+    class I18n {
+        +useT() Dict — 현재 UI 언어의 문구 사전
+        +useLocale() Locale · setLocale(code) void — localStorage 전역
+        +locales — ko(원본)·en·es 등록부, 언어 추가 = 파일 + 한 줄
+        +LocaleSync 컴포넌트 — html lang 동기화
+    }
     note for ReflectionService "addEntry: 스레드 없으면 자동 생성 (엔티티당 1개)\nentry 수정·삭제 API 없음 — append-only (§4.2)\nremoveThread: 엔티티 삭제 시 앱 레이어 정리용(§14.7) — entry는 DB cascade"
     note for ActivityService "upsertDaily: 언어 학습 일별 요약용 — 당일 같은 키면 갱신 (§6.4)\ngetFeed: 노출만 — 앱 화면 호출처 없음(#53 이후)"
 ```
 
 - reflection 블록의 **렌더링도 shared 소유**(§11.7) — 도메인 화면은 subject만 넘긴다
+- `i18n`은 **화면 고정 문구만** 다룬다(#89) — 사용자 콘텐츠·활동 피드 summary·메타데이터는 대상 아님. `Dict`는 `typeof ko`라 다른 언어 파일의 키 누락이 컴파일 오류
 - `search/`는 `export {}` 빈 스텁 — 검색은 도메인별(단어장 클라이언트 필터, `searchThoughts`)
 - 다형 참조(subjectType+subjectId)의 무결성 책임은 이 서비스들을 호출하는 앱 레이어에 있음(§4.5, 삭제는 §14.7)
 

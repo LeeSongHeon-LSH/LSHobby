@@ -5,10 +5,6 @@ import type { Gender } from "./types";
 export const articleFor = (gender: Gender | undefined): string =>
   gender === "m" ? "el" : gender === "f" ? "la" : gender === "n" ? "el/la" : "";
 
-/** FSRS 상태 뱃지 라벨 */
-export const stateLabel = (state: number): string =>
-  ["신규", "학습중", "복습", "재학습"][state] ?? "?";
-
 /**
  * 문제에 보여 줄 뜻 — 앞의 2개까지. 동의어 백필로 뜻이 "도착하다, 도달하다, 당도하다,
  * 다다르다"처럼 길어지면 한→대상 방향 제시문이 힌트 덩어리가 된다.

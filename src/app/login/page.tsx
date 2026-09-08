@@ -3,24 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/modules/shared/auth";
+import { useT } from "@/modules/shared/i18n";
 import { PixelMascot } from "../ui/pixel";
 import { IceScene } from "../ui/scene";
 
 // §11.2 — 이메일 로그인. 회원가입·비밀번호 찾기 UI 없음 (SEC-01·SEC-08)
 export default function LoginPage() {
   const router = useRouter();
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setError(null);
+    setFailed(false);
     const err = await signIn(email, password);
     if (err) {
-      setError("로그인에 실패했습니다");
+      setFailed(true);
       setBusy(false);
     } else {
       router.replace("/home");
@@ -40,7 +42,7 @@ export default function LoginPage() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="이메일"
+          placeholder={t.login.email}
           className="w-full rounded-md border border-line bg-card px-4 py-3"
           autoComplete="email"
         />
@@ -49,7 +51,7 @@ export default function LoginPage() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호"
+          placeholder={t.login.password}
           className="w-full rounded-md border border-line bg-card px-4 py-3"
           autoComplete="current-password"
         />
@@ -58,9 +60,9 @@ export default function LoginPage() {
           disabled={busy}
           className="w-full rounded-md bg-ink py-3 font-medium text-white disabled:opacity-50"
         >
-          로그인
+          {t.login.signIn}
         </button>
-        {error && <p className="text-center text-sm text-err">{error}</p>}
+        {failed && <p className="text-center text-sm text-err">{t.login.failed}</p>}
       </form>
     </main>
   );

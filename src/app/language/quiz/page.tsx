@@ -18,6 +18,7 @@ import {
   type Word,
   type WordStat,
 } from "@/modules/language";
+import { useT } from "@/modules/shared/i18n";
 
 // §11.4.2 퀴즈 — 3방향: 스→한(sk)·한→스(ks) 타이핑 + 30% 확률로 예문 있으면 cloze (결정 #41 현행 이식)
 // 받아쓰기(listen)·관사(gender) 문제는 이식 제외 (#41 범위, 2026-08-15 확정)
@@ -49,6 +50,7 @@ const speak = (text: string, lang: string) => {
 
 export default function QuizPage() {
   const config = useCurrentConfig(); // 전환은 랜딩에서만 일어남 (#54)
+  const t = useT();
   const [phase, setPhase] = useState<Phase>("loading");
   const [seen, setSeen] = useState(0); // 이번 세션에 푼 문제 수 — 진행률 대신 표시
   const [q, setQ] = useState<Question | null>(null);
@@ -171,25 +173,25 @@ export default function QuizPage() {
     }
   };
 
-  const progress = `${seen}문제`;
-  const failed = saveFailures > 0 ? `저장 실패 ${saveFailures}` : null;
+  const progress = t.lang.quiz.seen(seen);
+  const failed = saveFailures > 0 ? t.lang.quiz.saveFailed(saveFailures) : null;
 
   if (phase === "loading")
     return (
       <main className="p-4">
-        <p className="mt-16 text-center text-sm text-faint">불러오는 중…</p>
+        <p className="mt-16 text-center text-sm text-faint">{t.common.loading}</p>
       </main>
     );
 
   if (phase === "empty")
     return (
       <main className="p-4 text-center">
-        <p className="mt-16 text-faint">출제할 단어가 없습니다</p>
+        <p className="mt-16 text-faint">{t.lang.quiz.empty}</p>
         <Link
           href="/language"
           className="mt-4 inline-flex min-h-11 items-center rounded-md border border-lang/40 bg-lang-soft px-4 text-sm text-lang"
         >
-          덱으로 돌아가기
+          {t.lang.quiz.backToDeck}
         </Link>
       </main>
     );
@@ -197,10 +199,10 @@ export default function QuizPage() {
   if (phase === "done")
     return (
       <main className="p-4 text-center">
-        <p className="mt-16 font-display text-2xl font-bold">연습 끝 🎉</p>
+        <p className="mt-16 font-display text-2xl font-bold">{t.lang.quiz.done}</p>
         {summary && summary.count > 0 && (
           <p className="mt-3 font-mono text-sm text-faint">
-            오늘 {summary.count}회 복습 · 정답률 {Math.round((summary.correct / summary.count) * 100)}%
+            {t.lang.todaySummary(summary.count, Math.round((summary.correct / summary.count) * 100))}
           </p>
         )}
         {failed && <p className="mt-3 font-mono text-sm text-err">{failed}</p>}
@@ -208,7 +210,7 @@ export default function QuizPage() {
           href="/language"
           className="mt-8 inline-block rounded-md bg-lang px-6 py-3 font-medium text-white"
         >
-          덱으로
+          {t.lang.quiz.toDeck}
         </Link>
       </main>
     );
@@ -225,7 +227,7 @@ export default function QuizPage() {
           onClick={finish}
           className="inline-flex min-h-11 items-center rounded-lg border border-lang/40 bg-lang-soft px-3.5 font-mono text-xs text-lang"
         >
-          종료
+          {t.lang.quiz.quit}
         </button>
         <span className="font-mono text-xs">
           {failed && <span className="mr-2 text-err">{failed}</span>}
@@ -250,7 +252,7 @@ export default function QuizPage() {
               )}
               {q.sentence.text.slice(q.blankAt + q.word.word.length)}
             </p>
-            <p className="mt-2 text-sm text-faint">뜻: {promptMeaning(q.word.meaning)}</p>
+            <p className="mt-2 text-sm text-faint">{t.lang.quiz.meaning(promptMeaning(q.word.meaning))}</p>
             {answered && (q.sentence.ko_text || q.sentence.en_text) && (
               <p className="mt-2 text-sm text-faint">{q.sentence.ko_text ?? q.sentence.en_text}</p>
             )}
@@ -287,7 +289,7 @@ export default function QuizPage() {
                   submit();
                 }
               }}
-              placeholder={showTargetInput ? config.inputPlaceholder : "한국어 뜻..."}
+              placeholder={showTargetInput ? config.inputPlaceholder : t.lang.meaningPlaceholder}
               className="w-full rounded-md border border-line bg-card px-4 py-3"
               lang={showTargetInput ? config.code : "ko"}
               autoCapitalize="off"
@@ -305,7 +307,7 @@ export default function QuizPage() {
                     {c}
                   </button>
                 ))}
-                <span className="ml-1 font-mono text-[11px] text-faint">alt+모음→á · alt+n→ñ</span>
+                <span className="ml-1 font-mono text-[11px] text-faint">{t.lang.quiz.accentHint}</span>
               </div>
             )}
             <button
@@ -313,17 +315,17 @@ export default function QuizPage() {
               disabled={!input.trim()}
               className="mt-4 w-full rounded-md bg-lang py-3 font-medium text-white disabled:opacity-40"
             >
-              확인
+              {t.lang.quiz.check}
             </button>
           </>
         ) : (
           <div className="text-center">
             <p className={`font-semibold ${result?.ok ? "text-ok" : "text-err"}`}>
               {result?.accentCorrected
-                ? `✓ 정답 — 악센트 표기: ${result.accentCorrected}`
+                ? t.lang.quiz.correctAccent(result.accentCorrected)
                 : result?.ok
-                  ? "✓ 정답"
-                  : "✗ 오답"}
+                  ? t.lang.quiz.correct
+                  : t.lang.quiz.wrong}
             </p>
             <p className="mt-3 font-display text-2xl font-bold">
               {articleFor(q.word.gender) && (
@@ -344,7 +346,7 @@ export default function QuizPage() {
               autoFocus
               className="mt-5 w-full rounded-md bg-lang py-3 font-medium text-white"
             >
-              다음
+              {t.lang.quiz.next}
             </button>
           </div>
         )}

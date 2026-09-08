@@ -13,6 +13,7 @@ import {
 import { HomeButton } from "../ui/home-button";
 import { PixelPenguinBook } from "../ui/pixel";
 import { BookSheet } from "./book-sheet";
+import { useT, type Dict } from "@/modules/shared/i18n";
 
 // #58 서재 = 독서 여정 책장 — 완독 20권 = 한 보(步) = 책등 하나.
 // 모바일: 한 쪽 넘김 / 데스크톱(md~): 양면 스프레드 (목업 데스크톱 페이지). 자세히보기는 시트.
@@ -88,11 +89,12 @@ const turnByEdge =
     }
   };
 
-const pageNo = (page: Page) =>
-  page.t === "rec" ? `p.${page.no}` : page.t === "toc" ? (page.half === 0 ? "목차 i" : "목차 ii") : "";
+const pageNo = (page: Page, t: Dict) =>
+  page.t === "rec" ? `p.${page.no}` : page.t === "toc" ? t.library.tocPage(page.half) : "";
 
 export default function LibraryJourneyPage() {
   const wide = useSyncExternalStore(subscribeMd, getMd, () => false);
+  const t = useT();
   const [books, setBooks] = useState<BookListItem[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<View>({ t: "shelf" });
@@ -175,9 +177,9 @@ export default function LibraryJourneyPage() {
           // 있는 하한(min-h-9)까지 줄어들고, 그보다 짧은 화면에서만 LEAF의 스크롤이 받는다
           <div className="flex h-full flex-col">
             <p className="text-center font-mono text-[11px] tracking-[0.2em] text-lib">CONTENTS</p>
-            <p className="mt-0.5 text-center font-display text-xl font-bold">목차</p>
+            <p className="mt-0.5 text-center font-display text-xl font-bold">{t.library.toc}</p>
             <p className="mb-3 mt-0.5 text-center font-mono text-[11px] tracking-[0.08em] text-faint">
-              여정 {page.half === 0 ? "1–10" : "11–20"}
+              {t.library.journeyRange(page.half === 0 ? "1–10" : "11–20")}
             </p>
             <div className="flex flex-1 flex-col">
               {Array.from({ length: 10 }, (_, i) => {
@@ -209,7 +211,7 @@ export default function LibraryJourneyPage() {
       if (page.t === "rec")
         return (
           <div className="flex min-h-full flex-col items-center justify-center pb-4 text-center">
-            <p className="font-mono text-[11px] tracking-[0.18em] text-lib">여정 {page.no} / {VOL_CAP}</p>
+            <p className="font-mono text-[11px] tracking-[0.18em] text-lib">{t.library.journeyOf(page.no, VOL_CAP)}</p>
             <h2 className="mt-4 max-w-[262px] font-display text-[26px] font-bold leading-snug md:text-2xl">
               {page.item.title}
             </h2>
@@ -219,20 +221,20 @@ export default function LibraryJourneyPage() {
               <p className="font-mono text-xs text-lib">{page.item.tags.map((t) => `#${t}`).join(" ")}</p>
             )}
             <p className="mt-3.5 font-mono text-[11px] text-faint">
-              {fmtDate(page.item.firstFinishedOn)} · {page.item.readCount}회독
+              {fmtDate(page.item.firstFinishedOn)} · {t.library.readCount(page.item.readCount)}
             </p>
             <button
               onClick={() => setSheet({ item: page.item, no: page.no })}
               className="relative z-[1] mt-4 inline-flex min-h-11 items-center rounded-md border border-lib/50 bg-lib-soft px-4 text-[13px] font-medium text-lib"
             >
-              자세히보기 →
+              {t.library.details}
             </button>
           </div>
         );
       return (
         <div className="flex min-h-full flex-col items-center justify-center gap-2 text-line">
           <span className="text-2xl">✳</span>
-          <span className="font-mono text-xs">{page.next}번째 여정을 기다리는 중</span>
+          <span className="font-mono text-xs">{t.library.waiting(page.next)}</span>
         </div>
       );
     };
@@ -245,14 +247,14 @@ export default function LibraryJourneyPage() {
       // 아래로는 벽 앞 펭귄 띠만 비워 둔다. 지면이 쪽 안에서 스크롤되면 책이 아니다 (#75)
       <main className="flex h-dvh flex-col p-4 pb-[var(--shelf-figures)] md:p-6 md:pb-[var(--shelf-figures)]">
         <header className="mb-3 flex items-center gap-2 md:mb-4">
-          <button onClick={() => setView({ t: "shelf" })} className={navBtn}>← 책장</button>
+          <button onClick={() => setView({ t: "shelf" })} className={navBtn}>{t.library.shelf}</button>
           <div className="flex-1 text-center">
-            <p className="font-display text-lg font-bold leading-snug">제{vol + 1}보</p>
+            <p className="font-display text-lg font-bold leading-snug">{t.library.vol(vol + 1)}</p>
             <p className="font-mono text-[10px] tracking-[0.08em] text-faint">
-              {items.length} / {VOL_CAP}{items.length >= VOL_CAP ? " · 완결" : " · 진행중"}
+              {items.length} / {VOL_CAP}{items.length >= VOL_CAP ? t.library.complete : t.library.inProgress}
             </p>
           </div>
-          <button onClick={() => jump(0)} className={navBtn}>목차</button>
+          <button onClick={() => jump(0)} className={navBtn}>{t.library.toc}</button>
         </header>
 
         <div
@@ -280,13 +282,13 @@ export default function LibraryJourneyPage() {
                   />
                   <div className={LEAF}>{face(pg)}</div>
                   <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-faint">
-                    {pg ? pageNo(pg) : ""}
+                    {pg ? pageNo(pg, t) : ""}
                   </p>
                   {side === 0 && hasPrev && (
-                    <button onClick={() => flip("prev")} aria-label="이전 펼침" className="jr-corner-l" />
+                    <button onClick={() => flip("prev")} aria-label={t.library.prevSpread} className="jr-corner-l" />
                   )}
                   {side === 1 && hasNext && (
-                    <button onClick={() => flip("next")} aria-label="다음 펼침" className="jr-corner-r" />
+                    <button onClick={() => flip("next")} aria-label={t.library.nextSpread} className="jr-corner-r" />
                   )}
                 </div>
               ))}
@@ -317,13 +319,13 @@ export default function LibraryJourneyPage() {
                   {face(pages[dispP])}
                 </div>
                 <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-faint">
-                  {pages[dispP] ? pageNo(pages[dispP]) : ""}
+                  {pages[dispP] ? pageNo(pages[dispP], t) : ""}
                 </p>
                 {hasPrev && (
-                  <button onClick={() => flip("prev")} aria-label="이전 쪽" className="jr-corner-l" />
+                  <button onClick={() => flip("prev")} aria-label={t.library.prevPage} className="jr-corner-l" />
                 )}
                 {hasNext && (
-                  <button onClick={() => flip("next")} aria-label="다음 쪽" className="jr-corner-r" />
+                  <button onClick={() => flip("next")} aria-label={t.library.nextPage} className="jr-corner-r" />
                 )}
               </div>
               {view.dir && (
@@ -342,8 +344,8 @@ export default function LibraryJourneyPage() {
         {/* 벽(나무) 위에 앉으므로 text-faint가 그대로면 안 읽힌다 — 책과 같은 종이 조각에 얹는다 */}
         <p className="mx-auto mt-3 w-fit rounded-full bg-sheet/95 px-3 py-1 text-center font-mono text-[11px] text-faint">
           {wide
-            ? `${base / 2 + 1} / ${nav.total / 2} 펼침 · 접힌 모서리 = 넘김`
-            : `${dispP + 1} / ${nav.total} 쪽 · 좌우 가장자리 탭 = 넘김`}
+            ? t.library.spreadHint(base / 2 + 1, nav.total / 2)
+            : t.library.pageHint(dispP + 1, nav.total)}
         </p>
 
         {sheet && (
@@ -371,7 +373,7 @@ export default function LibraryJourneyPage() {
       <header className="mb-5 flex items-start justify-between gap-3 md:mb-8">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
-          <h1 className="font-display text-2xl font-bold">서재 — 독서 여정</h1>
+          <h1 className="font-display text-2xl font-bold">{t.library.title}</h1>
         </div>
         <HomeButton accent="lib" />
       </header>
@@ -405,7 +407,7 @@ export default function LibraryJourneyPage() {
                   >
                     <span className="jr-band" aria-hidden="true" />
                     <span className="jr-vol-label">
-                      제<span className="num">{vi + 1}</span>보
+                      {t.library.volParts[0]}<span className="num">{vi + 1}</span>{t.library.volParts[1]}
                     </span>
                     <span className="z-[1] flex flex-col items-center gap-1">
                       <PixelPenguinBook size={30} />
@@ -422,7 +424,7 @@ export default function LibraryJourneyPage() {
                   style={{ height: SPINE_H }}
                 >
                   <span className="font-mono text-[10px] tracking-[0.12em] text-faint [writing-mode:vertical-rl]">
-                    제{vols.length + 1}보
+                    {t.library.vol(vols.length + 1)}
                   </span>
                 </div>
               )}
@@ -434,7 +436,7 @@ export default function LibraryJourneyPage() {
       )}
 
       {loaded && books.length === 0 && (
-        <p className="mt-8 text-center text-sm text-faint">완독한 책을 기록해 보세요 — 20권이 모이면 한 보(步)가 됩니다</p>
+        <p className="mt-8 text-center text-sm text-faint">{t.library.emptyShelf}</p>
       )}
 
       <div className="flex-1" />
@@ -442,7 +444,7 @@ export default function LibraryJourneyPage() {
         href="/library/record"
         className="mt-6 block w-full rounded-md bg-lib py-3 text-center font-medium text-white md:mx-auto md:w-72"
       >
-        ＋ 독서 기록
+        {t.library.recordBook}
       </Link>
 
       {sheet && (

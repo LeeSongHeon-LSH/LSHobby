@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Gowun_Batang, IBM_Plex_Mono, IBM_Plex_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { SwRegister } from "./sw-register";
+import { LocaleSync } from "@/modules/shared/i18n";
 
 // #48 타이포 시스템 — 제목: 고운바탕 / 본문: IBM Plex Sans KR / 수치·상태: IBM Plex Mono
 const gowun = Gowun_Batang({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-gowun" });
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col bg-paper text-ink">
         {children}
         <SwRegister />
+        <LocaleSync />
       </body>
     </html>
   );

@@ -14,6 +14,7 @@ import {
 import { setTags, tagsOf } from "@/modules/shared/tag";
 import { ReflectionBlock } from "@/modules/shared/reflection";
 import { Markdown } from "@/modules/shared/markdown";
+import { useT } from "@/modules/shared/i18n";
 
 const stars = (n: number | null) => (n ? "★".repeat(n) : "");
 const fmtDate = (iso: string) => {
@@ -36,6 +37,7 @@ export function BookSheet({
   onClose: () => void;
   onChanged: () => void;
 }) {
+  const t = useT();
   const [book, setBook] = useState<Book | null>(null);
   const [readings, setReadings] = useState<Reading[]>([]);
   const [tags, setTagsState] = useState<string[]>(item.tags);
@@ -96,7 +98,7 @@ export function BookSheet({
   };
 
   const remove = async () => {
-    if (!book || !confirm(`「${book.title}」과 회독·노트·생각 기록을 모두 삭제할까요?`)) return;
+    if (!book || !confirm(t.library.sheet.confirmDelete(book.title))) return;
     setBusy(true);
     try {
       await deleteBook(item.id);
@@ -138,19 +140,19 @@ export function BookSheet({
         <div className="mx-auto mt-2.5 h-1 w-11 shrink-0 rounded-full bg-line md:hidden" aria-hidden="true" />
         <header className="flex items-start justify-between gap-3 border-b border-line/70 px-5 pb-3.5 pt-3">
           <div>
-            <p className="font-mono text-[11px] tracking-[0.18em] text-lib">MY NOTES · 여정 {journeyNo} / 20</p>
+            <p className="font-mono text-[11px] tracking-[0.18em] text-lib">{t.library.sheet.head(journeyNo)}</p>
             <h2 className="mt-1 font-display text-lg font-bold leading-snug">{title}</h2>
             {book && (
               <p className="mt-0.5 text-xs text-faint">
                 {book.author}
-                {book.translator ? ` · ${book.translator} 옮김` : ""} · {book.publisher} · {book.pub_year}
+                {book.translator ? ` · ${t.library.sheet.translatedBy(book.translator)}` : ""} · {book.publisher} · {book.pub_year}
                 {tags.length > 0 ? ` · ${tags.map((t) => `#${t}`).join(" ")}` : ""}
               </p>
             )}
           </div>
           <div className="flex shrink-0 gap-1">
-            <button onClick={openMetaEdit} aria-label="수정" className="p-2 text-faint">✎</button>
-            <button onClick={onClose} aria-label="닫기" className="p-2 text-faint">✕</button>
+            <button onClick={openMetaEdit} aria-label={t.common.edit} className="p-2 text-faint">✎</button>
+            <button onClick={onClose} aria-label={t.common.close} className="p-2 text-faint">✕</button>
           </div>
         </header>
 
@@ -159,12 +161,12 @@ export function BookSheet({
             <div className="space-y-2.5">
               {(
                 [
-                  ["title", "제목"],
-                  ["author", "저자"],
-                  ["translator", "옮긴이 (선택)"],
-                  ["publisher", "출판사"],
-                  ["pub_year", "원저 발표연도"],
-                  ["tags", "태그 (쉼표 구분 — 예: 철학, 역사)"],
+                  ["title", t.library.sheet.fields.title],
+                  ["author", t.library.sheet.fields.author],
+                  ["translator", t.library.sheet.fields.translator],
+                  ["publisher", t.library.sheet.fields.publisher],
+                  ["pub_year", t.library.sheet.fields.pubYear],
+                  ["tags", t.library.sheet.fields.tags],
                 ] as const
               ).map(([key, label]) => (
                 <input
@@ -177,41 +179,41 @@ export function BookSheet({
                 />
               ))}
               <div className="flex gap-2 pt-1">
-                <button onClick={remove} disabled={busy} className="rounded-md border border-err/40 px-4 py-2.5 text-sm text-err disabled:opacity-50">삭제</button>
-                <button onClick={() => setEditingMeta(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2.5 text-sm">취소</button>
+                <button onClick={remove} disabled={busy} className="rounded-md border border-err/40 px-4 py-2.5 text-sm text-err disabled:opacity-50">{t.common.delete}</button>
+                <button onClick={() => setEditingMeta(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2.5 text-sm">{t.common.cancel}</button>
                 <button
                   onClick={saveMeta}
                   disabled={busy || !meta.title.trim() || !meta.author.trim() || !meta.publisher.trim() || !meta.pub_year.trim()}
                   className="flex-1 rounded-md bg-lib py-2.5 text-sm font-medium text-white disabled:opacity-50"
                 >
-                  저장
+                  {t.common.save}
                 </button>
               </div>
             </div>
           ) : (
             <>
               <section>
-                <h3 className="mb-2 text-sm font-medium text-faint">회독</h3>
+                <h3 className="mb-2 text-sm font-medium text-faint">{t.library.sheet.readings}</h3>
                 <ul className="rounded-md border border-line bg-card px-4 py-2 text-sm">
                   {readings.map((r, i) => (
                     <li key={r.id} className="flex justify-between py-1.5">
-                      <span className="font-mono text-xs">{readings.length - i}회독 · {fmtDate(r.finished_on)}</span>
+                      <span className="font-mono text-xs">{t.library.sheet.readingRow(readings.length - i, fmtDate(r.finished_on))}</span>
                       <span className="text-star">{stars(r.rating)}</span>
                     </li>
                   ))}
-                  {readings.length === 0 && <li className="py-1.5 text-xs text-faint">아직 독서 기록이 없습니다</li>}
+                  {readings.length === 0 && <li className="py-1.5 text-xs text-faint">{t.library.sheet.noReadings}</li>}
                 </ul>
               </section>
 
               <section>
                 <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-faint">노트</h3>
+                  <h3 className="text-sm font-medium text-faint">{t.library.sheet.note}</h3>
                   <button
                     onClick={() => {
                       setNoteDraft(book?.note ?? "");
                       setEditingNote(true);
                     }}
-                    aria-label="노트 편집"
+                    aria-label={t.library.sheet.editNote}
                     className="text-sm text-faint"
                   >
                     ✎
@@ -224,13 +226,13 @@ export function BookSheet({
                       onChange={(e) => setNoteDraft(e.target.value)}
                       onBlur={(e) => setNoteDraft(e.target.value)}
                       rows={8}
-                      placeholder="마크다운 노트…"
+                      placeholder={t.library.sheet.notePlaceholder}
                       className="w-full rounded-md border border-line bg-card px-3 py-2 font-mono text-sm"
                       autoFocus
                     />
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingNote(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2 text-sm">취소</button>
-                      <button onClick={submitNote} disabled={busy} className="flex-1 rounded-md bg-lib py-2 text-sm font-medium text-white disabled:opacity-40">저장</button>
+                      <button onClick={() => setEditingNote(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2 text-sm">{t.common.cancel}</button>
+                      <button onClick={submitNote} disabled={busy} className="flex-1 rounded-md bg-lib py-2 text-sm font-medium text-white disabled:opacity-40">{t.common.save}</button>
                     </div>
                   </div>
                 ) : book?.note ? (
@@ -238,14 +240,14 @@ export function BookSheet({
                     <Markdown>{book.note}</Markdown>
                   </div>
                 ) : (
-                  <p className="text-sm text-faint">아직 노트가 없습니다</p>
+                  <p className="text-sm text-faint">{t.library.sheet.noNote}</p>
                 )}
               </section>
 
               <ReflectionBlock
                 subjectType="book"
                 subjectId={item.id}
-                defaultContext={readings.length > 0 ? `${readings.length}회독` : undefined}
+                defaultContext={readings.length > 0 ? t.library.readCount(readings.length) : undefined}
               />
             </>
           )}
@@ -256,7 +258,7 @@ export function BookSheet({
             href="/library/record"
             className="inline-flex min-h-11 items-center rounded-md border border-dashed border-lib/50 bg-lib-soft/50 px-4 text-sm text-lib"
           >
-            ＋ 재독 기록 추가
+            {t.library.sheet.addReread}
           </Link>
         </footer>
       </div>

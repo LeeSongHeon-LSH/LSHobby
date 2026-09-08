@@ -18,23 +18,22 @@ import {
 import { HomeButton } from "../ui/home-button";
 import { PixelPenguinTiny } from "../ui/pixel";
 import { NightScene } from "../ui/scene";
+import { useT, type Dict } from "@/modules/shared/i18n";
 
 // 과거의 오늘 되짚기 — 고치지 않고 남긴 생각을 다시 만나는 자리 (append-only의 보상)
 const ECHOES = [
-  { label: "1년 전 오늘", days: 365 },
-  { label: "한 달 전 오늘", days: 30 },
-  { label: "일주일 전 오늘", days: 7 },
-];
+  { key: "year", days: 365 },
+  { key: "month", days: 30 },
+  { key: "week", days: 7 },
+] as const;
 
-const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
-
-const dayLabel = (day: string): string => {
+const dayLabel = (day: string, t: Dict): string => {
   const today = dayKey(new Date().toISOString());
   const yesterday = dayKey(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-  if (day === today) return "오늘";
-  if (day === yesterday) return "어제";
+  if (day === today) return t.thoughts.today;
+  if (day === yesterday) return t.thoughts.yesterday;
   const [y, m, d] = day.split("-").map(Number);
-  return y === new Date().getFullYear() ? `${m}월 ${d}일` : `${y}년 ${m}월 ${d}일`;
+  return y === new Date().getFullYear() ? t.thoughts.monthDay(m, d) : t.thoughts.fullDate(y, m, d);
 };
 
 const timeOf = (iso: string): string => {
@@ -83,6 +82,7 @@ function DaySheet({
   onClose: () => void;
   onTopic: (topic: string) => void;
 }) {
+  const t = useT();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -108,9 +108,9 @@ function DaySheet({
         <header className="flex items-center justify-between gap-3 border-b border-line/70 px-5 pb-3 pt-2.5">
           <h2 className="flex items-baseline gap-2">
             <span className="font-display text-lg font-bold">{title}</span>
-            <span className="font-mono text-[11px] text-faint">{items.length}개</span>
+            <span className="font-mono text-[11px] text-faint">{t.thoughts.count(items.length)}</span>
           </h2>
-          <button onClick={onClose} aria-label="닫기" className="p-2 text-faint">✕</button>
+          <button onClick={onClose} aria-label={t.common.close} className="p-2 text-faint">✕</button>
         </header>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
@@ -118,7 +118,7 @@ function DaySheet({
             <div className="relative mb-2.5 overflow-hidden rounded-md border border-thought/40 bg-thought-soft p-3.5">
               <span className="absolute left-4 top-0 h-1 w-10 bg-thought" aria-hidden="true" />
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-thought">
-                하루 요약 · {digest.model}
+                {t.thoughts.digestHead(digest.model)}
               </p>
               <p className="mt-1.5 whitespace-pre-wrap text-sm">{digest.summary}</p>
               {digest.topics.length > 0 && (
@@ -166,12 +166,13 @@ type MonthData = {
 
 // 생각 세션 — 달력에 앉은 펭귄이 그날 생각의 표시. 누르면 시트로 읽는다 (append-only)
 function ThoughtStream() {
+  const t = useT();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
   // 검색 결과 — 어떤 질의의 결과인지 함께 저장 (질의가 바뀌면 무시)
   const [results, setResults] = useState<{ q: string; list: Thought[] } | null>(null);
-  const [echoes, setEchoes] = useState<{ label: string; items: Thought[] }[]>([]);
+  const [echoes, setEchoes] = useState<{ key: (typeof ECHOES)[number]["key"]; items: Thought[] }[]>([]);
   const [trajectory, setTrajectory] = useState<[string, number][]>([]);
   // 보고 있는 달 — 기본은 이번 달. tick은 기록 직후 같은 달을 다시 불러오는 손잡이
   const [cursor, setCursor] = useState(() => {
@@ -193,7 +194,7 @@ function ThoughtStream() {
         ]);
         setTrajectory(topTopics(topics));
         setEchoes(
-          ECHOES.map((e, i) => ({ label: e.label, items: pasts[i] })).filter(
+          ECHOES.map((e, i) => ({ key: e.key, items: pasts[i] })).filter(
             (e) => e.items.length > 0,
           ),
         );
@@ -254,7 +255,7 @@ function ThoughtStream() {
       setCursor({ y: now.getFullYear(), m: now.getMonth() + 1 });
       setTick((t) => t + 1);
     } catch {
-      alert("저장 실패 — 잠시 후 다시 시도하세요");
+      alert(t.thoughts.saveFailed);
     } finally {
       setBusy(false);
     }
@@ -283,7 +284,7 @@ function ThoughtStream() {
       <header className="focus-night mb-6 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-night-faint">Thought</p>
-          <h1 className="font-display text-2xl font-bold text-night-ink">생각</h1>
+          <h1 className="font-display text-2xl font-bold text-night-ink">{t.thoughts.title}</h1>
         </div>
         <HomeButton accent="thought" />
       </header>
@@ -295,7 +296,7 @@ function ThoughtStream() {
           onChange={(e) => setInput(e.target.value)}
           onBlur={(e) => setInput(e.target.value)}
           rows={3}
-          placeholder="지금 드는 생각, 오늘의 정리..."
+          placeholder={t.thoughts.placeholder}
           className="w-full resize-y rounded-md border border-line bg-card px-3.5 py-3 text-sm"
         />
         <div className="mt-2 flex justify-end">
@@ -304,7 +305,7 @@ function ThoughtStream() {
             disabled={busy || !input.trim()}
             className="rounded-md bg-thought px-5 py-2.5 text-sm font-medium text-white disabled:opacity-40"
           >
-            기록
+            {t.thoughts.record}
           </button>
         </div>
       </div>
@@ -313,7 +314,7 @@ function ThoughtStream() {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="내용·주제 검색"
+        placeholder={t.thoughts.search}
         className="focus-night mt-3 w-full rounded-md border border-line bg-card px-3.5 py-2.5 text-sm"
       />
 
@@ -321,7 +322,7 @@ function ThoughtStream() {
         <div className="mt-5 space-y-3">
           {trajectory.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-mono text-[11px] text-night-faint">최근 30일 주제</span>
+              <span className="font-mono text-[11px] text-night-faint">{t.thoughts.recentTopics}</span>
               {trajectory.map(([topic, n]) => (
                 <button
                   key={topic}
@@ -335,16 +336,16 @@ function ThoughtStream() {
           )}
           {echoes.length > 0 && (
             <div>
-              <p className="font-mono text-[11px] text-night-faint">그때의 나</p>
+              <p className="font-mono text-[11px] text-night-faint">{t.thoughts.echoesHeading}</p>
               {echoes.map((e) => (
                 <button
-                  key={e.label}
+                  key={e.key}
                   type="button"
-                  onClick={() => setSheet({ title: e.label, items: e.items })}
+                  onClick={() => setSheet({ title: t.thoughts.echoes[e.key], items: e.items })}
                   className="focus-night flex w-full items-baseline gap-2 py-1.5 text-left"
                 >
-                  <span className="shrink-0 font-display font-bold text-night-ink">{e.label}</span>
-                  <span className="shrink-0 font-mono text-[11px] text-night-faint">{e.items.length}개</span>
+                  <span className="shrink-0 font-display font-bold text-night-ink">{t.thoughts.echoes[e.key]}</span>
+                  <span className="shrink-0 font-mono text-[11px] text-night-faint">{t.thoughts.count(e.items.length)}</span>
                   <span className="min-w-0 flex-1 truncate text-sm text-night-faint">
                     {firstLine(e.items[0].content)}
                   </span>
@@ -357,16 +358,16 @@ function ThoughtStream() {
 
       {query.trim() ? (
         results?.q !== query.trim() ? (
-          <p className="mt-14 text-center text-sm text-night-faint">검색 중…</p>
+          <p className="mt-14 text-center text-sm text-night-faint">{t.thoughts.searching}</p>
         ) : results.list.length === 0 ? (
-          <p className="mt-14 text-center text-sm text-night-faint">검색 결과가 없어요</p>
+          <p className="mt-14 text-center text-sm text-night-faint">{t.thoughts.noResults}</p>
         ) : (
           <div className="mt-7 space-y-7">
             {groupByDay(results.list).map((g) => (
               <section key={g.day}>
                 <h2 className="mb-2.5 flex items-baseline gap-2">
-                  <span className="font-display font-bold text-night-ink">{dayLabel(g.day)}</span>
-                  <span className="font-mono text-[11px] text-night-faint">{g.items.length}개</span>
+                  <span className="font-display font-bold text-night-ink">{dayLabel(g.day, t)}</span>
+                  <span className="font-mono text-[11px] text-night-faint">{t.thoughts.count(g.items.length)}</span>
                 </h2>
                 <ul className="space-y-2">
                   {g.items.map((t) => (
@@ -383,19 +384,19 @@ function ThoughtStream() {
             <button
               type="button"
               onClick={() => shift(-1)}
-              aria-label="이전 달"
+              aria-label={t.thoughts.prevMonth}
               className="p-2 text-faint"
             >
               <Triangle flip />
             </button>
             <h2 className="font-display font-bold">
-              {cursor.y}년 {cursor.m}월
+              {t.thoughts.monthTitle(cursor.y, cursor.m)}
             </h2>
             <button
               type="button"
               onClick={() => shift(1)}
               disabled={isThisMonth}
-              aria-label="다음 달"
+              aria-label={t.thoughts.nextMonth}
               className="p-2 text-faint disabled:opacity-30"
             >
               <Triangle />
@@ -403,7 +404,7 @@ function ThoughtStream() {
           </div>
 
           <div className="mt-2 grid grid-cols-7 gap-1">
-            {WEEKDAYS.map((w) => (
+            {t.thoughts.weekdays.map((w) => (
               <div key={w} className="py-1 text-center font-mono text-[11px] text-faint">
                 {w}
               </div>
@@ -426,8 +427,8 @@ function ThoughtStream() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setSheet({ title: dayLabel(key), items, digest: shown?.digests.get(key) })}
-                  aria-label={`${dayLabel(key)} 생각 ${items.length}개`}
+                  onClick={() => setSheet({ title: dayLabel(key, t), items, digest: shown?.digests.get(key) })}
+                  aria-label={t.thoughts.dayAria(dayLabel(key, t), items.length)}
                   className={`${cell} hover:bg-thought-soft`}
                 >
                   <span className={num}>{d}</span>

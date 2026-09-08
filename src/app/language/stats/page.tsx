@@ -9,14 +9,16 @@ import {
   fetchStats,
   listWords,
   reviewStats,
-  stateLabel,
   type LangStats,
   type Word,
 } from "@/modules/language";
+import { useT } from "@/modules/shared/i18n";
 
 // §11.4.4 통계 — 전부 es_review_log 파생 집계 (결정 #36), 상태 분포는 FSRS state
 export default function StatsPage() {
   const config = useCurrentConfig();
+  const t = useT();
+  const langName = t.lang.languageNames[config.code] ?? config.label;
   const [stats, setStats] = useState<LangStats | null>(null);
   const [words, setWords] = useState<Word[]>([]);
 
@@ -44,10 +46,10 @@ export default function StatsPage() {
     return (
       <main className="p-4">
         <header>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
-          <h1 className="font-display text-2xl font-bold">학습 통계</h1>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{langName}</p>
+          <h1 className="font-display text-2xl font-bold">{t.lang.stats.title}</h1>
         </header>
-        <p className="mt-16 text-center text-sm text-faint">불러오는 중…</p>
+        <p className="mt-16 text-center text-sm text-faint">{t.common.loading}</p>
       </main>
     );
 
@@ -60,17 +62,17 @@ export default function StatsPage() {
     <main className="flex flex-1 flex-col p-4">
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{config.label}</p>
-          <h1 className="font-display text-2xl font-bold">학습 통계</h1>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lang">{langName}</p>
+          <h1 className="font-display text-2xl font-bold">{t.lang.stats.title}</h1>
         </div>
         <HomeButton accent="lang" />
       </header>
 
       <div className="mb-7 grid grid-cols-3 gap-2">
         {[
-          { v: stats.streak, l: "연속일" },
-          { v: stats.todayTotal, l: "오늘" },
-          { v: acc === null ? "–" : `${acc}%`, l: "전체 정답률" },
+          { v: stats.streak, l: t.lang.stats.streak },
+          { v: stats.todayTotal, l: t.lang.stats.today },
+          { v: acc === null ? "–" : `${acc}%`, l: t.lang.stats.accuracy },
         ].map((t) => (
           <div key={t.l} className="rounded-md border border-line bg-card p-4 text-center">
             <p className="font-mono text-2xl font-medium tabular-nums">{t.v}</p>
@@ -80,12 +82,12 @@ export default function StatsPage() {
       </div>
 
       <section className="mb-6">
-        <h2 className="mb-2 text-sm font-medium text-faint">최근 14일 학습량</h2>
+        <h2 className="mb-2 text-sm font-medium text-faint">{t.lang.stats.last14}</h2>
         <div className="flex h-28 items-end gap-1 rounded-md border border-line bg-card p-3">
           {stats.daily.map((d) => (
             <div
               key={d.date}
-              title={`${d.date}: ${d.total}회`}
+              title={t.lang.stats.dayTitle(d.date, d.total)}
               className="flex-1 rounded-t-sm bg-lang"
               style={{ height: `${(d.total / maxDaily) * 100}%`, minHeight: d.total > 0 ? 3 : 0 }}
             />
@@ -95,11 +97,11 @@ export default function StatsPage() {
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-medium text-faint">FSRS 상태 분포</h2>
+        <h2 className="mb-2 text-sm font-medium text-faint">{t.lang.stats.stateDist}</h2>
         <div className="space-y-2 rounded-md border border-line bg-card p-4">
           {stats.stateCounts.map((n, state) => (
             <div key={state} className="flex items-center gap-2 text-sm">
-              <span className="w-14 shrink-0 text-faint">{stateLabel(state)}</span>
+              <span className="w-14 shrink-0 text-faint">{t.lang.states[state] ?? "?"}</span>
               <div className="h-3 rounded-sm bg-lang" style={{ width: `${(n / maxState) * 70}%` }} />
               <span className="font-mono text-xs tabular-nums text-faint">{n}</span>
             </div>
@@ -112,7 +114,7 @@ export default function StatsPage() {
         onClick={exportCsv}
         className="w-full rounded-md border border-lang/40 bg-lang-soft py-3 font-medium"
       >
-        CSV 내보내기
+        {t.lang.stats.exportCsv}
       </button>
     </main>
   );

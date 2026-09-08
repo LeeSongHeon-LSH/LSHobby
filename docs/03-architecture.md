@@ -35,6 +35,7 @@ src/
 │       ├── activity/     # 활동 피드 (앱 화면 소비처 없음 — 배치가 읽는다, §15.6-4)
 │       ├── tag/
 │       ├── markdown/     # 마크다운 렌더 (sanitize, SEC-05)
+│       ├── i18n/         # UI 고정 문구 사전 ko(원본)·en·es + 현재 언어 훅 (#89)
 │       ├── search/       # 빈 스텁 (export {}) — 검색은 도메인별 구현
 │       └── auth/         # 클라이언트 + AuthGuard + 서버 라우트용 client
 └── app/

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { addEntry, getTimeline, type ReflectionEntry } from "./service";
+import { useT } from "../i18n";
 
 const fmtDate = (iso: string): string => {
   const d = new Date(iso);
@@ -24,6 +25,7 @@ export function ReflectionBlock({
   defaultContext?: string;
   onAdded?: () => void;
 }) {
+  const t = useT();
   const [entries, setEntries] = useState<ReflectionEntry[]>([]);
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
@@ -56,7 +58,7 @@ export function ReflectionBlock({
 
   return (
     <section>
-      <h2 className="mb-2 text-sm font-medium text-faint">생각 타임라인</h2>
+      <h2 className="mb-2 text-sm font-medium text-faint">{t.reflection.heading}</h2>
       {entries.length > 0 && (
         <ul className="mb-3 divide-y divide-line rounded-md border border-line bg-card">
           {entries.map((e) => (
@@ -76,7 +78,7 @@ export function ReflectionBlock({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onBlur={(e) => setContent(e.target.value)}
-            placeholder="지금의 생각…"
+            placeholder={t.reflection.placeholder}
             rows={4}
             className="w-full rounded-md border border-line px-3 py-2 text-sm"
             autoFocus
@@ -85,19 +87,19 @@ export function ReflectionBlock({
             value={context}
             onChange={(e) => setContext(e.target.value)}
             onBlur={(e) => setContext(e.target.value)}
-            placeholder="계기 (선택 — 예: 재독, 3개월 후)"
+            placeholder={t.reflection.contextPlaceholder}
             className="w-full rounded-md border border-line px-3 py-2 text-sm"
           />
           <div className="flex gap-2">
             <button onClick={() => setOpen(false)} className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2 text-sm">
-              취소
+              {t.common.cancel}
             </button>
             <button
               onClick={submit}
               disabled={busy || !content.trim()}
               className="flex-1 rounded-md bg-lib py-2 text-sm font-medium text-white disabled:opacity-40"
             >
-              추가
+              {t.reflection.add}
             </button>
           </div>
         </div>
@@ -106,7 +108,7 @@ export function ReflectionBlock({
           onClick={() => setOpen(true)}
           className="w-full rounded-md border border-dashed border-lib/50 bg-lib-soft/50 py-2.5 text-sm text-lib"
         >
-          ＋ 지금 생각 추가
+          {t.reflection.addPrompt}
         </button>
       )}
     </section>

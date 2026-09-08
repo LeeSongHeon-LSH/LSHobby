@@ -11,11 +11,13 @@ import {
   todayReviewSummary,
   useCurrentConfig,
 } from "@/modules/language";
+import { useT } from "@/modules/shared/i18n";
 
 // §11.4.1 학습 (세션 랜딩) — 퀴즈 카드 + 오늘 요약. 헤더 ▾로 언어 전환 (#54)
 // 카드에 숫자를 두지 않는다 (2026-09-02) — 하루 할당·복습 대기 수는 퀴즈와 어긋나 버그만 낳았다
 export default function LanguageHome() {
   const config = useCurrentConfig();
+  const t = useT();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [total, setTotal] = useState(0);
@@ -75,11 +77,11 @@ export default function LanguageHome() {
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
-            aria-label="언어 전환"
+            aria-label={t.lang.switchLanguage}
             aria-expanded={menuOpen}
             className="inline-flex items-center gap-1.5"
           >
-            {config.label}
+            {t.lang.languageNames[config.code] ?? config.label}
             <span
               className={`text-base text-faint transition-transform ${menuOpen ? "rotate-180" : ""}`}
               aria-hidden="true"
@@ -102,7 +104,7 @@ export default function LanguageHome() {
                   }`}
                 >
                   <span className={`font-display font-bold ${active ? "" : "text-faint"}`}>
-                    {c.label}
+                    {t.lang.languageNames[c.code] ?? c.label}
                   </span>
                   <span
                     className={`font-mono text-[10px] uppercase tracking-[0.15em] ${
@@ -123,20 +125,20 @@ export default function LanguageHome() {
       <div className="relative mx-auto w-full max-w-xs overflow-hidden rounded-lg border border-line bg-card p-8 text-center">
         <span className="absolute left-4 top-0 h-1 w-10 bg-lang" aria-hidden="true" />
         <div className="mb-2.5 flex justify-center"><PixelPenguinBubble size={44} /></div>
-        <p className="mb-5 font-display text-xl font-bold">단어 퀴즈</p>
+        <p className="mb-5 font-display text-xl font-bold">{t.lang.quizCard}</p>
         <Link
           href="/language/quiz"
           className="block w-full rounded-md bg-lang py-3 font-medium text-white"
         >
-          시작하기
+          {t.lang.start}
         </Link>
       </div>
 
       <p className="mt-6 text-center font-mono text-xs text-faint">
         {today && today.count > 0
-          ? `오늘 ${today.count}회 복습 · 정답률 ${Math.round((today.correct / today.count) * 100)}% · `
+          ? `${t.lang.todaySummary(today.count, Math.round((today.correct / today.count) * 100))} · `
           : ""}
-        전체 {total}단어
+        {t.lang.totalWords(total)}
       </p>
       </div>
     </main>

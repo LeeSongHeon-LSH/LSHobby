@@ -19,6 +19,7 @@ import {
 import { setTags } from "@/modules/shared/tag";
 import { SearchIcon } from "../../ui/icons";
 import { PixelPenguinBook } from "../../ui/pixel";
+import { useT } from "@/modules/shared/i18n";
 
 const todayStr = () => {
   const d = new Date();
@@ -42,6 +43,7 @@ function Ornament() {
 // 1단계 책 선택(목차 문법) → 2단계 속표지 미리보기 + 완독일·별점 (#58)
 export default function RecordPage() {
   const router = useRouter();
+  const t = useT();
   const [books, setBooks] = useState<BookListItem[]>([]);
   const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
@@ -106,13 +108,13 @@ export default function RecordPage() {
         <header className="mb-4 flex items-start justify-between gap-3">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
-            <h1 className="font-display text-2xl font-bold">독서 기록</h1>
+            <h1 className="font-display text-2xl font-bold">{t.library.record.title}</h1>
           </div>
           <button
             onClick={() => setPicked(null)}
             className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-xs text-lib"
           >
-            ← 책 선택
+            {t.library.record.pickBook}
           </button>
         </header>
 
@@ -120,7 +122,8 @@ export default function RecordPage() {
           <div className="flex flex-col items-center text-center">
             <PixelPenguinBook size={36} />
             <p className="mt-3 font-mono text-[11px] tracking-[0.18em] text-lib">
-              제{vol}보 · 여정 {inVol} / {VOL_CAP} · {readCount > 0 ? `${readCount + 1}회독째` : "첫 완독"}
+              {t.library.vol(vol)} · {t.library.journeyOf(inVol, VOL_CAP)} ·{" "}
+              {readCount > 0 ? t.library.record.nthReading(readCount + 1) : t.library.record.firstReading}
             </p>
             <h2 className="mt-3 max-w-[262px] font-display text-[26px] font-bold leading-snug">
               {picked.title}
@@ -132,7 +135,7 @@ export default function RecordPage() {
           <div className="mx-auto mt-2 max-w-[300px] space-y-5">
             <div>
               <label className="mb-1.5 block text-center font-mono text-[11px] tracking-[0.08em] text-faint">
-                완독일
+                {t.library.record.finishedOn}
               </label>
               <input
                 type="date"
@@ -143,14 +146,14 @@ export default function RecordPage() {
             </div>
             <div>
               <label className="mb-1.5 block text-center font-mono text-[11px] tracking-[0.08em] text-faint">
-                별점 (선택)
+                {t.library.record.rating}
               </label>
               <div className="flex justify-center gap-1.5 text-3xl">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
                     onClick={() => setRating(rating === n ? null : n)}
-                    aria-label={`별점 ${n}`}
+                    aria-label={t.library.record.ratingOf(n)}
                     className={rating && n <= rating ? "text-star" : "text-line"}
                   >
                     ★
@@ -163,7 +166,7 @@ export default function RecordPage() {
               disabled={busy || !finishedOn}
               className="w-full rounded-md bg-lib py-3 font-medium text-white disabled:opacity-40"
             >
-              기록 완료
+              {t.library.record.complete}
             </button>
           </div>
           <p className="absolute inset-x-0 bottom-3 text-center font-mono text-[11px] text-line">
@@ -172,7 +175,7 @@ export default function RecordPage() {
         </div>
 
         <p className="mt-3 text-center font-mono text-[11px] text-faint">
-          노트·감상은 기록 후 여정 자세히보기에서 자유롭게
+          {t.library.record.afterHint}
         </p>
       </main>
     );
@@ -184,13 +187,13 @@ export default function RecordPage() {
       <header className="mb-4 flex items-start justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-lib">Library</p>
-          <h1 className="font-display text-2xl font-bold">독서 기록</h1>
+          <h1 className="font-display text-2xl font-bold">{t.library.record.title}</h1>
         </div>
         <Link
           href="/library"
           className="inline-flex min-h-11 items-center rounded-lg border border-lib/40 bg-lib-soft px-3.5 font-mono text-xs text-lib"
         >
-          ← 책장
+          {t.library.shelf}
         </Link>
       </header>
 
@@ -204,13 +207,13 @@ export default function RecordPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onBlur={(e) => setQuery(e.target.value)}
-              placeholder="제목 검색"
+              placeholder={t.library.record.searchTitle}
               className="w-full rounded-md border border-line bg-card py-2.5 pl-10 pr-4"
             />
           </div>
           <div className="rounded-lg border border-line bg-sheet px-5 py-3 shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
             <p className="mb-2.5 pt-1 text-center font-mono text-[11px] tracking-[0.2em] text-lib">
-              다시 읽은 책이라면
+              {t.library.record.rereadHeading}
             </p>
             {matches.map((b) => {
               const no = journeyNoById.get(b.id);
@@ -226,14 +229,14 @@ export default function RecordPage() {
                   <span className="truncate font-display">{b.title}</span>
                   <span className="min-w-3.5 flex-1 -translate-y-[3px] border-b border-dotted border-line/80" />
                   <span className="shrink-0 font-mono text-[10px] text-faint">
-                    {b.readCount}회독 → {b.readCount + 1}회독
+                    {t.library.record.rereadRow(b.readCount, b.readCount + 1)}
                   </span>
                 </button>
               );
             })}
             {matches.length === 0 && (
               <p className="py-6 text-center text-sm text-faint">
-                {books.length === 0 ? "첫 여정을 시작해 보세요" : "검색 결과가 없습니다"}
+                {books.length === 0 ? t.library.record.firstJourney : t.library.record.noResults}
               </p>
             )}
             <button
@@ -243,24 +246,24 @@ export default function RecordPage() {
               }}
               className="my-3 flex min-h-11 w-full items-center justify-center rounded-md border border-dashed border-lib/50 bg-lib-soft/50 text-sm text-lib"
             >
-              ＋ 새 책 등록{q ? `: "${query.trim()}"` : ""}
+              {t.library.record.newBook}{q ? `: "${query.trim()}"` : ""}
             </button>
           </div>
         </>
       ) : (
         <div className="rounded-lg border border-line bg-sheet px-6 py-6 shadow-[0_10px_30px_rgba(34,38,43,0.08)]">
           <p className="mb-4 text-center font-mono text-[11px] tracking-[0.18em] text-lib">
-            여정 {nextJourneyNo}번째가 될 책
+            {t.library.record.willBeJourney(nextJourneyNo)}
           </p>
           <div className="space-y-3">
             {(
               [
-                ["title", "제목"],
-                ["author", "저자"],
-                ["translator", "옮긴이 (선택)"],
-                ["publisher", "출판사"],
-                ["pub_year", "원저 발표연도 (예: 1943, BC 380)"],
-                ["tags", "태그 (선택, 쉼표 구분 — 예: 철학, 역사)"],
+                ["title", t.library.sheet.fields.title],
+                ["author", t.library.sheet.fields.author],
+                ["translator", t.library.sheet.fields.translator],
+                ["publisher", t.library.sheet.fields.publisher],
+                ["pub_year", t.library.record.pubYearEx],
+                ["tags", t.library.record.tagsEx],
               ] as const
             ).map(([key, label]) => (
               <input
@@ -277,7 +280,7 @@ export default function RecordPage() {
                 onClick={() => setCreating(false)}
                 className="rounded-md border border-lib/40 bg-lib-soft px-4 py-2.5 text-sm"
               >
-                뒤로
+                {t.common.back}
               </button>
               <button
                 onClick={createAndPick}
@@ -290,7 +293,7 @@ export default function RecordPage() {
                 }
                 className="flex-1 rounded-md bg-lib py-2.5 font-medium text-white disabled:opacity-40"
               >
-                등록하고 계속
+                {t.library.record.registerAndContinue}
               </button>
             </div>
           </div>

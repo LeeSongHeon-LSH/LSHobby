@@ -7,6 +7,7 @@ import { AuthGuard, signOut, updatePassword } from "@/modules/shared/auth";
 import { countWords, languageConfigs } from "@/modules/language";
 import { countBooks } from "@/modules/library";
 import { countThoughts } from "@/modules/thought";
+import { locales, setLocale, useLocale, useT, type Locale } from "@/modules/shared/i18n";
 import {
   PixelMascot,
   PixelMoon,
@@ -23,7 +24,7 @@ import { IceScene } from "../ui/scene";
 const DRAWERS = [
   {
     href: "/library",
-    name: "책",
+    key: "library",
     icon: <PixelPenguinBook size={48} />,
     tab: "bg-lib",
     card: "border-lib/40 igloo-sky",
@@ -37,7 +38,7 @@ const DRAWERS = [
   },
   {
     href: "/language",
-    name: "언어",
+    key: "language",
     icon: <PixelPenguinBubble size={48} />,
     tab: "bg-lang",
     card: "border-lang/40 sky-chat",
@@ -52,7 +53,7 @@ const DRAWERS = [
   },
   {
     href: "/thoughts",
-    name: "생각",
+    key: "thoughts",
     icon: <PixelPenguinThink size={48} />,
     tab: "bg-thought",
     card: "border-thought/40 sky-night",
@@ -76,11 +77,13 @@ const DRAWERS = [
       </>
     ),
   },
-];
+] as const;
 
 // #57·#60 홈(허브) — 쌓인 세 서랍(책·언어·생각), 서랍마다 도메인 펭귄. 탭바 없음
 function Hub() {
   const router = useRouter();
+  const t = useT();
+  const locale = useLocale();
   const [wordCount, setWordCount] = useState<number | null>(null);
   const [bookCount, setBookCount] = useState<number | null>(null);
   const [thoughtCount, setThoughtCount] = useState<number | null>(null);
@@ -107,11 +110,11 @@ function Hub() {
 
   const changePassword = async () => {
     if (pw1.length < 8) {
-      setPwMsg("8자 이상으로 입력하세요");
+      setPwMsg(t.home.pwTooShort);
       return;
     }
     if (pw1 !== pw2) {
-      setPwMsg("두 입력이 다릅니다");
+      setPwMsg(t.home.pwMismatch);
       return;
     }
     setBusy(true);
@@ -119,20 +122,20 @@ function Hub() {
     const err = await updatePassword(pw1);
     setBusy(false);
     if (err) {
-      setPwMsg("변경 실패 — 잠시 후 다시 시도하세요");
+      setPwMsg(t.home.pwFailed);
     } else {
       setPw1("");
       setPw2("");
       setPwOpen(false);
       setMenuOpen(false);
-      alert("비밀번호가 변경되었습니다. 비밀번호 관리자에 저장해 두세요.");
+      alert(t.home.pwChanged);
     }
   };
 
   const counts: Record<string, string> = {
-    "/library": bookCount === null ? "" : `완독 ${bookCount}권`,
-    "/language": wordCount === null ? "" : `단어 ${wordCount}개`,
-    "/thoughts": thoughtCount === null ? "" : `기록 ${thoughtCount}개`,
+    "/library": bookCount === null ? "" : t.home.booksDone(bookCount),
+    "/language": wordCount === null ? "" : t.home.wordCount(wordCount),
+    "/thoughts": thoughtCount === null ? "" : t.home.thoughtCount(thoughtCount),
   };
 
   return (
@@ -143,7 +146,7 @@ function Hub() {
           <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">LSHobby</h1>
           <span className="hidden md:block"><PixelMascot size={30} /></span>
         </div>
-        <button onClick={() => setMenuOpen(true)} aria-label="설정" className="rounded p-2 text-faint">
+        <button onClick={() => setMenuOpen(true)} aria-label={t.common.settings} className="rounded p-2 text-faint">
           ⚙
         </button>
       </header>
@@ -162,7 +165,7 @@ function Hub() {
               className={`z-[1] flex flex-col items-center gap-2.5 rounded-lg border-2 border-white/85 px-7 py-3.5 ${d.plate}`}
             >
               <span className="pg-waddle">{d.icon}</span>
-              <span className="font-display text-lg font-bold">{d.name}</span>
+              <span className="font-display text-lg font-bold">{t.home.drawers[d.key]}</span>
               <span className="min-h-4 font-mono text-xs text-ink/70">{counts[d.href]}</span>
             </span>
           </Link>
@@ -177,27 +180,43 @@ function Hub() {
           >
             {!pwOpen ? (
               <>
+                {/* UI 언어 — 각 언어의 이름은 그 언어 자신의 표기로 (#89) */}
+                <div className="flex gap-2" role="group">
+                  {(Object.keys(locales) as Locale[]).map((code) => (
+                    <button
+                      key={code}
+                      onClick={() => setLocale(code)}
+                      aria-pressed={locale === code}
+                      lang={code}
+                      className={`flex-1 rounded-md border py-3 text-sm ${
+                        locale === code ? "border-ink bg-ink text-white" : "border-line text-faint"
+                      }`}
+                    >
+                      {locales[code].name}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={() => setPwOpen(true)}
                   className="w-full rounded-md border border-line py-3 text-sm"
                 >
-                  비밀번호 변경
+                  {t.home.changePassword}
                 </button>
                 <button
                   onClick={logout}
                   className="w-full rounded-md border border-line py-3 text-sm text-err"
                 >
-                  로그아웃
+                  {t.home.logout}
                 </button>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium">비밀번호 변경</p>
+                <p className="text-sm font-medium">{t.home.changePassword}</p>
                 <input
                   type="password"
                   value={pw1}
                   onChange={(e) => setPw1(e.target.value)}
-                  placeholder="새 비밀번호 (8자 이상)"
+                  placeholder={t.home.newPassword}
                   className="w-full rounded-md border border-line px-4 py-2.5 text-sm"
                   autoComplete="new-password"
                   autoFocus
@@ -206,7 +225,7 @@ function Hub() {
                   type="password"
                   value={pw2}
                   onChange={(e) => setPw2(e.target.value)}
-                  placeholder="새 비밀번호 확인"
+                  placeholder={t.home.confirmPassword}
                   className="w-full rounded-md border border-line px-4 py-2.5 text-sm"
                   autoComplete="new-password"
                 />
@@ -219,14 +238,14 @@ function Hub() {
                     }}
                     className="rounded-md border border-line px-4 py-2.5 text-sm"
                   >
-                    취소
+                    {t.common.cancel}
                   </button>
                   <button
                     onClick={changePassword}
                     disabled={busy || !pw1 || !pw2}
                     className="flex-1 rounded-md bg-ink py-2.5 text-sm font-medium text-white disabled:opacity-40"
                   >
-                    변경
+                    {t.home.change}
                   </button>
                 </div>
               </>
