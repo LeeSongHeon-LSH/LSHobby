@@ -296,6 +296,18 @@ describe("Tatoeba 추출 (구 _extract 이식)", () => {
     expect(out[1].ko_text).toBeNull(); // kor 모드에선 eng 번역 무시
     expect(out[0].source_url).toContain("/sentences/show/1");
   });
+
+  it("경계는 유니코드 — 수집이 통과시킨 문장은 반드시 빈칸이 뚫린다", async () => {
+    const { extractSentences } = await import("./tatoeba");
+    const results = [
+      { id: 1, text: "Compré estaño para el techo.", translations: [] }, // estaño → 제외
+      { id: 2, text: "Esta casa es grande.", translations: [] },
+    ];
+    const out = extractSentences(results, "esta", "kor");
+    expect(out.map((s) => s.text)).toEqual(["Esta casa es grande."]);
+    // 두 경계가 어긋나면 저장은 되는데 cloze가 안 나와 슬롯만 먹는다 — 그 드리프트를 여기서 막는다
+    for (const s of out) expect(clozeIndex(s.text, "esta")).toBeGreaterThanOrEqual(0);
+  });
 });
 
 describe("Tatoeba 도달 여부 (#94)", () => {

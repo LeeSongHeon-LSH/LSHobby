@@ -66,7 +66,9 @@ const supabase = createClient(
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const wordPattern = (word) => {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(?<!\\w)${escaped}(?!\\w)`, "i");
+  // 경계는 유니코드 글자·숫자 — tatoeba.ts·display.ts와 같은 식이어야 한다.
+  // ASCII \w면 "Compré estaño"가 esta의 예문으로 뽑히는데 퀴즈는 거기서 빈칸을 못 뚫는다
+  return new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "iu");
 };
 
 // ---------- Tatoeba (tatoeba.ts 이식 + raw 패스 추가) ----------

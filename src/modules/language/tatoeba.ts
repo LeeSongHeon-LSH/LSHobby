@@ -23,7 +23,10 @@ export function extractSentences(
   transLang: "kor" | "eng",
 ): SentenceDraft[] {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`(?<!\\w)${escaped}(?!\\w)`, "i");
+  // 경계는 clozeIndex(display.ts)와 같은 유니코드 글자·숫자 기준이어야 한다 — ASCII \w는
+  // ñ·á를 경계로 봐서 "Compré estaño"를 esta의 예문으로 저장하지만 빈칸은 절대 안 뚫린다.
+  // 그러면 그 문장이 MAX_SENTENCES 슬롯만 먹고 #94 마커로 굳어 cloze가 영영 안 나온다
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "iu");
   const out: SentenceDraft[] = [];
   for (const r of results) {
     const text = r.text ?? "";
