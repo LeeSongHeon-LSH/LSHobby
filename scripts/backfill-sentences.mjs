@@ -64,6 +64,20 @@ const supabase = createClient(
 );
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// PostgREST는 한 응답을 max_rows(1000, supabase/config.toml)로 자른다 — 잘린 줄 모르면
+// "예문 있음" 집합에 구멍이 나 이미 채운 단어를 다시 대상으로 잡는다. 유일 키가 없고
+// plain insert라 같은 문장이 매 실행 중복 적재되고 Gemini·Tatoeba 예산도 다시 탄다
+const PAGE = 1000;
+async function selectAll(build) {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build().range(from, from + PAGE - 1);
+    if (error) throw error;
+    out.push(...data);
+    if (data.length < PAGE) return out;
+  }
+}
 const wordPattern = (word) => {
   const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // 경계는 유니코드 글자·숫자 — tatoeba.ts·display.ts와 같은 식이어야 한다.
@@ -237,40 +251,40 @@ async function backfillLang(code) {
   console.log(`\n=== ${cfg.label} (${code}) ===`);
 
   // 0. 기존 예문 중 ko_text 없는 것 번역 (es에 eng 보충분 등)
-  const { data: untranslated, error: uErr } = await supabase
-    .from(cfg.sentenceTable)
-    .select("id, word_id, text")
-    .is("ko_text", null);
-  if (uErr) throw uErr;
+  const untranslated = await selectAll(() =>
+    supabase.from(cfg.sentenceTable).select("id, word_id, text").is("ko_text", null).order("id"),
+  );
   let translatedExisting = 0;
-  if (untranslated.length > 0 && !budgetExhausted) {
+  // 아래 생성 경로와 같이 GROUP 단위로 나눠 부른다 — translateBatch는 응답 길이가
+  // 요청과 다르면 통째로 버리므로(out.length !== items.length), 수백 줄을 한 번에 보내면
+  // 거의 매번 버려져 하루 ~20회뿐인 무료 호출을 헛되이 태운다
+  for (let i = 0; i < untranslated.length; i += GROUP) {
+    if (budgetExhausted) break;
+    const chunk = untranslated.slice(i, i + GROUP);
     const kos = await translateBatch(
       cfg,
-      untranslated.map((r) => ({ word: "(unknown)", text: r.text })),
+      chunk.map((r) => ({ word: "(unknown)", text: r.text })),
     );
-    if (kos) {
-      for (let i = 0; i < untranslated.length; i++) {
-        if (!kos[i]) continue;
-        const { error } = await supabase
-          .from(cfg.sentenceTable)
-          .update({ ko_text: kos[i] })
-          .eq("id", untranslated[i].id);
-        if (error) throw error;
-        translatedExisting++;
-      }
+    if (!kos) continue;
+    for (let j = 0; j < chunk.length; j++) {
+      if (!kos[j]) continue;
+      const { error } = await supabase
+        .from(cfg.sentenceTable)
+        .update({ ko_text: kos[j] })
+        .eq("id", chunk[j].id);
+      if (error) throw error;
+      translatedExisting++;
     }
   }
 
   // 1. 예문 0개인 단어 목록
-  const { data: words, error: wErr } = await supabase
-    .from(cfg.wordTable)
-    .select("id, word, meaning")
-    .order("id");
-  if (wErr) throw wErr;
-  const { data: haveRows, error: hErr } = await supabase
-    .from(cfg.sentenceTable)
-    .select("word_id");
-  if (hErr) throw hErr;
+  const words = await selectAll(() =>
+    supabase.from(cfg.wordTable).select("id, word, meaning").order("id"),
+  );
+  // id(PK) 순으로 페이지를 넘긴다 — word_id는 단어당 최대 3행이라 경계가 흔들린다
+  const haveRows = await selectAll(() =>
+    supabase.from(cfg.sentenceTable).select("word_id").order("id"),
+  );
   const have = new Set(haveRows.map((r) => r.word_id));
   const targets = words.filter((w) => !have.has(w.id));
   console.log(`대상: ${targets.length}단어 (전체 ${words.length}, 예문 보유 ${have.size})`);

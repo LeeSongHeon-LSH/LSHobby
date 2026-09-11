@@ -38,8 +38,13 @@ export default function StatsPage() {
     const a = document.createElement("a");
     a.href = url;
     a.download = `${config.code}-words.csv`;
+    // 문서에 붙여야 한다 — WebKit은 붙지 않은 anchor의 programmatic download를 무시한다.
+    // 해제도 같은 틱에 하면 안 된다: 다운로드가 시작하기 전에 blob URL이 죽는다.
+    // 이 앱은 standalone PWA(모바일 주 타깃)라 둘 다 지키지 않으면 조용히 아무 일도 안 일어난다
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   if (!stats)

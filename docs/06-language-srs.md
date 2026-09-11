@@ -81,15 +81,13 @@
 19. **화면 스모크 테스트** — 이 PC의 헤드리스 Chrome으로 로그인 → 퀴즈 한 바퀴 → 생각 기록을 돌리고, `deploy-local.sh`의 교체 직전에 끼운다. #76(Enter 한 번에 채점 화면 건너뜀)이 손으로 잡혔던 회귀 — 재발 방지. 조건: 없음, 언제든
 20. **서버 컴포넌트 전환** — 페이지 11개 중 10개가 `use client`라 인증 확인 → 브라우저 쿼리의 순차 대기가 매 진입마다 생긴다. 인증 경로까지 건드리는 리팩토링. 조건: 테일넷 1인 사용에서 그 지연이 실제로 거슬릴 때만
 
-**남은 코드 리뷰 지적** (2026-09-11 `/code-review max` 전수 리뷰 15건 중 **13건 처리**(#93·#94 외). 아래 표는 남은 2건 + 리뷰가 다음 티어로 분류한 `stats.ts` 1건 — 전부 재현 경로까지 확인됐고 `eslint`·`tsc`·`vitest` 어느 것도 잡지 못한다):
+**코드 리뷰 후속** (2026-09-11 `/code-review max` 전수 리뷰). 재현 경로까지 확인된 **15건은 모두 처리**했다 — #93·#94와 §6.6 아래 커밋들. 남은 것은 리뷰가 다음 티어로 분류한 잠복 1건과, 그보다 값이 큰 **테스트 가드 구멍 2곳**이다:
 
 | 자리 | 증상 |
 |---|---|
-| `src/app/language/stats/page.tsx:42` | CSV 내보내기가 document에 안 붙인 anchor를 클릭하고 같은 틱에 `revokeObjectURL`. standalone PWA(모바일 주 타깃)에선 아무 일도 안 일어난다 |
-| `scripts/backfill-sentences.mjs:270` | "이미 예문 있음" 집합도 1000행 상한에 잘린다(시드 300단어 × 3 = 900행이라 ~34단어만 더 채우면 초과). 유일 키가 없고 plain insert라 **같은 문장이 매 실행 중복 적재**되고 Gemini·Tatoeba 예산을 다시 태운다. line 245는 미번역 전체를 `translateBatch`에 한 번에 보내 `out.length !== items.length`로 거의 매번 버려진다 |
 | `src/modules/language/stats.ts` | `review_stats_fns.sql`의 RPC 4개는 1000행 상한을 피하려 만든 건데 PostgREST는 집합 반환 함수에도 `db-max-rows`를 적용한다. `es_daily_stats`가 오름차순이라 잘리면 **최신 날짜부터** 사라진다 (잠복, 약 2.7년 뒤) |
 
-**테스트 가드 두 곳이 못 잡는다** — 위 결함들이 green으로 통과하는 이유이므로 먼저 볼 값이 있다.
+**테스트 가드 두 곳이 못 잡는다** — 이번에 고친 결함들이 `eslint`·`tsc`·`vitest` 전부 green인 채로 살아 있던 이유다. 개별 버그보다 값이 크다.
 - `src/modules/shared/shared.test.tsx:24` — supabase mock이 `select`가 든 체인이면 필터 인자를 안 보고 `selectData`를 돌려준다. `upsertDaily`에서 `.eq("action", …).gte(…).lt(…)`를 통째로 지워도 7개 테스트가 전부 통과 — "일별 1건" 규칙을 지키는 유일한 describe가 그 규칙의 제거를 감지 못 한다
 - `src/design.test.ts:124` — `@media` 블록을 걷어낸 뒤 애니메이션 선택자를 모으므로 미디어 쿼리 안의 애니메이션은 reduced-motion 불변식에서 면제된다(프로브를 넣어도 전부 통과). line 72의 `walk("src/app")`은 `src/modules/**`를 안 봐서 유일한 잔존 #91 위반(`ReflectionBlock.tsx:66`의 `font-mono text-[11px]`)을 놓친다
 
