@@ -124,17 +124,23 @@ export default function QuizPage() {
     if (phase === "answered") canAdvance.current = true;
   }, [phase]);
 
+  // config는 하이드레이션 직후 저장값으로 한 번 바뀐다 ([]로 두면 덱은 es, 채점은 저장값으로 갈린다)
   useEffect(() => {
+    let stale = false;
     (async () => {
       const { words, stats: st } = await loadDeck(config);
+      if (stale) return; // 앞 config의 덱이 늦게 도착해 덮어쓰지 못하게
       stats.current = st;
       queue.current = practiceOrder(words, st);
       cursor.current = 0;
       if (queue.current.length === 0) setPhase("empty");
       else next();
     })();
+    return () => {
+      stale = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [config]);
 
   const submit = async () => {
     if (!q || phase !== "question" || !input.trim()) return;
