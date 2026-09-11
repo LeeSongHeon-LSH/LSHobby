@@ -157,7 +157,9 @@ build_id=$(cat .next/BUILD_ID)
 healthy=0
 i=0
 while [ "$i" -lt 30 ]; do
-  curl -sf --max-time 5 "$HEALTH_URL" 2>/dev/null | grep -q "$build_id" && { healthy=1; break; }
+  # -- 없이 넘기면 `-`로 시작하는 BUILD_ID를 grep이 옵션으로 읽어 매번 실패한다
+  # (nanoid 알파벳에 `-`가 있어 64회에 1회) — 멀쩡한 빌드를 롤백하고 그 sha를 blocked로 박는다
+  curl -sf --max-time 5 "$HEALTH_URL" 2>/dev/null | grep -q -- "$build_id" && { healthy=1; break; }
   sleep 1
   i=$((i + 1))
 done

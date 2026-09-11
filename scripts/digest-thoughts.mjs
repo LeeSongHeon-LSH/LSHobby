@@ -128,15 +128,32 @@ async function activityLine(day) {
 // ---------- 본체 ----------
 const todayStart = new Date(dayRange(dayKey(new Date().toISOString())).from); // 오늘 00:00 KST
 
-const { data: allThoughts, error: tErr } = await supabase
-  .from("thought")
-  .select("id, content, topics, created_at")
-  .lt("created_at", todayStart.toISOString())
-  .order("created_at", { ascending: true });
-if (tErr) throw tErr;
+// PostgREST는 한 응답을 max_rows(1000, supabase/config.toml)로 자른다 — 조용히 잘리면
+// 이미 처리된 옛 날만 보여 "처리할 날 없음"으로 성공 종료하고, 그 뒤로 새 날은 영영 요약되지 않는다.
+// exit 0이라 OnFailure 알림도 last-ok 도장도 정상으로 보인다. 끝까지 페이지로 읽는다 (§6.6)
+const PAGE = 1000;
+async function selectAll(build) {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build().range(from, from + PAGE - 1);
+    if (error) throw error;
+    out.push(...data);
+    if (data.length < PAGE) return out;
+  }
+}
 
-const { data: digested, error: dErr } = await supabase.from("thought_digest").select("day");
-if (dErr) throw dErr;
+const allThoughts = await selectAll(() =>
+  supabase
+    .from("thought")
+    .select("id, content, topics, created_at")
+    .lt("created_at", todayStart.toISOString())
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true }), // 페이지 경계가 흔들리지 않게 동률 깨기
+);
+
+const digested = await selectAll(() =>
+  supabase.from("thought_digest").select("day").order("day", { ascending: true }),
+);
 const done = new Set(digested.map((r) => r.day));
 
 const byDay = new Map();

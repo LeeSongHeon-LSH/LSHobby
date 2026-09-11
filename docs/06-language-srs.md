@@ -81,12 +81,10 @@
 19. **화면 스모크 테스트** — 이 PC의 헤드리스 Chrome으로 로그인 → 퀴즈 한 바퀴 → 생각 기록을 돌리고, `deploy-local.sh`의 교체 직전에 끼운다. #76(Enter 한 번에 채점 화면 건너뜀)이 손으로 잡혔던 회귀 — 재발 방지. 조건: 없음, 언제든
 20. **서버 컴포넌트 전환** — 페이지 11개 중 10개가 `use client`라 인증 확인 → 브라우저 쿼리의 순차 대기가 매 진입마다 생긴다. 인증 경로까지 건드리는 리팩토링. 조건: 테일넷 1인 사용에서 그 지연이 실제로 거슬릴 때만
 
-**남은 코드 리뷰 지적** (2026-09-11 `/code-review max` 전수 리뷰 15건 중 **6건은 #93·#94로 처리**했다. 아래 표는 남은 9건 + 리뷰가 다음 티어로 분류한 `stats.ts` 1건 — 전부 재현 경로까지 확인됐고 `eslint`·`tsc`·`vitest` 어느 것도 잡지 못한다):
+**남은 코드 리뷰 지적** (2026-09-11 `/code-review max` 전수 리뷰 15건 중 **8건 처리**(#93·#94 외). 아래 표는 남은 7건 + 리뷰가 다음 티어로 분류한 `stats.ts` 1건 — 전부 재현 경로까지 확인됐고 `eslint`·`tsc`·`vitest` 어느 것도 잡지 못한다):
 
 | 자리 | 증상 |
 |---|---|
-| `scripts/deploy-local.sh:160` | 헬스체크가 `BUILD_ID`를 이스케이프 없이 grep 패턴으로 넘긴다. nanoid 알파벳에 `-`가 있어 **64회에 1회** BUILD_ID가 `-`로 시작 → grep이 인자로 해석해 실패 → 멀쩡한 빌드를 롤백하고 그 sha를 `blocked`로 박아 새 커밋 전까지 재시도조차 안 한다. `grep -q -- "$build_id"` |
-| `scripts/digest-thoughts.mjs:131` | 전체 thought를 `.range()` 없이 읽어 PostgREST 1000행 상한(`supabase/config.toml:18`)에 걸린다. 1000번째 메모 이후로는 이미 처리된 옛 날짜만 보여 "처리할 날이 없습니다"를 찍고 **exit 0** — `OnFailure` 알림이 안 울리고 `last-ok` 도장까지 찍혀 실패가 완전히 안 보인다. `review-stats.ts:13`·#62가 같은 함정을 이미 기록 |
 | `src/app/language/quiz/page.tsx:152` | 채점이 세션 시작 시점의 `Word` 스냅샷을 쓴다. `practiceOrder`가 같은 객체로 새 바퀴를 시작하므로(line 77) 2바퀴째에도 `state === New`라 `createEmptyCard`가 다시 돌아 1바퀴 답이 지워진다. 덱이 작을수록(20문제·8단어) 확실히 발생 |
 | `src/modules/thought/service.ts:68` | `.contains("topics", [query])`가 검색어를 PostgREST 배열 리터럴에 따옴표 없이 박는다. 쉼표는 의미를 바꾸고(`AI, 설계` → 두 원소), `}`·`"`는 400 → throw → 병렬로 성공한 본문 검색 결과까지 버려져 "없음"으로 보인다. docs/18 §G의 주입 grep이 `.contains(`를 안 본다 |
 | `src/app/library/book-sheet.tsx:104` | `try/finally`에 catch가 없다. `deleteBook`은 `removeThread`(감상 전체 캐스케이드 삭제) → `removeTaggings` → 본체 삭제 순인데 마지막이 실패하면 책은 남고 **생각 타임라인만 영구 소실**되며 화면엔 아무 메시지도 없다. `record/page.tsx:74·92`도 같은 모양이라 재탭 시 중복 회독·중복 책 |
