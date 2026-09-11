@@ -66,7 +66,7 @@ export function ReflectionBlock({
         <ul className="mb-3 divide-y divide-line rounded-md border border-line bg-card">
           {entries.map((e) => (
             <li key={e.id} className="p-4">
-              <p className="mb-1 font-mono text-[11px] text-faint">
+              <p className="mb-1 font-dot text-dot text-faint">
                 {fmtDate(e.created_at)}
                 {e.context ? ` · ${e.context}` : ""}
               </p>

@@ -81,15 +81,15 @@
 19. **화면 스모크 테스트** — 이 PC의 헤드리스 Chrome으로 로그인 → 퀴즈 한 바퀴 → 생각 기록을 돌리고, `deploy-local.sh`의 교체 직전에 끼운다. #76(Enter 한 번에 채점 화면 건너뜀)이 손으로 잡혔던 회귀 — 재발 방지. 조건: 없음, 언제든
 20. **서버 컴포넌트 전환** — 페이지 11개 중 10개가 `use client`라 인증 확인 → 브라우저 쿼리의 순차 대기가 매 진입마다 생긴다. 인증 경로까지 건드리는 리팩토링. 조건: 테일넷 1인 사용에서 그 지연이 실제로 거슬릴 때만
 
-**코드 리뷰 후속** (2026-09-11 `/code-review max` 전수 리뷰). 재현 경로까지 확인된 **15건은 모두 처리**했다 — #93·#94와 §6.6 아래 커밋들. 남은 것은 리뷰가 다음 티어로 분류한 잠복 1건과, 그보다 값이 큰 **테스트 가드 구멍 2곳**이다:
+**코드 리뷰 후속** (2026-09-11 `/code-review max` 전수 리뷰). 재현 경로까지 확인된 **15건은 모두 처리**했고 **테스트 가드 구멍 2곳도 메웠다**. 남은 것은 리뷰가 다음 티어로 분류한 잠복 1건이다:
 
 | 자리 | 증상 |
 |---|---|
 | `src/modules/language/stats.ts` | `review_stats_fns.sql`의 RPC 4개는 1000행 상한을 피하려 만든 건데 PostgREST는 집합 반환 함수에도 `db-max-rows`를 적용한다. `es_daily_stats`가 오름차순이라 잘리면 **최신 날짜부터** 사라진다 (잠복, 약 2.7년 뒤) |
 
-**테스트 가드 두 곳이 못 잡는다** — 이번에 고친 결함들이 `eslint`·`tsc`·`vitest` 전부 green인 채로 살아 있던 이유다. 개별 버그보다 값이 크다.
-- `src/modules/shared/shared.test.tsx:24` — supabase mock이 `select`가 든 체인이면 필터 인자를 안 보고 `selectData`를 돌려준다. `upsertDaily`에서 `.eq("action", …).gte(…).lt(…)`를 통째로 지워도 7개 테스트가 전부 통과 — "일별 1건" 규칙을 지키는 유일한 describe가 그 규칙의 제거를 감지 못 한다
-- `src/design.test.ts:124` — `@media` 블록을 걷어낸 뒤 애니메이션 선택자를 모으므로 미디어 쿼리 안의 애니메이션은 reduced-motion 불변식에서 면제된다(프로브를 넣어도 전부 통과). line 72의 `walk("src/app")`은 `src/modules/**`를 안 봐서 유일한 잔존 #91 위반(`ReflectionBlock.tsx:66`의 `font-mono text-[11px]`)을 놓친다
+**테스트 가드 구멍 2곳은 메웠다** — 위 결함들이 `eslint`·`tsc`·`vitest` 전부 green인 채로 살아 있던 이유였다. 개별 버그보다 값이 컸다.
+- `src/modules/shared/shared.test.tsx` — supabase mock이 `select`가 든 체인이면 **필터 인자를 보지 않고** `selectData`를 그대로 돌려줬다. `upsertDaily`에서 `.eq("action", …).gte(…).lt(…)`를 통째로 지워도 테스트가 전부 통과해, "일별 1건" 규칙을 지키는 유일한 검사가 그 규칙의 제거를 감지하지 못했다. → mock이 `eq`·`gte`·`lt`·`in`을 **실제로 적용**하게 하고, `upsertDaily`의 필터 여섯 개가 각각 걸러내야 하는 미끼 행을 정답 행보다 앞에 뒀다(필터 하나를 지우면 `limit(1)`이 집는 행이 바뀐다). 여섯 개를 하나씩 지워 전부 테스트가 깨지는 것을 확인했다 — `.limit(1)`은 필터 뒤에 남는 행이 하나뿐이라 최적화이지 정합성 규칙이 아니므로 제외
+- `src/design.test.ts` — 구멍이 셋이었다. ① `@media`를 통째로 걷어낸 뒤 애니메이션 선택자를 모아 **미디어 쿼리 안의 애니메이션이 reduced-motion 불변식에서 면제**됐다 → `@keyframes`와 축소 블록만 걷어낸다(바깥 `@media` 줄은 규칙 정규식에 안 걸리고 그 안의 규칙만 잡힌다) ② `walk("src/app")`이라 `src/modules/**`가 검사 밖이었다 → 둘 다 훑는다. 그 범위에 있던 유일한 #91 위반(`ReflectionBlock`의 `font-mono text-[11px]`)을 dot 토큰으로 교체 ③ 축소 블록을 **첫 것만** 읽어 둘째 블록에서 끈 규칙이 없는 것으로 보였다(오탐 방향) → 전부 모은다. 셋 다 프로브 주입으로 검출·인정을 확인
 
 그 밖(재현되나 영향이 작음): `registry.ts:8` `configFor("constructor")`가 `Object`를 돌려줘 API 라우트 `[lang]` 허용목록을 우회 · `thought/service.ts:57` ilike 이스케이프가 `*` 누락(PostgREST가 `%`로 별칭) · `ReflectionBlock.tsx:32`의 "N회독" 자동 입력이 `useState` 초기값으로만 읽혀 한 번도 동작한 적 없음 · `words/page.tsx:46`이 `w.word`만 소문자화하지 않아 대문자 단어 검색 불가 · `thoughts/page.tsx:238` 디바운스 검색에 `cancelled` 가드 누락 · `public/sw.js`가 `02584ca`(글꼴 교체) 뒤에도 `lshobby-static-v1`(#92 수칙 위반) · `activity/service.ts:48` select-then-insert 경합 · `library/page.tsx:106`이 조회 실패를 "빈 서재"로 표시 · `home/page.tsx:177` 설정 배경을 탭해 닫아도 `pwOpen`과 비밀번호 입력이 남음 · BookSheet가 DaySheet 복사본인데 `role="dialog"`·`aria-modal`·Esc를 빠뜨림 · 어떤 `<label>`에도 `htmlFor`가 없음 · 죽은 코드 `getFeed`·`PixelFlame`·`shared/search/index.ts`·`aggregate`·`loadDeck`의 `due`
 

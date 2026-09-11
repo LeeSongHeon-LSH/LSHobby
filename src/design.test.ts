@@ -69,11 +69,14 @@ describe("도트 스프라이트 격자 (PixelArt)", () => {
 describe("도트 글꼴 격자 (Galmuri11, #91)", () => {
   // 도트 글꼴은 11px·22px에서만 픽셀이 맞고 자간도 정수 px여야 한다. 크기·자간을 손으로 친 값이
   // 65곳에 흩어져 있던 것을 dot 토큰으로 묶었으니, 토큰 밖의 값이 끼어들면 여기서 잡는다.
-  const lines = walk("src/app").flatMap((f) =>
+  // src/app만 보면 src/modules의 화면 조각(ReflectionBlock 등)이 검사 밖에 남는다
+  const lines = [...walk("src/app"), ...walk("src/modules")]
+    .filter((f) => !f.endsWith(".test.tsx"))
+    .flatMap((f) =>
     readFileSync(join(ROOT, f), "utf8")
       .split("\n")
       .map((line, i) => ({ at: `${f}:${i + 1}`, line })),
-  );
+    );
   const dotLines = lines.filter(({ line }) => /\bfont-dot\b/.test(line));
 
   it("도트 글꼴 자리를 하나도 빠뜨리지 않고 읽어냈다", () => {
@@ -117,11 +120,15 @@ describe("모션 축소 (prefers-reduced-motion)", () => {
       .flatMap((m) => m[1].split(",").map((sel) => sel.trim().replace(/\s+/g, " ")))
       .filter(Boolean);
 
-  // @keyframes·축소 블록을 걷어낸 나머지에서 애니메이션을 선언한 규칙
+  const REDUCE = "@media (prefers-reduced-motion: reduce)";
+
+  // @keyframes와 **축소 블록만** 걷어낸다. @media를 통째로 걷어내면 미디어 쿼리 안에 든
+  // 애니메이션이 아래 불변식에서 통째로 면제된다 — 남겨 두면 바깥 @media 줄은 규칙 정규식에
+  // 안 걸리고 그 안의 규칙만 잡힌다
   const animated = selectorsOf(
     (() => {
       let out = bare;
-      for (const at of ["@keyframes", "@media"]) {
+      for (const at of ["@keyframes", REDUCE]) {
         let i: number;
         while ((i = out.indexOf(at)) >= 0) out = out.slice(0, i) + out.slice(blockAt(out, i).end);
       }
@@ -131,9 +138,17 @@ describe("모션 축소 (prefers-reduced-motion)", () => {
   );
 
   // 축소 블록에서 "실제로 모션을 끄는" 규칙만 인정한다 — 이름만 남고 선언이 바뀌면 통과시키지 않는다
+  // 축소 블록이 여럿일 수 있다 — 첫 블록만 읽으면 나머지에 쓴 규칙이 없는 것으로 보인다
+  const reduceBodies = (() => {
+    const out: string[] = [];
+    for (let i = bare.indexOf(REDUCE); i >= 0; i = bare.indexOf(REDUCE, i + 1)) {
+      out.push(blockAt(bare, i).body);
+    }
+    return out;
+  })();
   const disabled = new Set(
-    selectorsOf(blockAt(bare, bare.indexOf("@media (prefers-reduced-motion: reduce)")).body, (body) =>
-      /(animation(-name)?|display)\s*:\s*none/.test(body),
+    reduceBodies.flatMap((body) =>
+      selectorsOf(body, (b) => /(animation(-name)?|display)\s*:\s*none/.test(b)),
     ),
   );
 
