@@ -23,8 +23,10 @@ CONN="host=$POOLER port=5432 user=postgres.$REF dbname=postgres sslmode=require"
 
 work=$(mktemp -d)
 cid=""
+partial=""
 cleanup() {
   [ -n "$cid" ] && docker rm -f "$cid" >/dev/null 2>&1 || true
+  [ -n "$partial" ] && rm -f "$partial" || true
   rm -rf "$work"
 }
 trap cleanup EXIT
@@ -36,16 +38,34 @@ from pg_tables where schemaname = 'public'
 \gexec
 SQL
 
+# 행 수만 맞으면 정책·함수·인덱스가 통째로 빠져도 리허설이 통과한다 — 개수도 같이 대조한다.
+# 확장 소유 함수는 뺀다: pg_dump가 확장 소속 객체를 덤프에서 제외하므로 원본에만 있는 게 정상
+cat > "$work/shape.sql" <<'SQL'
+select 'policies', count(*) from pg_policies where schemaname = 'public'
+union all select 'rls_tables', count(*) from pg_tables where schemaname = 'public' and rowsecurity
+union all select 'indexes', count(*) from pg_indexes where schemaname = 'public'
+union all select 'constraints', count(*) from pg_constraint c join pg_namespace n on n.oid = c.connamespace
+  where n.nspname = 'public'
+union all select 'functions', count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e');
+SQL
+
 # --- 1. 덤프 -----------------------------------------------------------------
 mkdir -p "$DIR"
 file="$DIR/lshobby-$(date +%Y%m%d-%H%M).dump"
+# 먼저 .partial로 받고 성공했을 때만 제자리 이름으로 옮긴다 — 실패한 0바이트 파일이
+# $DIR에 남으면 아래 보관 회전이 그걸 최신 백업으로 세어 멀쩡한 백업을 밀어낸다
+partial="$file.partial"
 echo "덤프: $file"
 docker run --rm -e PGPASSWORD "$DUMP_IMAGE" \
-  pg_dump "$CONN" --format=custom --schema=public --no-owner --no-privileges > "$file"
-[ -s "$file" ] || { echo "덤프 파일이 비었음" >&2; exit 1; }
+  pg_dump "$CONN" --format=custom --schema=public --no-owner --no-privileges > "$partial"
+[ -s "$partial" ] || { echo "덤프 파일이 비었음" >&2; exit 1; }
+mv "$partial" "$file"
+partial=""
 
 live=$(docker run --rm -i -e PGPASSWORD "$DUMP_IMAGE" psql "$CONN" -At < "$work/count.sql" | sort)
 [ -n "$live" ] || { echo "원본 행 수를 못 읽음" >&2; exit 1; }
+shape=$(docker run --rm -i -e PGPASSWORD "$DUMP_IMAGE" psql "$CONN" -At < "$work/shape.sql" | sort)
 
 # --- 2. 복원 리허설 -----------------------------------------------------------
 cid=$(docker run -d --rm -e POSTGRES_PASSWORD=rehearsal -v "$DIR":/backups:ro "$RESTORE_IMAGE")
@@ -65,9 +85,11 @@ docker exec "$cid" pg_restore -U postgres -d postgres --no-owner --no-privileges
 errors=$(grep -c "^pg_restore: error" "$work/restore.err" || true)
 
 restored=$(docker exec -i "$cid" psql -U postgres -At < "$work/count.sql" | sort)
-if [ "$live" != "$restored" ]; then
-  echo "복원 리허설 실패 — 표별 행 수가 원본과 다름 (pg_restore 오류 $errors건):" >&2
-  printf '%s\n' "$live" > "$work/live"; printf '%s\n' "$restored" > "$work/restored"
+restored_shape=$(docker exec -i "$cid" psql -U postgres -At < "$work/shape.sql" | sort)
+if [ "$live" != "$restored" ] || [ "$shape" != "$restored_shape" ]; then
+  echo "복원 리허설 실패 — 원본과 다름 (pg_restore 오류 $errors건):" >&2
+  printf '%s\n%s\n' "$live" "$shape" > "$work/live"
+  printf '%s\n%s\n' "$restored" "$restored_shape" > "$work/restored"
   diff "$work/live" "$work/restored" >&2 || true
   sed -n 1,20p "$work/restore.err" >&2
   exit 1
@@ -76,6 +98,7 @@ fi
 # --- 3. 보관 회전 -------------------------------------------------------------
 ls -1t "$DIR"/lshobby-*.dump | tail -n +$((KEEP + 1)) | xargs -r rm --
 
+policies=$(printf '%s\n' "$shape" | sed -n 's/^policies|//p')
 tables=$(printf '%s\n' "$live" | wc -l)
 rows=$(printf '%s\n' "$live" | awk -F'|' '{ s += $2 } END { print s }')
-echo "완료: 표 $tables개 · 행 $rows개 · $(du -h "$file" | cut -f1) · 복원 리허설 일치 (pg_restore 오류 $errors건) · 보관 $(ls "$DIR"/lshobby-*.dump | wc -l)/$KEEP"
+echo "완료: 표 $tables개 · 행 $rows개 · $(du -h "$file" | cut -f1) · 복원 리허설 일치 (RLS 정책 $policies개 · pg_restore 오류 $errors건) · 보관 $(ls "$DIR"/lshobby-*.dump | wc -l)/$KEEP"

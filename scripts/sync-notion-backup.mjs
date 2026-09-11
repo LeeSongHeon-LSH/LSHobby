@@ -162,7 +162,9 @@ async function replaceChildren(pageId, blocks) {
     cursor = data.has_more ? data.next_cursor : undefined;
   } while (cursor);
   for (const blk of old) await notion(`blocks/${blk.id}`, undefined, "DELETE");
-  await notion(`blocks/${pageId}/children`, { children: blocks }, "PATCH");
+  // children은 한 요청에 100개까지 — 긴 노트는 나눠 덧붙인다 (append라 순서는 그대로)
+  for (let i = 0; i < blocks.length; i += 100)
+    await notion(`blocks/${pageId}/children`, { children: blocks.slice(i, i + 100) }, "PATCH");
 }
 
 async function syncBooks() {
@@ -180,8 +182,10 @@ async function syncBooks() {
     const page = pageByBookId.get(b.id);
     if (page) {
       if (page.properties.sync_hash?.rich_text?.[0]?.plain_text === hash) continue;
-      await notion(`pages/${page.id}`, { properties: { ...bookProps(b, no), sync_hash: { rich_text: rt(hash) } } }, "PATCH");
+      // hash는 본문이 들어간 뒤에 — 중간에 끊기면 hash가 없어 다음 실행이 다시 시도한다.
+      // 먼저 찍으면 빈 페이지에 hash만 남아 영원히 건너뛰고, 감상 원본은 여기 사본뿐이다
       await replaceChildren(page.id, bookBlocks(b));
+      await notion(`pages/${page.id}`, { properties: { ...bookProps(b, no), sync_hash: { rich_text: rt(hash) } } }, "PATCH");
       updated += 1;
     } else {
       await notion("pages", {

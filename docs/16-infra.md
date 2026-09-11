@@ -289,5 +289,5 @@ cron 두 줄(다이제스트 00:30·Notion 백업 00:40)을 **`systemd --user` �
 **DB 백업(`scripts/backup-db.sh`)** — NFR-04의 "pg_dump 주 1회 + 복원 리허설"을 그대로 코드로.
 - 이 PC엔 pg_dump가 없다 → `supabase start`가 받아 둔 **Supabase Postgres 17 이미지**로 서버와 같은 메이저의 `pg_dump`를 돌린다. 접속은 풀러 세션 모드(`aws-0-ap-northeast-2.pooler.supabase.com:5432`, `postgres.<ref>`) — 직접 접속 호스트는 IPv6 전용이라 이 PC(IPv4)에선 안 붙는다. 비밀번호는 `~/.lshobby/db-password`.
 - 덤프는 **public 스키마만**, custom 포맷(`pg_restore` 대상), `--no-owner --no-privileges`. auth·storage는 Supabase 관리 영역(계정 1개·Storage 미사용)이라 새 프로젝트 복원 시 다시 만드는 쪽.
-- **매회 복원 리허설**: 빈 `postgres:17-alpine` 컨테이너에 Supabase 역할 셋(`anon`·`authenticated`·`service_role`, 정책이 참조)만 만들고 `pg_restore` → **public 표 17개의 정확한 행 수를 원본과 대조**해 다르면 실패(알림). "복원 안 되는 백업은 백업이 아니다"를 매주 자동으로 증명한다. 첫 실행 2026-09-06: 표 17 · 행 906 · 76K · 9초 · 일치.
+- **매회 복원 리허설**: 빈 `postgres:17-alpine` 컨테이너에 Supabase 역할 셋(`anon`·`authenticated`·`service_role`, 정책이 참조)만 만들고 `pg_restore` → **public 표 17개의 정확한 행 수 + 객체 개수(정책·RLS 표·인덱스·제약·함수)를 원본과 대조**해 다르면 실패(알림). "복원 안 되는 백업은 백업이 아니다"를 매주 자동으로 증명한다. 행 수만 보던 때는 정책이 통째로 빠진 덤프도 통과했다 — 개수 대조를 붙인 경위와 `pg_restore` 오류 건수를 굳이 게이트로 안 쓴 이유는 **#93**. 첫 실행 2026-09-06: 표 17 · 행 906 · 76K · 9초 · 일치. 2026-09-11(개수 대조 추가): 표 17 · 행 1645 · 96K · 정책 17 · 오류 0 · 일치.
 - 보관: `~/.lshobby/backups/lshobby-<날짜>.dump` 최근 8개(두 달치). 복원은 같은 이미지의 `pg_restore -d <대상> --no-owner --no-privileges <파일>`.
