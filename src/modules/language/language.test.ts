@@ -297,3 +297,41 @@ describe("Tatoeba 추출 (구 _extract 이식)", () => {
     expect(out[0].source_url).toContain("/sentences/show/1");
   });
 });
+
+describe("Tatoeba 도달 여부 (#94)", () => {
+  // fetch를 갈아끼우고 결과만 본다 — 장애를 "문장 없음"으로 뭉개지 않는지가 전부
+  const probe = async (impl: () => Promise<Response>, langs: ("kor" | "eng")[] = ["kor"]) => {
+    const { fetchFromTatoeba } = await import("./tatoeba");
+    const orig = globalThis.fetch;
+    globalThis.fetch = impl as unknown as typeof fetch;
+    try {
+      return await fetchFromTatoeba("casa", "spa", langs);
+    } finally {
+      globalThis.fetch = orig;
+    }
+  };
+  const ok = (body: unknown) => Promise.resolve(new Response(JSON.stringify(body)));
+
+  it("타임아웃·비2xx는 complete=false — 재시도 방지 마커를 찍으면 안 되는 경우", async () => {
+    expect(await probe(() => Promise.reject(new Error("timeout")))).toEqual({
+      drafts: [],
+      complete: false,
+    });
+    expect((await probe(() => Promise.resolve(new Response("{}", { status: 503 })))).complete).toBe(
+      false,
+    );
+  });
+
+  it("답은 받았는데 문장이 없으면 complete=true — 이때만 마커가 정당하다", async () => {
+    expect(await probe(() => ok({ results: [] }))).toEqual({ drafts: [], complete: true });
+  });
+
+  it("묻는 언어 중 하나라도 실패하면 complete=false (es는 kor·eng 둘을 묻는다)", async () => {
+    let n = 0;
+    const out = await probe(
+      () => (++n === 1 ? ok({ results: [] }) : Promise.reject(new Error("timeout"))),
+      ["kor", "eng"],
+    );
+    expect(out.complete).toBe(false);
+  });
+});
