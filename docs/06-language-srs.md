@@ -81,5 +81,29 @@
 19. **화면 스모크 테스트** — 이 PC의 헤드리스 Chrome으로 로그인 → 퀴즈 한 바퀴 → 생각 기록을 돌리고, `deploy-local.sh`의 교체 직전에 끼운다. #76(Enter 한 번에 채점 화면 건너뜀)이 손으로 잡혔던 회귀 — 재발 방지. 조건: 없음, 언제든
 20. **서버 컴포넌트 전환** — 페이지 11개 중 10개가 `use client`라 인증 확인 → 브라우저 쿼리의 순차 대기가 매 진입마다 생긴다. 인증 경로까지 건드리는 리팩토링. 조건: 테일넷 1인 사용에서 그 지연이 실제로 거슬릴 때만
 
+**남은 코드 리뷰 지적** (2026-09-11 `/code-review max` 전수 리뷰. 15건 중 4건은 #93·#94로 처리했고, 아래 11건은 재현 경로까지 확인됐으나 미조치 — 셋 다 `eslint`·`tsc`·`vitest`로는 안 잡힌다):
+
+| 자리 | 증상 |
+|---|---|
+| `scripts/deploy-local.sh:160` | 헬스체크가 `BUILD_ID`를 이스케이프 없이 grep 패턴으로 넘긴다. nanoid 알파벳에 `-`가 있어 **64회에 1회** BUILD_ID가 `-`로 시작 → grep이 인자로 해석해 실패 → 멀쩡한 빌드를 롤백하고 그 sha를 `blocked`로 박아 새 커밋 전까지 재시도조차 안 한다. `grep -q -- "$build_id"` |
+| `scripts/digest-thoughts.mjs:131` | 전체 thought를 `.range()` 없이 읽어 PostgREST 1000행 상한(`supabase/config.toml:18`)에 걸린다. 1000번째 메모 이후로는 이미 처리된 옛 날짜만 보여 "처리할 날이 없습니다"를 찍고 **exit 0** — `OnFailure` 알림이 안 울리고 `last-ok` 도장까지 찍혀 실패가 완전히 안 보인다. `review-stats.ts:13`·#62가 같은 함정을 이미 기록 |
+| `src/app/language/quiz/page.tsx:152` | 채점이 세션 시작 시점의 `Word` 스냅샷을 쓴다. `practiceOrder`가 같은 객체로 새 바퀴를 시작하므로(line 77) 2바퀴째에도 `state === New`라 `createEmptyCard`가 다시 돌아 1바퀴 답이 지워진다. 덱이 작을수록(20문제·8단어) 확실히 발생 |
+| `src/modules/language/tatoeba.ts:26` | 수집은 ASCII `\w` 경계, `clozeIndex`는 유니코드 `\p{L}\p{N}` 경계. "Compré estaño"가 `esta`의 예문으로 저장되지만 cloze는 절대 안 나온다 — `MAX_SENTENCES` 슬롯만 먹고 #94 마커로 굳는다. `display.ts:18`에 왜 유니코드여야 하는지 주석이 있는데 세 사본 중 하나에만 반영됐다(`backfill-sentences.mjs:69`도 ASCII) |
+| `src/modules/thought/service.ts:68` | `.contains("topics", [query])`가 검색어를 PostgREST 배열 리터럴에 따옴표 없이 박는다. 쉼표는 의미를 바꾸고(`AI, 설계` → 두 원소), `}`·`"`는 400 → throw → 병렬로 성공한 본문 검색 결과까지 버려져 "없음"으로 보인다. docs/18 §G의 주입 grep이 `.contains(`를 안 본다 |
+| `src/app/library/book-sheet.tsx:104` | `try/finally`에 catch가 없다. `deleteBook`은 `removeThread`(감상 전체 캐스케이드 삭제) → `removeTaggings` → 본체 삭제 순인데 마지막이 실패하면 책은 남고 **생각 타임라인만 영구 소실**되며 화면엔 아무 메시지도 없다. `record/page.tsx:74·92`도 같은 모양이라 재탭 시 중복 회독·중복 책 |
+| `src/app/language/quiz/page.tsx:98` | `finish()`가 장식용 요약 RPC를 catch 없이 await → 실패하면 `setPhase("done")`에 도달 못 해 **종료 버튼이 영구 무반응**. 큐 소진 시에도 같은 경로라 마지막 카드에 갇힌다. `language/page.tsx:37`엔 있는 guard가 여기만 빠졌다 |
+| `src/app/language/words/page.tsx:59` | `updateWord`에 `addWord`의 중복 가드가 없고 호출부에 catch가 없다. `norm`이 UNIQUE라 `paiz`→`pais` 편집이 23505로 거부되면 시트가 열린 채 아무 표시가 없어 **저장된 줄 안다** |
+| `src/app/language/stats/page.tsx:42` | CSV 내보내기가 document에 안 붙인 anchor를 클릭하고 같은 틱에 `revokeObjectURL`. standalone PWA(모바일 주 타깃)에선 아무 일도 안 일어난다 |
+| `scripts/backfill-sentences.mjs:270` | "이미 예문 있음" 집합도 1000행 상한에 잘린다(시드 300단어 × 3 = 900행이라 ~34단어만 더 채우면 초과). 유일 키가 없고 plain insert라 **같은 문장이 매 실행 중복 적재**되고 Gemini·Tatoeba 예산을 다시 태운다. line 245는 미번역 전체를 `translateBatch`에 한 번에 보내 `out.length !== items.length`로 거의 매번 버려진다 |
+| `src/modules/language/stats.ts` | `review_stats_fns.sql`의 RPC 4개는 1000행 상한을 피하려 만든 건데 PostgREST는 집합 반환 함수에도 `db-max-rows`를 적용한다. `es_daily_stats`가 오름차순이라 잘리면 **최신 날짜부터** 사라진다 (잠복, 약 2.7년 뒤) |
+
+**테스트 가드 두 곳이 못 잡는다** — 위 결함들이 green으로 통과하는 이유이므로 먼저 볼 값이 있다.
+- `src/modules/shared/shared.test.tsx:24` — supabase mock이 `select`가 든 체인이면 필터 인자를 안 보고 `selectData`를 돌려준다. `upsertDaily`에서 `.eq("action", …).gte(…).lt(…)`를 통째로 지워도 7개 테스트가 전부 통과 — "일별 1건" 규칙을 지키는 유일한 describe가 그 규칙의 제거를 감지 못 한다
+- `src/design.test.ts:124` — `@media` 블록을 걷어낸 뒤 애니메이션 선택자를 모으므로 미디어 쿼리 안의 애니메이션은 reduced-motion 불변식에서 면제된다(프로브를 넣어도 전부 통과). line 72의 `walk("src/app")`은 `src/modules/**`를 안 봐서 유일한 잔존 #91 위반(`ReflectionBlock.tsx:66`의 `font-mono text-[11px]`)을 놓친다
+
+그 밖(재현되나 영향이 작음): `registry.ts:8` `configFor("constructor")`가 `Object`를 돌려줘 API 라우트 `[lang]` 허용목록을 우회 · `thought/service.ts:57` ilike 이스케이프가 `*` 누락(PostgREST가 `%`로 별칭) · `ReflectionBlock.tsx:32`의 "N회독" 자동 입력이 `useState` 초기값으로만 읽혀 한 번도 동작한 적 없음 · `words/page.tsx:46`이 `w.word`만 소문자화하지 않아 대문자 단어 검색 불가 · `thoughts/page.tsx:238` 디바운스 검색에 `cancelled` 가드 누락 · `public/sw.js`가 `02584ca`(글꼴 교체) 뒤에도 `lshobby-static-v1`(#92 수칙 위반) · `activity/service.ts:48` select-then-insert 경합 · `library/page.tsx:106`이 조회 실패를 "빈 서재"로 표시 · `home/page.tsx:177` 설정 배경을 탭해 닫아도 `pwOpen`과 비밀번호 입력이 남음 · BookSheet가 DaySheet 복사본인데 `role="dialog"`·`aria-modal`·Esc를 빠뜨림 · 어떤 `<label>`에도 `htmlFor`가 없음 · 죽은 코드 `getFeed`·`PixelFlame`·`shared/search/index.ts`·`aggregate`·`loadDeck`의 `due`
+
+같은 리뷰에서 **깨끗하다고 확인된 것**: 전 마이그레이션에서 RLS 활성 + 표마다 정책, `.env` 커밋 이력 없음, markdown sanitize, 보안 헤더, CV 마스코트 로그인 이스터에그(§17.6), i18n leaf-path 대칭, systemd 유닛, `prefers-reduced-motion` CSS 블록.
+
 하지 않기로 한 것: 오프라인 퀴즈(FR-40 비채택), 큐·관측 스택·서버리스 이전(1인 규모에서 얻는 게 없다).
 
