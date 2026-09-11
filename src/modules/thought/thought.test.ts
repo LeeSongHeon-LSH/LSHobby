@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { dayKey, groupByDay, mergeThoughts, topTopics, type Thought } from "./service";
+import {
+  arrayLiteralElement,
+  dayKey,
+  groupByDay,
+  mergeThoughts,
+  topTopics,
+  type Thought,
+} from "./service";
 
 const at = (y: number, m: number, d: number, h: number) =>
   new Date(y, m - 1, d, h).toISOString();
@@ -53,5 +60,24 @@ describe("mergeThoughts (검색 결과 병합)", () => {
     const b = [t(2, at(2026, 8, 21, 9)), t(1, at(2026, 8, 20, 9))];
     expect(mergeThoughts(a, b, 80).map((x) => x.id)).toEqual([3, 2, 1]);
     expect(mergeThoughts(a, b, 2).map((x) => x.id)).toEqual([3, 2]);
+  });
+});
+
+describe("arrayLiteralElement (PostgREST 배열 리터럴 인용 — docs/18 §18.2 G)", () => {
+  it("평범한 주제는 그대로 인용한다", () => {
+    expect(arrayLiteralElement("AI")).toBe('"AI"');
+  });
+
+  it("쉼표가 원소 경계가 되지 않는다 — 인용 없으면 `AI, 설계`가 두 원소로 갈린다", () => {
+    expect(arrayLiteralElement("AI, 설계")).toBe('"AI, 설계"');
+  });
+
+  it("따옴표·역슬래시를 이스케이프해 리터럴이 깨지지 않는다", () => {
+    expect(arrayLiteralElement('he said "hi"')).toBe('"he said \\"hi\\""');
+    expect(arrayLiteralElement("back\\slash")).toBe('"back\\\\slash"');
+  });
+
+  it("중괄호는 인용 안에서 안전하다 — 인용 없으면 400이 난다", () => {
+    expect(arrayLiteralElement("a}b")).toBe('"a}b"');
   });
 });

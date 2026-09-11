@@ -52,6 +52,15 @@ export function mergeThoughts(a: Thought[], b: Thought[], limit: number): Though
     .slice(0, limit);
 }
 
+/**
+ * PostgREST 배열 리터럴의 원소 하나로 인용한다.
+ * supabase-js의 `.contains(col, [v])`는 `cs.{v}`로 그냥 이어 붙인다(postgrest-js, 이스케이프 없음).
+ * 인용하지 않으면 쉼표가 원소 경계가 되고(`AI, 설계` → 두 원소로 갈려 뜻이 바뀐다)
+ * `}`·`"`는 리터럴을 깨 400이 난다 — 라이브러리 자체 예시도 `arraycol.cs.{"a","b"}` 형태다.
+ */
+export const arrayLiteralElement = (v: string): string =>
+  `"${v.replace(/[\\"]/g, (c) => `\\${c}`)}"`;
+
 /** 검색 — 내용 부분일치 또는 주제 키워드 정확 일치 (최신순) */
 export async function searchThoughts(query: string, limit = 80): Promise<Thought[]> {
   const pattern = `%${query.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
@@ -65,7 +74,7 @@ export async function searchThoughts(query: string, limit = 80): Promise<Thought
     supabase
       .from("thought")
       .select("*")
-      .contains("topics", [query])
+      .contains("topics", [arrayLiteralElement(query)])
       .order("created_at", { ascending: false })
       .limit(limit),
   ]);

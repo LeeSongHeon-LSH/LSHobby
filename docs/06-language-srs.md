@@ -81,11 +81,10 @@
 19. **화면 스모크 테스트** — 이 PC의 헤드리스 Chrome으로 로그인 → 퀴즈 한 바퀴 → 생각 기록을 돌리고, `deploy-local.sh`의 교체 직전에 끼운다. #76(Enter 한 번에 채점 화면 건너뜀)이 손으로 잡혔던 회귀 — 재발 방지. 조건: 없음, 언제든
 20. **서버 컴포넌트 전환** — 페이지 11개 중 10개가 `use client`라 인증 확인 → 브라우저 쿼리의 순차 대기가 매 진입마다 생긴다. 인증 경로까지 건드리는 리팩토링. 조건: 테일넷 1인 사용에서 그 지연이 실제로 거슬릴 때만
 
-**남은 코드 리뷰 지적** (2026-09-11 `/code-review max` 전수 리뷰 15건 중 **10건 처리**(#93·#94 외). 아래 표는 남은 5건 + 리뷰가 다음 티어로 분류한 `stats.ts` 1건 — 전부 재현 경로까지 확인됐고 `eslint`·`tsc`·`vitest` 어느 것도 잡지 못한다):
+**남은 코드 리뷰 지적** (2026-09-11 `/code-review max` 전수 리뷰 15건 중 **11건 처리**(#93·#94 외). 아래 표는 남은 4건 + 리뷰가 다음 티어로 분류한 `stats.ts` 1건 — 전부 재현 경로까지 확인됐고 `eslint`·`tsc`·`vitest` 어느 것도 잡지 못한다):
 
 | 자리 | 증상 |
 |---|---|
-| `src/modules/thought/service.ts:68` | `.contains("topics", [query])`가 검색어를 PostgREST 배열 리터럴에 따옴표 없이 박는다. 쉼표는 의미를 바꾸고(`AI, 설계` → 두 원소), `}`·`"`는 400 → throw → 병렬로 성공한 본문 검색 결과까지 버려져 "없음"으로 보인다. docs/18 §G의 주입 grep이 `.contains(`를 안 본다 |
 | `src/app/library/book-sheet.tsx:104` | `try/finally`에 catch가 없다. `deleteBook`은 `removeThread`(감상 전체 캐스케이드 삭제) → `removeTaggings` → 본체 삭제 순인데 마지막이 실패하면 책은 남고 **생각 타임라인만 영구 소실**되며 화면엔 아무 메시지도 없다. `record/page.tsx:74·92`도 같은 모양이라 재탭 시 중복 회독·중복 책 |
 | `src/app/language/words/page.tsx:59` | `updateWord`에 `addWord`의 중복 가드가 없고 호출부에 catch가 없다. `norm`이 UNIQUE라 `paiz`→`pais` 편집이 23505로 거부되면 시트가 열린 채 아무 표시가 없어 **저장된 줄 안다** |
 | `src/app/language/stats/page.tsx:42` | CSV 내보내기가 document에 안 붙인 anchor를 클릭하고 같은 틱에 `revokeObjectURL`. standalone PWA(모바일 주 타깃)에선 아무 일도 안 일어난다 |
