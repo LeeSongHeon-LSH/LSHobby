@@ -63,18 +63,24 @@ export async function addWord(
   return { added, duplicate: null };
 }
 
+/** 단어 수정 — norm 중복이면 에러 대신 기존 단어 반환 {duplicate} (addWord와 같은 규약) */
 export async function updateWord(
   config: LanguageConfig,
   id: number,
   input: { word: string; meaning: string; gender?: Gender },
-): Promise<void> {
+): Promise<{ duplicate: Word | null }> {
   const word = input.word.trim();
+  // norm은 UNIQUE — 다른 단어와 겹치면 23505로 거부된다. 화면이 이유를 말할 수 있게 먼저 거른다
+  // (자기 자신은 제외: 뜻만 고칠 때 norm은 그대로다)
+  const dup = await findByNorm(config, word);
+  if (dup && dup.id !== id) return { duplicate: dup };
   const row = { word, meaning: input.meaning.trim(), norm: config.normalize(word) };
   const update = config.hasGender
     ? supabase.from(config.wordTable).update({ ...row, gender: input.gender ?? "none" })
     : supabase.from(config.wordTable).update(row);
   const { error } = await update.eq("id", id);
   if (error) throw error;
+  return { duplicate: null };
 }
 
 /**

@@ -15,6 +15,7 @@ export const ko = {
     edit: "수정",
     back: "뒤로",
     loading: "불러오는 중…",
+    failed: "처리 실패 — 잠시 후 다시 시도하세요",
   },
 
   home: {

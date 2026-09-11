@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HomeButton } from "../../ui/home-button";
-import { SearchIcon } from "../../ui/icons";
+import { AlertIcon, SearchIcon } from "../../ui/icons";
 import { PixelPenguinBubble } from "../../ui/pixel";
 import {
   articleFor,
@@ -28,6 +28,8 @@ export default function WordsPage() {
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Word | null>(null);
   const [form, setForm] = useState({ word: "", meaning: "", gender: "none" as Gender });
+  // 어느 입력(query)에 대한 결과인지 함께 담는다 — 입력이 바뀌면 렌더에서 무효화 (add 화면과 같은 방식)
+  const [dupEdit, setDupEdit] = useState<{ query: string; word: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const reload = useCallback(
@@ -47,8 +49,12 @@ export default function WordsPage() {
     );
   }, [words, query]);
 
+  // 편집 중 입력이 바뀌면 지난 중복 안내는 자동으로 사라진다
+  const dupEditWord = dupEdit && dupEdit.query === form.word.trim() ? dupEdit.word : null;
+
   const openEdit = (w: Word) => {
     setEditing(w);
+    setDupEdit(null);
     setForm({ word: w.word, meaning: w.meaning, gender: w.gender ?? "none" });
   };
 
@@ -56,9 +62,15 @@ export default function WordsPage() {
     if (!editing) return;
     setBusy(true);
     try {
-      await updateWord(config, editing.id, form);
+      const { duplicate } = await updateWord(config, editing.id, form);
+      if (duplicate) {
+        setDupEdit({ query: form.word.trim(), word: duplicate.word });
+        return;
+      }
       setEditing(null);
       await reload();
+    } catch {
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }
@@ -71,6 +83,8 @@ export default function WordsPage() {
       await deleteWord(config, editing.id);
       setEditing(null);
       await reload();
+    } catch {
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }
@@ -137,6 +151,11 @@ export default function WordsPage() {
               className="w-full rounded-md border border-line px-4 py-2.5"
               placeholder={t.lang.words.word}
             />
+            {dupEditWord && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-sm text-err">
+                <AlertIcon />{t.lang.add.duplicate} <b className="font-semibold">{dupEditWord}</b>
+              </p>
+            )}
             <input
               value={form.meaning}
               onChange={(e) => setForm({ ...form, meaning: e.target.value })}
@@ -171,7 +190,7 @@ export default function WordsPage() {
               </button>
               <button
                 onClick={saveEdit}
-                disabled={busy || !form.word.trim() || !form.meaning.trim()}
+                disabled={busy || !form.word.trim() || !form.meaning.trim() || dupEditWord !== null}
                 className="flex-1 rounded-md bg-lang py-2.5 font-medium text-white disabled:opacity-50"
               >
                 {t.common.save}

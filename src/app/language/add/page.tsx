@@ -49,6 +49,8 @@ export default function AddPage() {
         setMeaning("");
         setGender("none");
       }
+    } catch {
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }

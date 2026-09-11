@@ -80,6 +80,8 @@ export default function RecordPage() {
       });
       if (form.tags.trim()) await setTags("book", book.id, form.tags.split(","));
       setPicked(book);
+    } catch {
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }
@@ -91,6 +93,8 @@ export default function RecordPage() {
     try {
       await recordCompletion(picked, finishedOn, rating);
       router.replace(`/library?open=${picked.id}`); // #58 — 여정 자세히보기로
+    } catch {
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }

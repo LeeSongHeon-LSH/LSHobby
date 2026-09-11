@@ -15,6 +15,7 @@ export const es: Dict = {
     edit: "Editar",
     back: "Atrás",
     loading: "Cargando…",
+    failed: "No se pudo completar — inténtalo de nuevo en un momento",
   },
 
   home: {

@@ -92,6 +92,8 @@ export function BookSheet({
       setEditingMeta(false);
       await reload();
       onChanged();
+    } catch {
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }
@@ -102,6 +104,14 @@ export function BookSheet({
     setBusy(true);
     try {
       await deleteBook(item.id);
+      onChanged();
+      onClose();
+    } catch {
+      // deleteBook은 감상 → 태그 → 본체 순이라 중간에 끊기면 일부만 지워진 상태다.
+      // 조용히 닫으면 지워진 줄 알고 다시 안 본다 — 알리고, 시트는 닫아 목록이
+      // 실제 상태(책이 남아 있음)를 보이게 한다. 시트를 열어 두면 이미 지워진
+      // 감상이 그대로 보여 더 헷갈린다
+      alert(t.common.failed);
       onChanged();
       onClose();
     } finally {
@@ -116,6 +126,8 @@ export function BookSheet({
       await saveNote(book, noteDraft.trim());
       setEditingNote(false);
       await reload();
+    } catch {
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }

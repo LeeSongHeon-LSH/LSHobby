@@ -15,6 +15,7 @@ export const en: Dict = {
     edit: "Edit",
     back: "Back",
     loading: "Loading…",
+    failed: "Action failed — try again in a moment",
   },
 
   home: {

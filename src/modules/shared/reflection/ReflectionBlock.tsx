@@ -51,6 +51,9 @@ export function ReflectionBlock({
       setOpen(false);
       await reload();
       onAdded?.();
+    } catch {
+      // 입력은 그대로 두고 알린다 — 조용히 실패하면 남긴 줄 알고 화면을 떠난다
+      alert(t.common.failed);
     } finally {
       setBusy(false);
     }
