@@ -166,6 +166,16 @@ describe("FSRS 래퍼 (§6.3 — 정답=Good/오답=Again)", () => {
     const row = applyAnswer(newRow(), true, NOW).fields;
     expect(fromCard(toCard(row))).toEqual(row);
   });
+  it("반영 결과를 되먹이지 않으면 다음 답이 앞 답을 지운다 — 퀴즈가 카드를 갱신해야 하는 이유", () => {
+    const row = newRow();
+    const first = applyAnswer(row, true, NOW).fields;
+    expect(first.reps).toBe(1);
+    const at = new Date(first.due!);
+    // 같은 스냅샷으로 다시 채점: state가 아직 New라 createEmptyCard가 또 돌아 1회차가 사라진다
+    expect(applyAnswer(row, true, at).fields.reps).toBe(1);
+    // 되먹인 카드로 채점: 이력이 이어진다
+    expect(applyAnswer(first, true, at).fields.reps).toBe(2);
+  });
 });
 
 describe("practiceOrder (출제 순서 — 복습·신규 섞어 내기, 2026-09-02)", () => {

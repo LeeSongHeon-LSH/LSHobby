@@ -73,7 +73,9 @@ export default function QuizPage() {
   const buildQuestion = async (): Promise<Question | null> => {
     if (queue.current.length === 0) return null;
     if (cursor.current >= queue.current.length) {
-      // 한 바퀴 끝 — 이번 세션에서 쌓인 정답률로 다시 정렬해 새 바퀴 (FSRS 필드는 세션 시작 시점 기준)
+      // 한 바퀴 끝 — 이번 세션에서 쌓인 정답률로 다시 정렬해 새 바퀴.
+      // FSRS 필드는 답마다 되먹이므로 이 시점에 최신이다 — 안 되먹이면 전원 New로 남아
+      // practiceOrder가 정답률을 못 보고 id 순으로 돌린다
       queue.current = practiceOrder(queue.current, stats.current);
       cursor.current = 0;
     }
@@ -95,7 +97,9 @@ export default function QuizPage() {
   };
 
   const finish = async () => {
-    setSummary(await todayReviewSummary(config));
+    // 요약은 장식 — 실패해도 세션은 끝나야 한다 (language/page.tsx와 같은 취급).
+    // 던지게 두면 setPhase("done")에 못 가 종료 버튼이 영구 무반응이 된다
+    setSummary(await todayReviewSummary(config).catch(() => null));
     setPhase("done");
   };
 
@@ -155,7 +159,11 @@ export default function QuizPage() {
     const s = stats.current.get(q.word.id) ?? { reviews: 0, correct: 0 };
     stats.current.set(q.word.id, { reviews: s.reviews + 1, correct: s.correct + (res.ok ? 1 : 0) });
     setSeen((n) => n + 1);
-    answerWord(config, q.word, res.ok).catch(() => setSaveFailures((n) => n + 1));
+    answerWord(config, q.word, res.ok)
+      // 반영된 FSRS 필드를 메모리 카드에 되먹인다 — 안 하면 다음 바퀴가 이 단어를 아직 New로 보고
+      // createEmptyCard로 다시 시작해 이번 답이 지워진다 (srs.ts applyAnswer)
+      .then((fields) => Object.assign(q.word, fields))
+      .catch(() => setSaveFailures((n) => n + 1));
     upcoming.current = buildQuestion(); // 프리페치 — 오답 재출제 확률도 그대로 반영됨
   };
 
