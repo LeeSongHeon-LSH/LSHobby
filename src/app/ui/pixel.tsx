@@ -184,21 +184,6 @@ export const PixelDrawer = ({ size = 14, accent }: { size?: number; accent: stri
   />
 );
 
-// 어려운 단어 칩 — 도트 불꽃
-const FLAME_GRID = [
-  "...R....",
-  "...RR...",
-  "..RRR...",
-  "..RRRR..",
-  ".RRORR..",
-  ".ROOORR.",
-  ".ROOOR..",
-  "..RRR...",
-];
-
-export const PixelFlame = ({ size = 12 }: { size?: number }) => (
-  <PixelArt grid={FLAME_GRID} palette={{ R: "#c23b3b", O: "#d9821f" }} size={size} cells={8} />
-);
 
 /* ── 남극 장면 스프라이트 — 배경 소품이라 도메인 3색을 쓰지 않고 빙하 톤만 ── */
 

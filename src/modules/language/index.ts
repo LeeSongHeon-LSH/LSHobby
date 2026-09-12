@@ -11,7 +11,6 @@ export { answerWord } from "./answer";
 export { ensureSentences, type Sentence } from "./sentences";
 export { configFor, languageConfigs } from "./registry";
 export {
-  aggregate,
   aggregateDaily,
   buildCsv,
   computeStreak,

@@ -52,11 +52,8 @@ function interleave<T>(a: T[], b: T[]): T[] {
   return out;
 }
 
-/** 덱 전체 + 복습 대기분 + 단어별 집계 (단어·집계 병렬 조회) */
-export async function loadDeck(
-  config: LanguageConfig,
-  now: Date = new Date(),
-): Promise<{ words: Word[]; due: Word[]; stats: Map<number, WordStat> }> {
+/** 덱 전체 + 단어별 집계 (단어·집계 병렬 조회) */
+export async function loadDeck(config: LanguageConfig): Promise<{ words: Word[]; stats: Map<number, WordStat> }> {
   const [words, stats] = await Promise.all([listWords(config), reviewStats(config)]);
-  return { words, due: words.filter((w) => !isNew(w) && isDue(w, now)), stats };
+  return { words, stats };
 }
