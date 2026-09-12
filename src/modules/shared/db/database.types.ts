@@ -19,6 +19,7 @@ export type Database = {
           entity_type: string
           id: number
           occurred_at: string
+          occurred_on: string | null
           summary: string
         }
         Insert: {
@@ -28,6 +29,7 @@ export type Database = {
           entity_type: string
           id?: never
           occurred_at?: string
+          occurred_on?: string | null
           summary: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           entity_type?: string
           id?: never
           occurred_at?: string
+          occurred_on?: string | null
           summary?: string
         }
         Relationships: []

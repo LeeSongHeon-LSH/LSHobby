@@ -1,89 +1,55 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Markdown } from "./markdown";
 
 // ---- supabase 체이닝 mock (activity 발행 규칙 검증용) ----
 //
-// 필터를 **실제로 적용한다**. 인자를 무시하고 selectData를 그대로 돌려주면
-// upsertDaily에서 .eq("action", …)·.gte/.lt를 통째로 지워도 테스트가 통과해,
-// "일별 1건" 규칙을 지키는 유일한 검사가 그 규칙의 제거를 감지하지 못한다.
-// ISO-8601 UTC 문자열은 사전순 비교가 시간순과 같아 gte/lt를 문자열로 견준다.
+// "일별 1건"은 2026-09-12부터 DB 유니크 인덱스가 지킨다(#96) — 코드가 하는 일은
+// **조회 없이 한 번 upsert 하는 것**과 **충돌 열을 그 인덱스와 똑같이 대는 것**뿐이라
+// mock도 호출 기록만 남기면 된다. 필터를 실제로 적용하던 이전 mock은 upsertDaily의
+// select 여섯 필터를 지키려던 것이라 그 필터와 함께 사라졌다.
 
-type Row = Record<string, unknown>;
 type Call = { table: string; method: string; args: unknown[] };
 const calls: Call[] = [];
-let selectData: Row[] = [];
 
 vi.mock("./auth", () => ({
   supabase: {
     from(table: string) {
-      const ops: string[] = [];
-      let rows: Row[] = [];
-      let take: number | null = null;
       const builder: Record<string, unknown> = {};
-      const keep = (pred: (r: Row) => boolean) => {
-        rows = rows.filter(pred);
-      };
-      const filters: Record<string, (col: string, val: unknown) => void> = {
-        eq: (col, val) => keep((r) => r[col] === val),
-        gte: (col, val) => keep((r) => String(r[col]) >= String(val)),
-        lt: (col, val) => keep((r) => String(r[col]) < String(val)),
-        in: (col, val) => keep((r) => (val as unknown[]).includes(r[col])),
-      };
-      for (const m of ["select", "insert", "update", "delete", "eq", "gte", "lt", "in", "limit", "order"]) {
+      for (const m of ["select", "insert", "upsert", "update", "delete", "eq", "limit", "order"]) {
         builder[m] = (...args: unknown[]) => {
           calls.push({ table, method: m, args });
-          ops.push(m);
-          if (m === "select") rows = [...selectData];
-          else if (m === "limit") take = args[0] as number;
-          else filters[m]?.(args[0] as string, args[1]);
           return builder;
         };
       }
-      builder.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
-        const data = take === null ? rows : rows.slice(0, take);
-        const result = ops.includes("select") ? { data, error: null } : { error: null };
-        return Promise.resolve(result).then(resolve, reject);
-      };
+      builder.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
+        Promise.resolve({ data: [], error: null }).then(resolve, reject);
       return builder;
     },
   },
 }));
 
-// 하루 경계는 프로덕션과 같은 식으로 뽑는다(로컬 타임존) — 타임존에 안 흔들리게
 const NOW = new Date("2026-09-11T12:00:00Z");
-const dayFrom = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
-const HOUR = 3600_000;
-const at = (ms: number) => new Date(dayFrom.getTime() + ms).toISOString();
-
-const feedRow = (id: number, over: Row = {}): Row => ({
-  id,
-  domain: "language",
-  entity_type: "es_review_day",
-  entity_id: 0,
-  action: "reviewed",
-  occurred_at: at(HOUR),
-  ...over,
-});
-
-// upsertDaily의 필터 여섯 개가 각각 걸러내야 하는 행. 정답 행보다 **앞**에 둬서
-// 필터 하나라도 빠지면 limit(1)이 집는 행이 바뀌고 테스트가 깨진다
-const decoys: Row[] = [
-  feedRow(1, { domain: "library" }), // eq domain
-  feedRow(2, { entity_type: "cs_note" }), // eq entity_type
-  feedRow(3, { entity_id: 7 }), // eq entity_id
-  feedRow(4, { action: "created" }), // eq action
-  feedRow(5, { occurred_at: at(-HOUR) }), // gte from — 어제
-  feedRow(6, { occurred_at: at(24 * HOUR + HOUR) }), // lt to — 내일
-];
 
 const of = (table: string, method: string) =>
   calls.filter((c) => c.table === table && c.method === method);
 
+/** 마이그레이션이 만든 유니크 인덱스의 열 목록 — upsert의 on_conflict가 이것과 같아야 한다 */
+const uniqueIndexColumns = (): string => {
+  const sql = readFileSync(
+    join(__dirname, "../../../supabase/migrations/20260912090000_activity_daily_unique.sql"),
+    "utf8",
+  );
+  const m = /create unique index idx_activity_feed_daily\s+on activity_feed \(([^)]+)\)/.exec(sql);
+  expect(m, "마이그레이션에서 유니크 인덱스를 못 찾음").toBeTruthy();
+  return m![1].split(",").map((c) => c.trim()).join(",");
+};
+
 describe("activity 발행 규칙 (FR-03 · §6.4)", () => {
   beforeEach(() => {
     calls.length = 0;
-    selectData = [];
   });
 
   it("publish: activity_feed에 건별 이벤트 1행 insert", async () => {
@@ -94,24 +60,53 @@ describe("activity 발행 규칙 (FR-03 · §6.4)", () => {
     ]);
   });
 
-  it("upsertDaily: 당일 이벤트가 없으면 새로 발행한다 (미끼 행은 전부 걸러져야 한다)", async () => {
-    selectData = decoys; // 하나라도 통과하면 insert가 아니라 update가 된다
-    const { upsertDaily } = await import("./activity");
-    await upsertDaily("language", "es_review_day", 0, "reviewed", "단어 3개 복습, 정답률 100%", NOW);
-    expect(of("activity_feed", "insert")).toHaveLength(1);
-    expect(of("activity_feed", "update")).toHaveLength(0);
+  it("publish: occurred_on을 비워 둔다 — NULL이라야 같은 날 여러 건이 그대로 쌓인다", async () => {
+    const { publish } = await import("./activity");
+    await publish("library", "book", 7, "created", "책 등록");
+    expect(of("activity_feed", "insert")[0].args[0]).not.toHaveProperty("occurred_on");
   });
 
-  it("upsertDaily: 당일 이벤트가 있으면 그 행의 요약만 갱신한다 (일별 1건)", async () => {
-    selectData = [...decoys, feedRow(42)];
+  it("upsertDaily: 조회 없이 upsert 한 번 — select 후 insert의 경합 창을 남기지 않는다", async () => {
+    const { upsertDaily } = await import("./activity");
+    await upsertDaily("language", "es_review_day", 0, "reviewed", "단어 3개 복습, 정답률 100%", NOW);
+    expect(of("activity_feed", "select")).toHaveLength(0);
+    expect(of("activity_feed", "insert")).toHaveLength(0);
+    expect(of("activity_feed", "update")).toHaveLength(0);
+    expect(of("activity_feed", "upsert")).toHaveLength(1);
+  });
+
+  it("upsertDaily: 유니크 인덱스를 이루는 다섯 열을 그대로 보내고, 충돌 열도 같다", async () => {
     const { upsertDaily } = await import("./activity");
     await upsertDaily("language", "es_review_day", 0, "reviewed", "단어 12개 복습, 정답률 83%", NOW);
-    expect(of("activity_feed", "insert")).toHaveLength(0);
-    const updates = of("activity_feed", "update");
-    expect(updates).toHaveLength(1);
-    expect(updates[0].args[0]).toMatchObject({ summary: "단어 12개 복습, 정답률 83%" });
-    // 갱신 대상은 당일 조회로 찾은 그 행
-    expect(calls.some((c) => c.method === "eq" && c.args[0] === "id" && c.args[1] === 42)).toBe(true);
+    const [row, opts] = of("activity_feed", "upsert")[0].args as [Record<string, unknown>, { onConflict: string }];
+    // 열 목록이 어긋나면 런타임 42P10 — 게이트가 아니라 첫 복습에서 터진다
+    expect(opts.onConflict).toBe(uniqueIndexColumns());
+    for (const col of uniqueIndexColumns().split(",")) expect(row).toHaveProperty(col);
+    expect(row).toMatchObject({
+      domain: "language",
+      entity_type: "es_review_day",
+      entity_id: 0,
+      action: "reviewed",
+      summary: "단어 12개 복습, 정답률 83%",
+    });
+  });
+
+  // 이 PC는 UTC라 아무 시각이나 쓰면 로컬 날짜와 UTC 날짜가 같아져
+  // `now.toISOString().slice(0,10)` 같은 구현도 통과한다 — 날짜가 실제로 갈리는 조건을 만든다.
+  // Node는 process.env.TZ 재할당을 Date에 바로 반영한다
+  it("upsertDaily: occurred_on은 UTC가 아니라 브라우저 로컬 날짜다 (일 경계 = §6.4)", async () => {
+    const prev = process.env.TZ;
+    process.env.TZ = "Asia/Seoul";
+    try {
+      const { upsertDaily } = await import("./activity");
+      const nearMidnight = new Date("2026-09-11T20:00:00Z"); // KST로는 이미 9/12
+      await upsertDaily("language", "es_review_day", 0, "reviewed", "요약", nearMidnight);
+      const row = of("activity_feed", "upsert")[0].args[0] as Record<string, unknown>;
+      expect(row.occurred_on).toBe("2026-09-12");
+      expect(row.occurred_on).not.toBe(nearMidnight.toISOString().slice(0, 10));
+    } finally {
+      process.env.TZ = prev;
+    }
   });
 });
 
