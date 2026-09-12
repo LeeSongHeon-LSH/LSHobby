@@ -29,8 +29,13 @@ export function ReflectionBlock({
   const [entries, setEntries] = useState<ReflectionEntry[]>([]);
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
-  const [context, setContext] = useState(defaultContext ?? "");
   const [busy, setBusy] = useState(false);
+
+  // defaultContext는 부모가 **비동기로** 불러온 readings에서 만들어져 첫 렌더 뒤에 도착한다.
+  // useState 초기값으로 한 번만 읽으면 §7.2의 "N회독" 자동 기입이 영영 빈 칸이다.
+  // null = 아직 손대지 않음 → 늦게 온 기본값을 따라간다. 한 번 입력하면 그 값이 이긴다
+  const [contextEdit, setContextEdit] = useState<string | null>(null);
+  const context = contextEdit ?? defaultContext ?? "";
 
   const reload = () =>
     getTimeline(subjectType, subjectId)
@@ -47,7 +52,7 @@ export function ReflectionBlock({
     try {
       await addEntry(subjectType, subjectId, content, context);
       setContent("");
-      setContext(defaultContext ?? "");
+      setContextEdit(null);
       setOpen(false);
       await reload();
       onAdded?.();
@@ -88,8 +93,8 @@ export function ReflectionBlock({
           />
           <input
             value={context}
-            onChange={(e) => setContext(e.target.value)}
-            onBlur={(e) => setContext(e.target.value)}
+            onChange={(e) => setContextEdit(e.target.value)}
+            onBlur={(e) => setContextEdit(e.target.value)}
             placeholder={t.reflection.contextPlaceholder}
             className="w-full rounded-md border border-line px-3 py-2 text-sm"
           />
