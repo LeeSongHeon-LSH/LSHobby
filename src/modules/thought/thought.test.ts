@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   arrayLiteralElement,
+  ilikePattern,
   dayKey,
   groupByDay,
   mergeThoughts,
@@ -79,5 +80,21 @@ describe("arrayLiteralElement (PostgREST 배열 리터럴 인용 — docs/18 §1
 
   it("중괄호는 인용 안에서 안전하다 — 인용 없으면 400이 난다", () => {
     expect(arrayLiteralElement("a}b")).toBe('"a}b"');
+  });
+});
+
+describe("ilikePattern (내용 검색 — 와일드카드 이스케이프)", () => {
+  it("평범한 질의는 앞뒤에 % 하나씩만 붙인다", () => {
+    expect(ilikePattern("설계")).toBe("%설계%");
+  });
+
+  it("PostgREST가 %로 별칭 처리하는 *도 막는다", () => {
+    expect(ilikePattern("a*b")).toBe("%a\\*b%");
+  });
+
+  it("%·_·역슬래시를 이스케이프한다", () => {
+    expect(ilikePattern("50%")).toBe("%50\\%%");
+    expect(ilikePattern("a_b")).toBe("%a\\_b%");
+    expect(ilikePattern("c\\d")).toBe("%c\\\\d%");
   });
 });

@@ -61,9 +61,17 @@ export function mergeThoughts(a: Thought[], b: Thought[], limit: number): Though
 export const arrayLiteralElement = (v: string): string =>
   `"${v.replace(/[\\"]/g, (c) => `\\${c}`)}"`;
 
+/**
+ * 사용자 입력을 ilike 패턴 한가운데에 넣는다 — 와일드카드를 전부 이스케이프한다.
+ * `%`·`_` 말고 **`*`도 막아야 한다**: PostgREST가 `*`를 `%`의 별칭으로 받으므로
+ * 빠뜨리면 "a*b" 검색이 와일드카드가 된다.
+ */
+export const ilikePattern = (query: string): string =>
+  `%${query.replace(/[\\%_*]/g, (c) => `\\${c}`)}%`;
+
 /** 검색 — 내용 부분일치 또는 주제 키워드 정확 일치 (최신순) */
 export async function searchThoughts(query: string, limit = 80): Promise<Thought[]> {
-  const pattern = `%${query.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const pattern = ilikePattern(query);
   const [byContent, byTopic] = await Promise.all([
     supabase
       .from("thought")

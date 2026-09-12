@@ -45,7 +45,7 @@ export default function WordsPage() {
     if (!q) return words;
     return words.filter(
       (w) =>
-        deaccent(w.word).includes(q) || deaccent(w.meaning.toLowerCase()).includes(q),
+        deaccent(w.word.toLowerCase()).includes(q) || deaccent(w.meaning.toLowerCase()).includes(q),
     );
   }, [words, query]);
 

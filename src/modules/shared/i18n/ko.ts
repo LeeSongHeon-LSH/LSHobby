@@ -111,6 +111,7 @@ export const ko = {
     title: "서재 — 독서 여정",
     recordBook: "＋ 독서 기록",
     emptyShelf: "완독한 책을 기록해 보세요 — 20권이 모이면 한 보(步)가 됩니다",
+    loadFailed: "서재를 불러오지 못했습니다 — 잠시 후 다시 시도하세요",
     /** 책등 라벨 — 번호 앞뒤 조각 (번호는 따로 크게 그린다) */
     volParts: ["제", "보"] as [string, string],
     vol: (n: number) => `제${n}보`,
@@ -203,6 +204,7 @@ export const ko = {
     echoesHeading: "그때의 나",
     searching: "검색 중…",
     noResults: "검색 결과가 없어요",
+    searchFailed: "검색하지 못했어요 — 잠시 후 다시 시도하세요",
     prevMonth: "이전 달",
     nextMonth: "다음 달",
     dayAria: (label: string, n: number) => `${label} 생각 ${n}개`,

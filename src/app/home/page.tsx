@@ -103,6 +103,16 @@ function Hub() {
   const [pwMsg, setPwMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // 배경 탭으로 닫아도 비밀번호 화면이 초기 상태로 돌아간다 —
+  // 남겨 두면 다시 열었을 때 입력한 비밀번호가 두 칸에 그대로 보인다
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setPwOpen(false);
+    setPw1("");
+    setPw2("");
+    setPwMsg(null);
+  };
+
   const logout = async () => {
     await signOut();
     router.replace("/login");
@@ -174,7 +184,7 @@ function Hub() {
       </nav>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-10 flex items-end bg-black/30" onClick={() => setMenuOpen(false)}>
+        <div className="fixed inset-0 z-10 flex items-end bg-black/30" onClick={closeMenu}>
           <div
             className="mx-auto w-full max-w-md space-y-2 rounded-t-xl bg-card p-5 pb-8"
             onClick={(e) => e.stopPropagation()}
@@ -234,7 +244,10 @@ function Hub() {
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={() => {
+                      // 입력도 함께 비운다 — 남기면 다시 열었을 때 비밀번호가 그대로 보인다
                       setPwOpen(false);
+                      setPw1("");
+                      setPw2("");
                       setPwMsg(null);
                     }}
                     className="rounded-md border border-line px-4 py-2.5 text-sm"

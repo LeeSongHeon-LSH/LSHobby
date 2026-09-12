@@ -171,7 +171,9 @@ function ThoughtStream() {
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
   // 검색 결과 — 어떤 질의의 결과인지 함께 저장 (질의가 바뀌면 무시)
-  const [results, setResults] = useState<{ q: string; list: Thought[] } | null>(null);
+  // failed를 따로 두는 이유: 실패를 빈 목록으로 바꾸면 "검색 결과가 없어요"로 그려져
+  //   사용자는 그런 생각을 쓴 적 없다고 믿는다 (library 서재와 같은 계열)
+  const [results, setResults] = useState<{ q: string; list: Thought[]; failed?: boolean } | null>(null);
   const [echoes, setEchoes] = useState<{ key: (typeof ECHOES)[number]["key"]; items: Thought[] }[]>([]);
   const [trajectory, setTrajectory] = useState<[string, number][]>([]);
   // 보고 있는 달 — 기본은 이번 달. tick은 기록 직후 같은 달을 다시 불러오는 손잡이
@@ -233,14 +235,20 @@ function ThoughtStream() {
   useEffect(() => {
     const q = query.trim();
     if (!q) return;
+    let cancelled = false;
     const timer = setTimeout(async () => {
       try {
-        setResults({ q, list: await searchThoughts(q) });
+        const list = await searchThoughts(q);
+        if (!cancelled) setResults({ q, list });
       } catch {
-        setResults({ q, list: [] });
+        if (!cancelled) setResults({ q, list: [], failed: true });
       }
     }, 300);
-    return () => clearTimeout(timer);
+    // clearTimeout만으로는 부족하다 — 이미 떠난 조회는 돌아와서 새 결과를 덮는다
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [query]);
 
   const submit = async () => {
@@ -359,6 +367,8 @@ function ThoughtStream() {
       {query.trim() ? (
         results?.q !== query.trim() ? (
           <p className="mt-14 text-center text-sm text-night-faint">{t.thoughts.searching}</p>
+        ) : results.failed ? (
+          <p className="mt-14 text-center text-sm text-night-faint">{t.thoughts.searchFailed}</p>
         ) : results.list.length === 0 ? (
           <p className="mt-14 text-center text-sm text-night-faint">{t.thoughts.noResults}</p>
         ) : (

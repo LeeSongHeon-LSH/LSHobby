@@ -99,11 +99,16 @@ export default function LibraryJourneyPage() {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<View>({ t: "shelf" });
   const [sheet, setSheet] = useState<{ item: BookListItem; no: number } | null>(null);
+  // 조회 실패를 빈 배열로 바꾸면 "빈 서재"로 그려져 책이 사라진 줄 안다 — 실패는 실패로 말한다
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const reload = () =>
     listBooks()
-      .then(setBooks)
-      .catch(() => setBooks([]))
+      .then((bs) => {
+        setBooks(bs);
+        setLoadFailed(false);
+      })
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoaded(true));
 
   // 초기 로드 + 완독 기록 직후 딥링크(/library?open={bookId} → 해당 여정 자세히보기)
@@ -122,7 +127,7 @@ export default function LibraryJourneyPage() {
           }
         }
       })
-      .catch(() => setBooks([]))
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoaded(true));
   }, []);
 
@@ -435,7 +440,10 @@ export default function LibraryJourneyPage() {
       </div>
       )}
 
-      {loaded && books.length === 0 && (
+      {loaded && loadFailed && (
+        <p className="mt-8 text-center text-sm text-faint">{t.library.loadFailed}</p>
+      )}
+      {loaded && !loadFailed && books.length === 0 && (
         <p className="mt-8 text-center text-sm text-faint">{t.library.emptyShelf}</p>
       )}
 
