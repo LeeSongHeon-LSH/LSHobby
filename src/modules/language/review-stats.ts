@@ -8,15 +8,28 @@ export interface WordStat {
   firstReviewedAt?: string | null;
 }
 
+/** PostgREST max_rows (supabase/config.toml:18) */
+const PAGE = 1000;
+
 /**
  * 단어별 복습 횟수·정답 수 — review_log 파생 (결정 #36), 집계는 DB RPC.
- * 클라이언트 전량 조회는 PostgREST 1000행 캡에서 조용히 틀려져 RPC로 대체 (성능 리뷰 P1).
  * rating≥2 = 정답(Good) 판정은 RPC 안에 동일하게 산다.
+ *
+ * max_rows는 집합 반환 함수에도 걸리므로 RPC로 옮겨도 상한은 그대로다 — 단어별 행은
+ * 전부 필요하니 페이지로 끝까지 읽는다(scripts의 selectAll과 같은 모양).
+ * `*_word_stats`에는 order by가 없어 페이지 경계가 흔들리므로 word_id로 먼저 고정한다.
  */
 export async function reviewStats(config: LanguageConfig): Promise<Map<number, WordStat>> {
-  const { data, error } = await supabase.rpc(config.wordStatsFn);
-  if (error) throw error;
-  return new Map(
-    data.map((r) => [r.word_id, { reviews: r.reviews, correct: r.correct, firstReviewedAt: r.first_reviewed_at }]),
-  );
+  const out = new Map<number, WordStat>();
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .rpc(config.wordStatsFn)
+      .order("word_id")
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    for (const r of data) {
+      out.set(r.word_id, { reviews: r.reviews, correct: r.correct, firstReviewedAt: r.first_reviewed_at });
+    }
+    if (data.length < PAGE) return out;
+  }
 }

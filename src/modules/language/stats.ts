@@ -44,7 +44,7 @@ export function computeStreak(datesDesc: string[], today: string): number {
   return streak;
 }
 
-/** 일별 맵에서 통계 구성 — aggregate·aggregateDaily 공용 코어 */
+/** 일별 맵에서 통계 구성 — aggregateDaily의 코어 */
 function fromByDay(
   byDay: Map<string, { total: number; correct: number }>,
   words: Word[],
@@ -76,32 +76,22 @@ function fromByDay(
   };
 }
 
-/** 로그·단어에서 통계 집계 (전부 review_log 파생 — 결정 #36) */
-export function aggregate(
-  logs: { rating: number; reviewed_at: string }[],
-  words: Word[],
-  now: Date = new Date(),
-): LangStats {
-  const byDay = new Map<string, { total: number; correct: number }>();
-  for (const l of logs) {
-    const day = localDate(new Date(l.reviewed_at));
-    const e = byDay.get(day) ?? { total: 0, correct: 0 };
-    e.total += 1;
-    if (l.rating >= 2) e.correct += 1;
-    byDay.set(day, e);
-  }
-  return fromByDay(byDay, words, now);
-}
-
-/** 사전 집계된 일별 행에서 통계 구성 — aggregate와 동일 규칙 (성능 리뷰 P1) */
+/** 사전 집계된 일별 행에서 통계 구성 (성능 리뷰 P1 — 집계는 DB RPC가 한다) */
 export function aggregateDaily(rows: DailyRow[], words: Word[], now: Date = new Date()): LangStats {
   return fromByDay(new Map(rows.map((r) => [r.day, { total: r.total, correct: r.correct }])), words, now);
 }
 
-/** 일별 집계 — DB RPC. 일 경계는 디바이스 타임존 (클라이언트 전량 집계 대체, 성능 리뷰 P1) */
+/**
+ * 일별 집계 — DB RPC. 일 경계는 디바이스 타임존 (클라이언트 전량 집계 대체, 성능 리뷰 P1).
+ * PostgREST의 max_rows(1000, supabase/config.toml:18)는 **집합 반환 함수에도** 걸린다.
+ * RPC 안의 `order by 1`(오름차순)에 맡기면 잘릴 때 최신 날짜부터 사라져 streak·오늘 요약·
+ * 14일 그래프가 전부 틀려지므로, 내림차순을 걸어 잘리는 쪽이 오래된 날이 되게 한다.
+ * 소비자 셋 다 순서에 의존하지 않는다 — aggregateDaily는 Map, todayReviewSummary는 find,
+ * fromByDay는 자체 정렬.
+ */
 export async function dailyStats(config: LanguageConfig): Promise<DailyRow[]> {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const { data, error } = await supabase.rpc(config.dailyStatsFn, { tz });
+  const { data, error } = await supabase.rpc(config.dailyStatsFn, { tz }).order("day", { ascending: false });
   if (error) throw error;
   return data;
 }

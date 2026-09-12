@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { esConfig } from "./es";
 import { enConfig } from "./en";
 import { configFor, languageConfigs } from "./registry";
@@ -65,6 +65,11 @@ describe("언어 레지스트리 (FR-18·§6.2 — 언어 추가 = config 등록
     expect(configFor("es")).toBe(esConfig);
     expect(configFor("en")).toBe(enConfig);
     expect(configFor("jp")).toBeNull();
+  });
+  it("프로토타입 멤버 이름도 null — API 라우트 [lang] 허용목록이 뚫리지 않게", () => {
+    for (const code of ["constructor", "__proto__", "toString", "hasOwnProperty", "valueOf"]) {
+      expect(configFor(code)).toBeNull();
+    }
   });
   it("언어별 테이블명이 서로 겹치지 않는다", () => {
     const tables = Object.values(languageConfigs).flatMap((c) => [
@@ -234,36 +239,17 @@ describe("통계 집계 (구 stats.py 이식)", () => {
     expect(computeStreak(["2026-08-15", "2026-08-13"], today)).toBe(1); // 중간 공백
   });
 
-  it("aggregateDaily: 사전 집계 행에서 aggregate와 같은 결과 (성능 P1)", async () => {
-    const { aggregate, aggregateDaily, localDate } = await import("./stats");
-    const now = new Date("2026-08-14T12:00:00");
-    const words = [newRow({ state: 0 }), newRow({ state: 2 })].map(
-      (r, i) => ({ ...r, id: i + 1, word: "w", gender: "none" as const, meaning: "m", norm: `n${i}`, created_at: "" }),
-    );
-    const logs = [
-      { rating: 3, reviewed_at: "2026-08-14T01:00:00" },
-      { rating: 1, reviewed_at: "2026-08-14T02:00:00" },
-      { rating: 3, reviewed_at: "2026-08-13T01:00:00" },
-    ];
-    const rows = [
-      { day: localDate(new Date("2026-08-13T01:00:00")), total: 1, correct: 1 },
-      { day: localDate(new Date("2026-08-14T01:00:00")), total: 2, correct: 1 },
-    ];
-    expect(aggregateDaily(rows, words, now)).toEqual(aggregate(logs, words, now));
-  });
-
-  it("aggregate: 일별 14칸·오늘 수·상태 분포", async () => {
-    const { aggregate } = await import("./stats");
+  it("aggregateDaily: 일별 14칸·오늘 수·상태 분포", async () => {
+    const { aggregateDaily } = await import("./stats");
     const now = new Date("2026-08-15T12:00:00");
-    const logs = [
-      { rating: 3, reviewed_at: "2026-08-15T09:00:00" },
-      { rating: 1, reviewed_at: "2026-08-15T09:01:00" },
-      { rating: 3, reviewed_at: "2026-08-14T09:00:00" },
+    const rows = [
+      { day: "2026-08-14", total: 1, correct: 1 },
+      { day: "2026-08-15", total: 2, correct: 1 },
     ];
     const words = [newRow({ state: 0 }), newRow({ state: 2 }), newRow({ state: 2 })].map(
       (r, i) => ({ ...r, id: i + 1, word: "w", gender: "none" as const, meaning: "m", norm: `n${i}`, created_at: "" }),
     );
-    const s = aggregate(logs, words, now);
+    const s = aggregateDaily(rows, words, now);
     expect(s.daily).toHaveLength(14);
     expect(s.daily[13]).toEqual({ date: "2026-08-15", total: 2, correct: 1 });
     expect(s.todayTotal).toBe(2);
@@ -355,5 +341,98 @@ describe("Tatoeba 도달 여부 (#94)", () => {
       ["kor", "eng"],
     );
     expect(out.complete).toBe(false);
+  });
+});
+
+// ---- RPC mock — PostgREST를 흉내 낸다 (max_rows 포함) ----
+//
+// 순서는 order()가 온 대로 적용하고, range()로 자른 뒤 **마지막에** max_rows로 한 번 더 자른다.
+// 상한이 집합 반환 함수에도 걸린다는 것이 이 블록이 지키려는 사실이므로, 그걸 mock에 넣는다.
+const MAX_ROWS = 1000;
+type RpcRow = Record<string, unknown>;
+let rpcRows: RpcRow[] = [];
+const rpcCalls: { fn: string; orders: [string, boolean][]; range: [number, number] | null }[] = [];
+
+vi.mock("../shared/auth", () => ({
+  supabase: {
+    rpc(fn: string) {
+      const call = { fn, orders: [] as [string, boolean][], range: null as [number, number] | null };
+      rpcCalls.push(call);
+      const builder = {
+        order(col: string, opts?: { ascending?: boolean }) {
+          call.orders.push([col, opts?.ascending ?? true]);
+          return builder;
+        },
+        range(from: number, to: number) {
+          call.range = [from, to];
+          return builder;
+        },
+        then(resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) {
+          let rows = [...rpcRows];
+          for (const [col, asc] of call.orders) {
+            rows.sort((a, b) => ((a[col] as never) < (b[col] as never) ? -1 : (a[col] as never) > (b[col] as never) ? 1 : 0) * (asc ? 1 : -1));
+          }
+          if (call.range) rows = rows.slice(call.range[0], call.range[1] + 1);
+          return Promise.resolve({ data: rows.slice(0, MAX_ROWS), error: null }).then(resolve, reject);
+        },
+      };
+      return builder;
+    },
+  },
+}));
+
+describe("PostgREST 1000행 상한 (max_rows는 집합 반환 함수에도 걸린다)", () => {
+  beforeEach(() => {
+    rpcRows = [];
+    rpcCalls.length = 0;
+  });
+
+  it("dailyStats는 내림차순으로 읽어 잘려도 최신 날짜가 남는다", async () => {
+    const { dailyStats } = await import("./stats");
+    // RPC 자체는 `order by 1`(오름차순)이라 상한에 걸리면 최신 날짜부터 사라진다
+    rpcRows = Array.from({ length: 1200 }, (_, i) => ({
+      day: new Date(Date.UTC(2023, 0, 1 + i)).toISOString().slice(0, 10),
+      total: 1,
+      correct: 1,
+    }));
+    const newest = rpcRows[rpcRows.length - 1].day;
+
+    const rows = await dailyStats(esConfig);
+
+    expect(rows).toHaveLength(MAX_ROWS); // 상한은 그대로다 — 살아남는 쪽이 어디인지가 요점
+    expect(rows.map((r) => r.day)).toContain(newest);
+    expect(rpcCalls[0].orders).toEqual([["day", false]]);
+  });
+
+  it.each([0, 999, 1000, 2000, 2237])("reviewStats는 %i행을 끝까지 읽는다", async (n) => {
+    const { reviewStats } = await import("./review-stats");
+    rpcRows = Array.from({ length: n }, (_, i) => ({
+      word_id: i + 1,
+      reviews: 2,
+      correct: 1,
+      first_reviewed_at: null,
+    }));
+
+    const stats = await reviewStats(esConfig);
+
+    expect(stats.size).toBe(n);
+    if (n > 0) expect(stats.get(n)).toEqual({ reviews: 2, correct: 1, firstReviewedAt: null });
+    // 정확히 배수면 빈 페이지를 한 번 더 읽어야 끝인 줄 안다
+    expect(rpcCalls).toHaveLength(Math.floor(n / MAX_ROWS) + 1);
+  });
+
+  it("reviewStats는 페이지 경계가 흔들리지 않게 word_id로 정렬한다", async () => {
+    const { reviewStats } = await import("./review-stats");
+    rpcRows = Array.from({ length: 1500 }, (_, i) => ({
+      word_id: 1500 - i, // *_word_stats에는 order by가 없다 — 아무 순서로나 온다
+      reviews: 1,
+      correct: 1,
+      first_reviewed_at: null,
+    }));
+
+    const stats = await reviewStats(esConfig);
+
+    expect(stats.size).toBe(1500);
+    for (const call of rpcCalls) expect(call.orders).toEqual([["word_id", true]]);
   });
 });
