@@ -135,6 +135,15 @@ export function BookSheet({
 
   const title = book?.title ?? item.title;
 
+  // DaySheet(thoughts)와 같은 모달 규약 — Esc로 닫는다
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     // 모바일 = 바텀시트 / 데스크톱(md~) = 중앙 종이 토스트 (테이프·살짝 기운 종이)
     <div
@@ -142,6 +151,9 @@ export function BookSheet({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className="anim-sheet-up relative mx-auto flex max-h-[82dvh] w-full max-w-md flex-col rounded-t-2xl border border-b-0 border-line bg-sheet shadow-[0_-16px_48px_rgba(34,38,43,0.3)] md:mx-0 md:max-h-full md:w-[560px] md:max-w-[560px] md:-rotate-[0.6deg] md:rounded-lg md:border-b md:shadow-[0_24px_60px_rgba(34,38,43,0.35)]"
         onClick={(e) => e.stopPropagation()}
       >

@@ -139,10 +139,14 @@ export default function RecordPage() {
 
           <div className="mx-auto mt-2 max-w-[300px] space-y-5">
             <div>
-              <label className="mb-1.5 block text-center font-dot text-dot tracking-dot text-faint">
+              <label
+                htmlFor="record-finished-on"
+                className="mb-1.5 block text-center font-dot text-dot tracking-dot text-faint"
+              >
                 {t.library.record.finishedOn}
               </label>
               <input
+                id="record-finished-on"
                 type="date"
                 value={finishedOn}
                 onChange={(e) => setFinishedOn(e.target.value)}
@@ -150,10 +154,13 @@ export default function RecordPage() {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-center font-dot text-dot tracking-dot text-faint">
+              <span
+                id="record-rating"
+                className="mb-1.5 block text-center font-dot text-dot tracking-dot text-faint"
+              >
                 {t.library.record.rating}
-              </label>
-              <div className="flex justify-center gap-1.5 text-3xl">
+              </span>
+              <div role="group" aria-labelledby="record-rating" className="flex justify-center gap-1.5 text-3xl">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}

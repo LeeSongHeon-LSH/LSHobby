@@ -67,8 +67,9 @@ export default function AddPage() {
       </header>
       <form onSubmit={submit} className="space-y-5">
         <div>
-          <label className="mb-1 block text-sm text-faint">{t.lang.add.word}</label>
+          <label htmlFor="add-word" className="mb-1 block text-sm text-faint">{t.lang.add.word}</label>
           <input
+            id="add-word"
             value={word}
             onChange={(e) => setWord(e.target.value)}
             onBlur={(e) => setWord(e.target.value)}
@@ -84,8 +85,9 @@ export default function AddPage() {
           )}
         </div>
         <div>
-          <label className="mb-1 block text-sm text-faint">{t.lang.add.meaning}</label>
+          <label htmlFor="add-meaning" className="mb-1 block text-sm text-faint">{t.lang.add.meaning}</label>
           <input
+            id="add-meaning"
             value={meaning}
             onChange={(e) => setMeaning(e.target.value)}
             onBlur={(e) => setMeaning(e.target.value)}
@@ -95,8 +97,8 @@ export default function AddPage() {
         </div>
         {config.hasGender && (
           <div>
-            <label className="mb-1 block text-sm text-faint">{t.lang.add.gender}</label>
-            <div className="flex gap-2">
+            <span id="add-gender" className="mb-1 block text-sm text-faint">{t.lang.add.gender}</span>
+            <div role="group" aria-labelledby="add-gender" className="flex gap-2">
               {GENDERS.map((g) => (
                 <button
                   type="button"
