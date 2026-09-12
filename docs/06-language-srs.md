@@ -43,6 +43,7 @@
 
 - 단어 추가: **건별** 이벤트
 - 학습(복습): **일별 요약 1건** ("단어 12개 복습, 정답률 83%" — 당일 재학습 시 갱신)
+  - "1건"은 코드가 아니라 **DB 유니크 인덱스**가 지킨다 (2026-09-12, #96) — `activity_feed.occurred_on`(클라이언트 로컬 날짜)에 `(domain, entity_type, entity_id, action, occurred_on)` 유니크. 건별 이벤트는 이 칸을 비워 NULL로 두므로 영향받지 않는다
 
 ### 6.5 전환 전략 — 빅뱅 교체
 
@@ -81,17 +82,20 @@
 19. **화면 스모크 테스트** — 이 PC의 헤드리스 Chrome으로 로그인 → 퀴즈 한 바퀴 → 생각 기록을 돌리고, `deploy-local.sh`의 교체 직전에 끼운다. #76(Enter 한 번에 채점 화면 건너뜀)이 손으로 잡혔던 회귀 — 재발 방지. 조건: 없음, 언제든
 20. **서버 컴포넌트 전환** — 페이지 11개 중 10개가 `use client`라 인증 확인 → 브라우저 쿼리의 순차 대기가 매 진입마다 생긴다. 인증 경로까지 건드리는 리팩토링. 조건: 테일넷 1인 사용에서 그 지연이 실제로 거슬릴 때만
 
-**코드 리뷰 후속** (2026-09-11 `/code-review max` 전수 리뷰). 재현 경로까지 확인된 **15건은 모두 처리**했고 **테스트 가드 구멍 2곳도 메웠다**. 남은 것은 리뷰가 다음 티어로 분류한 잠복 1건이다:
-
-| 자리 | 증상 |
-|---|---|
-| `src/modules/language/stats.ts` | `review_stats_fns.sql`의 RPC 4개는 1000행 상한을 피하려 만든 건데 PostgREST는 집합 반환 함수에도 `db-max-rows`를 적용한다. `es_daily_stats`가 오름차순이라 잘리면 **최신 날짜부터** 사라진다 (잠복, 약 2.7년 뒤) |
+**코드 리뷰 후속** (2026-09-11 `/code-review max` 전수 리뷰) — **2026-09-12로 전부 닫혔다**. 재현 확인된 15건, 테스트 가드 구멍 2곳, 잠복 1건(`stats.ts`의 1000행 상한 → #95), "그 밖" 12건까지. 남은 항목 없음.
 
 **테스트 가드 구멍 2곳은 메웠다** — 위 결함들이 `eslint`·`tsc`·`vitest` 전부 green인 채로 살아 있던 이유였다. 개별 버그보다 값이 컸다.
 - `src/modules/shared/shared.test.tsx` — supabase mock이 `select`가 든 체인이면 **필터 인자를 보지 않고** `selectData`를 그대로 돌려줬다. `upsertDaily`에서 `.eq("action", …).gte(…).lt(…)`를 통째로 지워도 테스트가 전부 통과해, "일별 1건" 규칙을 지키는 유일한 검사가 그 규칙의 제거를 감지하지 못했다. → mock이 `eq`·`gte`·`lt`·`in`을 **실제로 적용**하게 하고, `upsertDaily`의 필터 여섯 개가 각각 걸러내야 하는 미끼 행을 정답 행보다 앞에 뒀다(필터 하나를 지우면 `limit(1)`이 집는 행이 바뀐다). 여섯 개를 하나씩 지워 전부 테스트가 깨지는 것을 확인했다 — `.limit(1)`은 필터 뒤에 남는 행이 하나뿐이라 최적화이지 정합성 규칙이 아니므로 제외
 - `src/design.test.ts` — 구멍이 셋이었다. ① `@media`를 통째로 걷어낸 뒤 애니메이션 선택자를 모아 **미디어 쿼리 안의 애니메이션이 reduced-motion 불변식에서 면제**됐다 → `@keyframes`와 축소 블록만 걷어낸다(바깥 `@media` 줄은 규칙 정규식에 안 걸리고 그 안의 규칙만 잡힌다) ② `walk("src/app")`이라 `src/modules/**`가 검사 밖이었다 → 둘 다 훑는다. 그 범위에 있던 유일한 #91 위반(`ReflectionBlock`의 `font-mono text-[11px]`)을 dot 토큰으로 교체 ③ 축소 블록을 **첫 것만** 읽어 둘째 블록에서 끈 규칙이 없는 것으로 보였다(오탐 방향) → 전부 모은다. 셋 다 프로브 주입으로 검출·인정을 확인
 
-그 밖(재현되나 영향이 작음): `registry.ts:8` `configFor("constructor")`가 `Object`를 돌려줘 API 라우트 `[lang]` 허용목록을 우회 · `thought/service.ts:57` ilike 이스케이프가 `*` 누락(PostgREST가 `%`로 별칭) · `ReflectionBlock.tsx:32`의 "N회독" 자동 입력이 `useState` 초기값으로만 읽혀 한 번도 동작한 적 없음 · `words/page.tsx:46`이 `w.word`만 소문자화하지 않아 대문자 단어 검색 불가 · `thoughts/page.tsx:238` 디바운스 검색에 `cancelled` 가드 누락 · `public/sw.js`가 `02584ca`(글꼴 교체) 뒤에도 `lshobby-static-v1`(#92 수칙 위반) · `activity/service.ts:48` select-then-insert 경합 · `library/page.tsx:106`이 조회 실패를 "빈 서재"로 표시 · `home/page.tsx:177` 설정 배경을 탭해 닫아도 `pwOpen`과 비밀번호 입력이 남음 · BookSheet가 DaySheet 복사본인데 `role="dialog"`·`aria-modal`·Esc를 빠뜨림 · 어떤 `<label>`에도 `htmlFor`가 없음 · 죽은 코드 `getFeed`·`PixelFlame`·`shared/search/index.ts`·`aggregate`·`loadDeck`의 `due`
+**"그 밖" 12건도 2026-09-12에 처리**(영향 순). 값이 있던 넷: `registry.ts`의 `configFor("constructor")`가 `Object`를 돌려줘 API 라우트 `[lang]` 허용목록이 뚫리던 것 → `Object.hasOwn` 가드(프로토타입 이름 5개를 테스트로 고정) · `public/sw.js`가 글꼴을 npm 패키지로 바꾼 `02584ca` 뒤에도 `lshobby-static-v1`이라 옛 글꼴 조각이 클라이언트에 남던 것 → `v2`(#92 수칙) · `activity/service.ts`의 select-then-insert 경합 → 유니크 인덱스 + upsert(**#96**) · `ReflectionBlock`의 "N회독" 자동 입력이 `useState` 초기값으로만 읽혀 **한 번도 동작한 적 없던** 것 → 부모가 비동기로 만드는 `defaultContext`를 파생값으로 따라간다(사용자가 손댄 뒤엔 덮지 않는다).
+사용성·위생 다섯: ilike 이스케이프의 `*` 누락(PostgREST가 `%`로 별칭) → `ilikePattern`으로 빼내 테스트 · `words/page.tsx`가 `w.word`를 소문자화하지 않아 대문자 단어를 못 찾던 것 · `thoughts/page.tsx` 디바운스 검색의 `cancelled` 가드(clearTimeout만으로는 이미 떠난 조회가 새 결과를 덮는다) · `library/page.tsx`가 조회 실패를 빈 배열로 바꿔 "빈 서재"로 그리던 것 → 실패 문구(i18n 3개 언어) · `home/page.tsx` 설정 시트를 배경 탭으로 닫아도 비밀번호 입력이 남던 것.
+접근성 둘: BookSheet에 `role="dialog"`·`aria-modal`·Esc 닫기(DaySheet와 같은 규약) · `<label>` 5곳 중 실제 컨트롤을 가리키는 셋에 `htmlFor`, 버튼 묶음인 둘(성별·별점)은 `role="group"` + `aria-labelledby`.
+죽은 코드 5개(`getFeed`·`PixelFlame`·`shared/search/index.ts`·`aggregate`·`loadDeck`의 `due`)는 사용자 확인 후 별도 커밋으로 제거(**#97**).
+
+**리뷰 목록 밖에서 같은 계열로 둘 더** — 훑다가 나왔고 사용자 확인 후 함께 고쳤다: `thoughts/page.tsx` 검색의 `catch`가 실패를 빈 목록으로 바꿔 "검색 결과가 없어요"로 그리던 것(그런 생각을 쓴 적 없다고 믿게 된다) → 실패 문구 분리 · `home/page.tsx`의 **취소** 버튼이 `pw1`/`pw2`를 안 비워 다시 열면 입력한 비밀번호가 남던 것(배경 탭 경로만 고치면 반쪽이다).
+
+UI 층 수정(디바운스 가드·시트 초기화·접근성·`w.word` 소문자화·`defaultContext`)에는 테스트를 붙이지 않았다 — 이 리포에는 jsdom·testing-library가 없고, 그 하나를 위해 의존성을 들이는 것보다 비용이 크다고 봤다. 붙일 수 있는 것(1000행 경계·`configFor`·`ilikePattern`)에는 붙였고 전부 변이 검증했다.
 
 같은 리뷰에서 **깨끗하다고 확인된 것**: 전 마이그레이션에서 RLS 활성 + 표마다 정책, `.env` 커밋 이력 없음, markdown sanitize, 보안 헤더, CV 마스코트 로그인 이스터에그(§17.6), i18n leaf-path 대칭, systemd 유닛, `prefers-reduced-motion` CSS 블록.
 
