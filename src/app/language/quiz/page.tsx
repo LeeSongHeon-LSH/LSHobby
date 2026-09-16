@@ -133,9 +133,10 @@ export default function QuizPage() {
     }
   };
 
+  // card도 의존성에 둔다 — 소개 카드가 연달아 오면 phase는 "intro"→"intro"로 같아 게이트가 닫힌 채 남는다
   useEffect(() => {
     if (phase === "intro" || phase === "revealed" || phase === "answered") canAdvance.current = true;
-  }, [phase]);
+  }, [phase, card]);
 
   // 소개 카드: 보이는 즉시 읽어 주고, 예문은 있으면 뒤따라 붙인다 (없어도 카드는 그대로 — Q13)
   useEffect(() => {
