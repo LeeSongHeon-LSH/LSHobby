@@ -5,9 +5,9 @@ export { enConfig } from "./en";
 export { setCurrentLang, useCurrentConfig } from "./current";
 export { gradeAnswer, answerAlternatives, type GradeResult } from "./grading";
 export { addWord, countWords, deleteWord, findByNorm, listWords, updateWord, type Word } from "./words";
-export { loadDeck, practiceOrder } from "./session";
+export { StudySession, dueByTomorrow, loadDeck, pickDirection, seededRandom, type SessionCard } from "./session";
 export { reviewStats, type WordStat } from "./review-stats";
-export { answerWord } from "./answer";
+export { saveAnswer } from "./answer";
 export { ensureSentences, type Sentence } from "./sentences";
 export { configFor, languageConfigs } from "./registry";
 export {
@@ -24,6 +24,7 @@ export { articleFor, clozeIndex, promptMeaning } from "./display";
 export {
   applyAnswer,
   isDue,
+  isLearning,
   isNew,
   ratingFor,
   type SrsFields,

@@ -14,7 +14,13 @@ export interface SrsFields {
   last_review: string | null;
 }
 
-const scheduler = fsrs(); // 기본 파라미터 (개인 최적화는 이력이 쌓인 뒤 검토)
+/**
+ * 학습·재학습 스텝 3단계 (2026-09-16, #99) — 새 단어는 같은 세션에서 세 번 맞혀야 Review로 간다.
+ * ts-fsrs 기본(1분·10분)은 두 번이었다. 첫 Good은 1분 스텝을 건너뛰어 5분으로 가고 Again은 1분으로 돌아온다.
+ * 나머지 파라미터는 기본값 (개인 최적화는 이력이 쌓인 뒤 검토, §6.6 17)
+ */
+export const LEARNING_STEPS = ["1m", "5m", "15m"] as const;
+const scheduler = fsrs({ learning_steps: LEARNING_STEPS, relearning_steps: LEARNING_STEPS });
 
 export function toCard(row: SrsFields): Card {
   return {
@@ -62,6 +68,10 @@ export function applyAnswer(
 }
 
 export const isNew = (row: SrsFields): boolean => row.state === State.New;
+
+/** 학습 스텝 안에 있는 카드 — 세션 안 재출제 대상 */
+export const isLearning = (row: SrsFields): boolean =>
+  row.state === State.Learning || row.state === State.Relearning;
 
 export const isDue = (row: SrsFields, now: Date): boolean =>
   row.due === null || new Date(row.due) <= now;

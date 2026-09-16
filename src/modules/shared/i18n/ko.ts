@@ -72,6 +72,14 @@ export const ko = {
       correctAccent: (spelled: string) => `✓ 정답 — 악센트 표기: ${spelled}`,
       wrong: "✗ 오답",
       next: "다음",
+      newWord: "새 단어",
+      gotIt: "알겠음",
+      reveal: "뜻 보기",
+      selfWrong: "틀림",
+      selfRight: "맞음",
+      sessionResult: (correct: number, total: number) => `${total}문제 중 ${correct} 맞힘`,
+      newLearned: (n: number) => `새 단어 ${n}개`,
+      dueTomorrow: (n: number) => `내일 복습 ${n}개`,
     },
 
     words: {

@@ -7,10 +7,12 @@ import { answerAlternatives, gradeAnswer } from "./grading";
 import {
   applyAnswer,
   fromCard,
+  isLearning,
+  LEARNING_STEPS,
   toCard,
   type SrsFields,
 } from "./srs";
-import { practiceOrder } from "./session";
+import { StudySession, dueByTomorrow, pickDirection, seededRandom, type SessionCard } from "./session";
 import type { Word } from "./words";
 import type { WordStat } from "./review-stats";
 
@@ -167,6 +169,28 @@ describe("FSRS 래퍼 (§6.3 — 정답=Good/오답=Again)", () => {
     expect(failed.lapses).toBe(row.lapses + 1);
     expect(failed.state).toBe(3); // Relearning
   });
+  it("학습 스텝 3단계 — 새 카드는 Good 세 번에 Review로 졸업한다 (#99)", () => {
+    expect(LEARNING_STEPS).toEqual(["1m", "5m", "15m"]);
+    let row = newRow();
+    let t = NOW;
+    const steps: number[] = [];
+    for (let i = 0; i < 3; i++) {
+      row = applyAnswer(row, true, t).fields;
+      steps.push(Math.round((new Date(row.due!).getTime() - t.getTime()) / 60_000));
+      t = new Date(row.due!);
+    }
+    expect(steps.slice(0, 2)).toEqual([5, 15]); // 첫 Good은 1분을 건너뛴다
+    expect(row.state).toBe(2);
+    expect(steps[2]).toBeGreaterThanOrEqual(24 * 60);
+  });
+  it("Again은 1분 스텝으로 돌아온다 — 세션 안 재출제 대상(isLearning)", () => {
+    const first = applyAnswer(newRow(), true, NOW).fields;
+    const again = applyAnswer(first, false, new Date(first.due!)).fields;
+    expect(isLearning(again)).toBe(true);
+    expect(Math.round((new Date(again.due!).getTime() - new Date(first.due!).getTime()) / 60_000)).toBe(1);
+    expect(isLearning(newRow({ state: 2 }))).toBe(false);
+    expect(isLearning(newRow({ state: 3 }))).toBe(true);
+  });
   it("toCard/fromCard 왕복이 필드를 보존한다", () => {
     const row = applyAnswer(newRow(), true, NOW).fields;
     expect(fromCard(toCard(row))).toEqual(row);
@@ -183,48 +207,178 @@ describe("FSRS 래퍼 (§6.3 — 정답=Good/오답=Again)", () => {
   });
 });
 
-describe("practiceOrder (출제 순서 — 복습·신규 섞어 내기, 2026-09-02)", () => {
+describe("StudySession (세션 구성 — 소개·재출제·복습 우선, 2026-09-16 #99)", () => {
   const past = "2026-08-13T00:00:00Z";
   const future = "2026-08-20T00:00:00Z";
   const w = (id: number, over: Partial<SrsFields> = {}): Word =>
     ({ id, word: `w${id}`, meaning: `뜻${id}`, norm: `w${id}`, created_at: past, ...newRow(over) }) as Word;
+  const review = (id: number, over: Partial<SrsFields> = {}) => w(id, { state: 2, due: past, ...over });
   const stat = (pairs: [number, number, number][]): Map<number, WordStat> =>
     new Map(pairs.map(([id, reviews, correct]) => [id, { reviews, correct }]));
-  const ids = (list: Word[]) => list.map((x) => x.id);
-  const fixed = () => 0.5; // 랜덤 동률은 고정해 결과를 결정적으로
+  const fixed = () => 0.5;
+  /**
+   * 카드를 끝까지 뽑아 "종류:id" 목록으로 — 채점은 grade가 정하고(기본: 전부 정답) FSRS를 실제로 적용한다.
+   * 시각은 고정이라 학습 스텝의 재출제는 learn-ahead로 온다: 새 단어는 소개 + Good 3회로 졸업
+   */
+  const drain = (s: StudySession, grade: (card: SessionCard) => boolean = () => true, limit = 100): string[] => {
+    const out: string[] = [];
+    for (let i = 0; i < limit; i++) {
+      const c = s.next(NOW);
+      if (!c) break;
+      out.push(`${c.kind}:${c.word.id}`);
+      if (c.kind === "quiz") {
+        const ok = grade(c);
+        Object.assign(c.word, applyAnswer(c.word, ok, NOW).fields);
+        s.graded(c.word, ok, NOW);
+      }
+    }
+    return out;
+  };
 
-  it("구간 순서: due 복습·신규 교대 → 아직 due 아닌 것", () => {
-    const words = [w(1, { state: 2, due: future }), w(2), w(3, { state: 2, due: past })];
-    expect(ids(practiceOrder(words, stat([[1, 2, 2], [3, 2, 2]]), NOW, fixed))).toEqual([3, 2, 1]);
+  it("due 복습을 전부 낸 뒤에야 신규가 나온다 — 신규는 소개 카드로 시작한다", () => {
+    const s = new StudySession([w(1), review(10), review(11)], stat([[10, 2, 1], [11, 2, 2]]), NOW, fixed);
+    expect(drain(s)).toEqual(["quiz:10", "quiz:11", "intro:1", "quiz:1", "quiz:1", "quiz:1"]);
   });
-  it("복습과 신규를 1:1로 번갈아 내고, 한쪽이 끝나면 남은 쪽을 잇는다", () => {
-    const words = [w(1), w(2), w(3), w(10, { state: 2, due: past }), w(11, { state: 2, due: past })];
-    expect(ids(practiceOrder(words, stat([[10, 2, 1], [11, 2, 2]]), NOW, fixed))).toEqual([10, 1, 11, 2, 3]);
-  });
-  it("복습이 신규보다 많아도 신규가 앞쪽에 섞여 나온다", () => {
-    const words = [w(1), w(10, { state: 2, due: past }), w(11, { state: 2, due: past }), w(12, { state: 2, due: past })];
-    expect(ids(practiceOrder(words, stat([[10, 2, 0], [11, 2, 1], [12, 2, 2]]), NOW, fixed))).toEqual([10, 1, 11, 12]);
-  });
-  it("구간 안에서는 정답률 낮은 순", () => {
-    const words = [w(1, { state: 2, due: past }), w(2, { state: 2, due: past })];
-    expect(ids(practiceOrder(words, stat([[1, 4, 4], [2, 4, 1]]), NOW, fixed))).toEqual([2, 1]);
-  });
-  it("정답률이 같으면 오래 안 본 순", () => {
+  it("복습은 정답률 낮은 순, 같으면 오래 안 본 순", () => {
     const words = [
-      w(1, { state: 2, due: past, last_review: "2026-08-12T00:00:00Z" }),
-      w(2, { state: 2, due: past, last_review: "2026-08-01T00:00:00Z" }),
+      review(1, { last_review: "2026-08-12T00:00:00Z" }),
+      review(2, { last_review: "2026-08-01T00:00:00Z" }),
+      review(3),
     ];
-    expect(ids(practiceOrder(words, stat([[1, 2, 1], [2, 2, 1]]), NOW, fixed))).toEqual([2, 1]);
+    expect(drain(new StudySession(words, stat([[1, 4, 4], [2, 4, 4], [3, 4, 1]]), NOW, fixed))).toEqual([
+      "quiz:3",
+      "quiz:2",
+      "quiz:1",
+    ]);
   });
-  it("신규는 등록 순으로 나간다", () => {
-    const words = [w(3), w(1), w(2)];
-    expect(ids(practiceOrder(words, stat([]), NOW, fixed))).toEqual([1, 2, 3]);
+  it("due 아닌 카드는 내지 않는다 — 다 떨어지면 세션이 끝난다", () => {
+    const s = new StudySession([review(1, { due: future })], stat([[1, 1, 1]]), NOW, fixed);
+    expect(s.next(NOW)).toBeNull();
   });
-  it("한 바퀴에 모든 단어가 정확히 한 번씩 들어간다", () => {
-    const words = [w(1, { state: 2, due: past }), w(2), w(3, { state: 2, due: future })];
-    const out = practiceOrder(words, stat([[1, 1, 0], [3, 1, 1]]), NOW, fixed);
-    expect(out).toHaveLength(3);
-    expect(new Set(ids(out))).toEqual(new Set([1, 2, 3]));
+  it("소개 뒤 첫 인출은 다른 카드 셋을 지나서 온다", () => {
+    const words = [w(1), review(10), review(11), review(12), review(13)];
+    const s = new StudySession(words, stat([[10, 1, 1], [11, 1, 1], [12, 1, 1], [13, 1, 1]]), NOW, fixed);
+    // 복습 넷이 먼저 — 신규가 복습 앞에 나올 수 없으니 첫 인출 간격은 신규끼리로 본다
+    const order = drain(s);
+    expect(order.slice(0, 4)).toEqual(["quiz:10", "quiz:11", "quiz:12", "quiz:13"]);
+    expect(order.slice(4)).toEqual(["intro:1", "quiz:1", "quiz:1", "quiz:1"]); // 남은 게 없으면 기다리지 않는다
+  });
+  it("신규가 여럿이면 소개들 사이에 첫 인출이 끼어 든다", () => {
+    const s = new StudySession([w(1), w(2), w(3), w(4), w(5)], stat([]), NOW, () => 0.5);
+    const order = drain(s);
+    // 소개 셋 뒤(카드 4장째)에 첫 소개 단어의 인출이 온다
+    const firstIntro = order[0].replace("intro:", "");
+    expect(order[3]).toBe(`quiz:${firstIntro}`);
+    expect(order).toHaveLength(20); // 소개 5 + 인출 3회씩
+  });
+  it("정답 기록이 0회인 Learning 단어도 소개를 먼저 받는다 — 맞힌 적 있는 단어는 받지 않는다", () => {
+    const words = [w(1, { state: 1, due: past }), w(2, { state: 1, due: past })];
+    const s = new StudySession(words, stat([[1, 3, 0], [2, 3, 1]]), NOW, fixed);
+    const order = drain(s);
+    expect(order).toContain("intro:1");
+    expect(order).not.toContain("intro:2");
+    expect(order.indexOf("quiz:1")).toBeGreaterThan(order.indexOf("intro:1"));
+  });
+  it("신규는 하루 고정 난수 순 — 같은 시드면 같은 순서, 다른 시드면 다른 순서", () => {
+    const words = () => Array.from({ length: 8 }, (_, i) => w(i + 1)); // drain이 FSRS를 적용하므로 매번 새로
+    const order = (seed: string) =>
+      drain(new StudySession(words(), stat([]), NOW, seededRandom(seed))).filter((c) => c.startsWith("intro"));
+    expect(order("2026-09-16:es")).toEqual(order("2026-09-16:es"));
+    expect(order("2026-09-16:es")).not.toEqual(order("2026-09-17:es"));
+    expect(order("2026-09-16:es")).not.toEqual(words().map((x) => `intro:${x.id}`)); // id 순이 아니다
+  });
+  it("신규는 세션당 12개까지", () => {
+    const words = Array.from({ length: 30 }, (_, i) => w(i + 1));
+    const s = new StudySession(words, stat([]), NOW, fixed);
+    const order = drain(s);
+    expect(order.filter((c) => c.startsWith("intro"))).toHaveLength(12);
+    expect(s.newCount).toBe(12);
+  });
+  it("채점 10회 이후 정답률이 75% 아래면 신규 투입을 멈춘다", () => {
+    const reviews = Array.from({ length: 10 }, (_, i) => review(100 + i));
+    const s = new StudySession([w(1), ...reviews], stat(reviews.map((r) => [r.id, 2, 2])), NOW, fixed);
+    const order = drain(s, (c) => c.word.id < 105); // 열 개 중 다섯만 정답 → 50%
+    expect(order.some((c) => c.startsWith("intro"))).toBe(false);
+    expect(s.answered).toBeGreaterThanOrEqual(10);
+  });
+  it("정답률 가드는 채점 10회 전에는 작동하지 않는다 — 첫 오답 하나로 신규가 막히지 않게", () => {
+    const s = new StudySession([w(1), review(10)], stat([[10, 2, 2]]), NOW, fixed);
+    expect(drain(s, () => false)).toContain("intro:1");
+  });
+  it("Learning으로 남은 카드는 due가 오면 세션 안에서 다시 나온다 — 그 전엔 다른 카드가 먼저", () => {
+    const later = new Date(NOW.getTime() + 5 * 60_000).toISOString();
+    const s = new StudySession([review(1), review(2)], stat([[1, 2, 1], [2, 2, 2]]), NOW, fixed);
+    expect(s.next(NOW)).toEqual({ kind: "quiz", word: review(1) });
+    const card = { ...review(1), state: 3, due: later }; // 오답 → Relearning, 5분 뒤
+    s.graded(card, false, NOW);
+    expect(s.next(NOW)!.word.id).toBe(2); // 아직 due 전 — 복습 먼저
+    expect(s.next(new Date(NOW.getTime() + 60_000))!.word.id).toBe(1); // 남은 게 없으면 앞당겨 낸다
+    expect(s.next(NOW)).toBeNull();
+  });
+  it("재출제가 여럿이면 due가 이른 것부터", () => {
+    const at = (min: number) => new Date(NOW.getTime() + min * 60_000).toISOString();
+    const s = new StudySession([], stat([]), NOW, fixed);
+    s.graded({ ...review(1), state: 1, due: at(15) }, true, NOW);
+    s.graded({ ...review(2), state: 1, due: at(5) }, true, NOW);
+    const t = new Date(NOW.getTime() + 20 * 60_000);
+    expect(s.next(t)!.word.id).toBe(2);
+    expect(s.next(t)!.word.id).toBe(1);
+  });
+  it("Review로 졸업했거나 due가 한 시간 넘게 남으면 다시 내지 않는다", () => {
+    const s = new StudySession([], stat([]), NOW, fixed);
+    s.graded({ ...review(1), state: 2, due: future }, true, NOW);
+    s.graded({ ...review(2), state: 1, due: future }, true, NOW);
+    expect(s.next(new Date(future))).toBeNull();
+  });
+  it("채점 수·정답 수·단어별 집계를 세션이 든다", () => {
+    const st = stat([[1, 2, 1], [2, 2, 2]]);
+    const s = new StudySession([review(1), review(2)], st, NOW, fixed);
+    s.graded(s.next(NOW)!.word, false, NOW); // 정답률 낮은 1이 먼저
+    s.graded(s.next(NOW)!.word, true, NOW);
+    expect([s.answered, s.correct]).toEqual([2, 1]);
+    expect(st.get(1)).toEqual({ reviews: 3, correct: 1 });
+    expect(st.get(2)).toEqual({ reviews: 3, correct: 3 });
+  });
+});
+
+describe("pickDirection (수용 먼저 — Learning은 단어→뜻만)", () => {
+  const base = { id: 1, word: "w", meaning: "m", norm: "w", created_at: "" };
+  it("New·Learning·Relearning은 sk, 빈칸 시도 없음", () => {
+    for (const state of [0, 1, 3]) {
+      expect(pickDirection({ ...base, ...newRow({ state }) } as Word, () => 0.9)).toEqual({ dir: "sk", tryCloze: false });
+    }
+  });
+  it("Review는 반반 + 30% 빈칸 시도", () => {
+    const rv = { ...base, ...newRow({ state: 2 }) } as Word;
+    expect(pickDirection(rv, () => 0.1)).toEqual({ dir: "sk", tryCloze: true });
+    expect(pickDirection(rv, () => 0.7)).toEqual({ dir: "ks", tryCloze: false });
+  });
+});
+
+describe("dueByTomorrow (끝 화면 — 로컬 날짜 기준 내일까지의 due)", () => {
+  const at = (y: number, mo: number, d: number, h: number) => new Date(y, mo - 1, d, h);
+  const row = (id: number, due: Date | null, state = 2): Word =>
+    ({ id, word: "w", meaning: "m", norm: `n${id}`, created_at: "", ...newRow({ state, due: due?.toISOString() ?? null }) }) as Word;
+  it("오늘 남은 것·내일 것은 세고, 모레 0시부터는 세지 않는다. New는 제외", () => {
+    const now = at(2026, 9, 16, 22);
+    const words = [
+      row(1, at(2026, 9, 16, 23)),
+      row(2, at(2026, 9, 17, 23)),
+      row(3, at(2026, 9, 18, 0)),
+      row(4, at(2026, 9, 1, 0)),
+      row(5, null, 0),
+    ];
+    expect(dueByTomorrow(words, now)).toBe(3);
+  });
+});
+
+describe("seededRandom", () => {
+  it("같은 시드는 같은 수열, [0,1) 범위", () => {
+    const a = seededRandom("x");
+    const b = seededRandom("x");
+    const xs = Array.from({ length: 5 }, () => a());
+    expect(Array.from({ length: 5 }, () => b())).toEqual(xs);
+    for (const x of xs) expect(x >= 0 && x < 1).toBe(true);
   });
 });
 

@@ -3,39 +3,48 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
-  answerWord,
+  applyAnswer,
   articleFor,
   clozeIndex,
-  promptMeaning,
-  useCurrentConfig,
-  gradeAnswer,
+  dueByTomorrow,
   ensureSentences,
+  gradeAnswer,
   loadDeck,
-  practiceOrder,
-  todayReviewSummary,
+  localDate,
+  pickDirection,
+  promptMeaning,
+  saveAnswer,
+  seededRandom,
+  StudySession,
+  useCurrentConfig,
   type GradeResult,
   type Sentence,
   type Word,
-  type WordStat,
 } from "@/modules/language";
 import { useT } from "@/modules/shared/i18n";
 import { pill } from "../../ui/accent";
 
-// §11.4.2 퀴즈 — 3방향: 스→한(sk)·한→스(ks) 타이핑 + 30% 확률로 예문 있으면 cloze (결정 #41 현행 이식)
+// §11.4.2 퀴즈 (2026-09-16, #99 — 소개 단계·세션 안 재출제·복습 우선)
+// 카드 세 종류: 소개(새 단어, 채점 없음) · 뒤집기(단어→뜻, 자기 채점 2버튼) · 타이핑(뜻→단어, 빈칸)
+// 순서와 끝은 StudySession이 정한다 — due 복습 → 신규(상한·정답률 가드) → 대기 카드, 다 비면 끝.
 // 받아쓰기(listen)·관사(gender) 문제는 이식 제외 (#41 범위, 2026-08-15 확정)
-//
-// 모드는 하나다 (2026-08-31). 하루 할당도 끝도 없고, 종료를 누를 때까지 이어진다.
-// 출제 순서는 practiceOrder가 정하며, 한 바퀴(전체 단어)를 다 돌면 그 시점 정답률로
-// 다시 정렬해 새 바퀴를 시작한다 — 같은 단어가 한 바퀴 안에 두 번 나오지 않는다.
 
 type Dir = "sk" | "ks" | "cloze";
-type Phase = "loading" | "question" | "answered" | "done" | "empty";
+type Phase = "loading" | "intro" | "question" | "revealed" | "answered" | "done" | "empty";
 
 interface Question {
   word: Word;
   dir: Dir;
   sentence: Sentence | null;
   blankAt: number; // cloze에서 원문(text) 안 단어 위치
+}
+type Card = { kind: "intro"; word: Word } | ({ kind: "quiz" } & Question);
+
+interface Wrap {
+  answered: number;
+  correct: number;
+  newCount: number;
+  tomorrow: number;
 }
 
 const speak = (text: string, lang: string) => {
@@ -53,53 +62,51 @@ export default function QuizPage() {
   const config = useCurrentConfig(); // 전환은 랜딩에서만 일어남 (#54)
   const t = useT();
   const [phase, setPhase] = useState<Phase>("loading");
-  const [seen, setSeen] = useState(0); // 이번 세션에 푼 문제 수 — 진행률 대신 표시
-  const [q, setQ] = useState<Question | null>(null);
+  const [seen, setSeen] = useState(0); // 이번 세션에 채점한 수 — 진행률 대신 표시
+  const [card, setCard] = useState<Card | null>(null);
   const [input, setInput] = useState("");
   const [result, setResult] = useState<GradeResult | null>(null);
-  const [summary, setSummary] = useState<{ count: number; correct: number } | null>(null);
+  const [introSentence, setIntroSentence] = useState<Sentence | null>(null);
+  const [wrap, setWrap] = useState<Wrap | null>(null);
   const [saveFailures, setSaveFailures] = useState(0); // DB에 안 남은 답안 수 — 조용히 잃지 않게 표시
 
-  const queue = useRef<Word[]>([]); // practiceOrder가 정한 이번 바퀴의 순서
-  const cursor = useRef(0);
-  const stats = useRef<Map<number, WordStat>>(new Map());
+  const session = useRef<StudySession | null>(null);
+  const deck = useRef<Word[]>([]); // FSRS 필드를 답마다 되먹인 덱 — 끝 화면의 내일 복습 수
   const inputRef = useRef<HTMLInputElement>(null);
   // 정답 화면에 머무는 동안 다음 문제(예문 페치 포함)를 미리 준비 — "다음" 탭이 즉시가 되게
-  const upcoming = useRef<Promise<Question | null> | null>(null);
+  const upcoming = useRef<Promise<Card | null> | null>(null);
   const advancing = useRef(false); // next() 진행 중 — 중복 호출이 문제를 건너뛰지 못하게
-  // 채점 화면이 실제로 그려진 뒤에만 "다음"을 받는다 — 제출 제스처의 꼬리가 화면을 건너뛰지 못하게
+  // 버튼 화면이 실제로 그려진 뒤에만 진행을 받는다 — 제출 제스처의 꼬리가 화면을 건너뛰지 못하게 (#76)
   const canAdvance = useRef(false);
 
-  const buildQuestion = async (): Promise<Question | null> => {
-    if (queue.current.length === 0) return null;
-    if (cursor.current >= queue.current.length) {
-      // 한 바퀴 끝 — 이번 세션에서 쌓인 정답률로 다시 정렬해 새 바퀴.
-      // FSRS 필드는 답마다 되먹이므로 이 시점에 최신이다 — 안 되먹이면 전원 New로 남아
-      // practiceOrder가 정답률을 못 보고 id 순으로 돌린다
-      queue.current = practiceOrder(queue.current, stats.current);
-      cursor.current = 0;
-    }
-    const word = queue.current[cursor.current];
-    cursor.current += 1;
-    let dir: Dir = Math.random() < 0.5 ? "sk" : "ks";
+  const buildCard = async (): Promise<Card | null> => {
+    const item = session.current?.next();
+    if (!item) return null;
+    if (item.kind === "intro") return { kind: "intro", word: item.word };
+    const { dir: base, tryCloze } = pickDirection(item.word);
+    let dir: Dir = base;
     let sentence: Sentence | null = null;
     let blankAt = -1;
-    if (Math.random() < 0.3) {
-      const candidates = await ensureSentences(config, word.id).catch(() => [] as Sentence[]);
+    if (tryCloze) {
+      const candidates = await ensureSentences(config, item.word.id).catch(() => [] as Sentence[]);
       if (candidates.length > 0) {
         sentence = candidates[Math.floor(Math.random() * candidates.length)];
-        blankAt = clozeIndex(sentence.text, word.word);
+        blankAt = clozeIndex(sentence.text, item.word.word);
         if (blankAt >= 0) dir = "cloze";
         else sentence = null;
       }
     }
-    return { word, dir, sentence, blankAt };
+    return { kind: "quiz", word: item.word, dir, sentence, blankAt };
   };
 
-  const finish = async () => {
-    // 요약은 장식 — 실패해도 세션은 끝나야 한다 (language/page.tsx와 같은 취급).
-    // 던지게 두면 setPhase("done")에 못 가 종료 버튼이 영구 무반응이 된다
-    setSummary(await todayReviewSummary(config).catch(() => null));
+  const finish = () => {
+    const s = session.current;
+    setWrap({
+      answered: s?.answered ?? 0,
+      correct: s?.correct ?? 0,
+      newCount: s?.newCount ?? 0,
+      tomorrow: dueByTomorrow(deck.current),
+    });
     setPhase("done");
   };
 
@@ -107,37 +114,55 @@ export default function QuizPage() {
     // 연타·더블클릭 가드 — await 사이에 두 번째 호출이 끼면 첫 문제가 출제 없이 소모된다
     if (advancing.current) return;
     advancing.current = true;
+    canAdvance.current = false;
     try {
-      const built = await (upcoming.current ?? buildQuestion());
+      const built = await (upcoming.current ?? buildCard());
       upcoming.current = null;
       if (!built) {
-        await finish();
+        finish();
         return;
       }
-      setQ(built);
+      setCard(built);
       setInput("");
       setResult(null);
-      setPhase("question");
-      setTimeout(() => inputRef.current?.focus(), 0);
+      setIntroSentence(null);
+      setPhase(built.kind === "intro" ? "intro" : "question");
+      if (built.kind === "quiz" && built.dir !== "sk") setTimeout(() => inputRef.current?.focus(), 0);
     } finally {
       advancing.current = false;
     }
   };
 
   useEffect(() => {
-    if (phase === "answered") canAdvance.current = true;
+    if (phase === "intro" || phase === "revealed" || phase === "answered") canAdvance.current = true;
   }, [phase]);
+
+  // 소개 카드: 보이는 즉시 읽어 주고, 예문은 있으면 뒤따라 붙인다 (없어도 카드는 그대로 — Q13)
+  useEffect(() => {
+    if (phase !== "intro" || card?.kind !== "intro") return;
+    let stale = false;
+    speak(card.word.word, config.speechLang);
+    ensureSentences(config, card.word.id)
+      .then((list) => {
+        if (!stale && list.length > 0) setIntroSentence(list[0]);
+      })
+      .catch(() => {});
+    return () => {
+      stale = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, card]);
 
   // config는 하이드레이션 직후 저장값으로 한 번 바뀐다 ([]로 두면 덱은 es, 채점은 저장값으로 갈린다)
   useEffect(() => {
     let stale = false;
     (async () => {
-      const { words, stats: st } = await loadDeck(config);
+      const { words, stats } = await loadDeck(config);
       if (stale) return; // 앞 config의 덱이 늦게 도착해 덮어쓰지 못하게
-      stats.current = st;
-      queue.current = practiceOrder(words, st);
-      cursor.current = 0;
-      if (queue.current.length === 0) setPhase("empty");
+      deck.current = words;
+      const now = new Date();
+      session.current = new StudySession(words, stats, now, seededRandom(`${localDate(now)}:${config.code}`));
+      if (words.length === 0) setPhase("empty");
       else next();
     })();
     return () => {
@@ -146,25 +171,38 @@ export default function QuizPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config]);
 
-  const submit = async () => {
-    if (!q || phase !== "question" || !input.trim()) return;
-    const expected = q.dir === "sk" ? q.word.meaning : q.word.word;
-    const res = gradeAnswer(input, expected, q.dir === "sk" ? "toMeaning" : "toWord", config);
+  /** 채점 결과 1건 반영 — FSRS는 여기서 계산해 카드에 곧장 되먹이고(세션이 재출제 시각을 알게), 저장은 뒤따른다 */
+  const record = (word: Word, ok: boolean) => {
+    const now = new Date();
+    const applied = applyAnswer(word, ok, now);
+    Object.assign(word, applied.fields);
+    session.current?.graded(word, ok, now);
+    setSeen(session.current?.answered ?? 0);
+    saveAnswer(config, word.id, applied, now).catch(() => setSaveFailures((n) => n + 1));
+  };
+
+  const submit = () => {
+    if (card?.kind !== "quiz" || phase !== "question" || !input.trim()) return;
+    const res = gradeAnswer(input, card.word.word, "toWord", config);
     setResult(res);
     canAdvance.current = false;
     setPhase("answered");
-    speak(q.word.word, config.speechLang); // 방향·유형과 무관하게 항상 한 번 읽는다
+    speak(card.word.word, config.speechLang);
+    record(card.word, res.ok);
+    upcoming.current = buildCard(); // 프리페치 — 채점이 반영된 뒤라 재출제·가드도 그대로 반영됨
+  };
 
-    // 로컬 통계 갱신 (가중치·어려운 단어 판정용)
-    const s = stats.current.get(q.word.id) ?? { reviews: 0, correct: 0 };
-    stats.current.set(q.word.id, { reviews: s.reviews + 1, correct: s.correct + (res.ok ? 1 : 0) });
-    setSeen((n) => n + 1);
-    answerWord(config, q.word, res.ok)
-      // 반영된 FSRS 필드를 메모리 카드에 되먹인다 — 안 하면 다음 바퀴가 이 단어를 아직 New로 보고
-      // createEmptyCard로 다시 시작해 이번 답이 지워진다 (srs.ts applyAnswer)
-      .then((fields) => Object.assign(q.word, fields))
-      .catch(() => setSaveFailures((n) => n + 1));
-    upcoming.current = buildQuestion(); // 프리페치 — 오답 재출제 확률도 그대로 반영됨
+  const reveal = () => {
+    if (card?.kind !== "quiz" || phase !== "question") return;
+    canAdvance.current = false;
+    setPhase("revealed");
+    speak(card.word.word, config.speechLang);
+  };
+
+  const selfGrade = (ok: boolean) => {
+    if (card?.kind !== "quiz" || phase !== "revealed" || !canAdvance.current) return;
+    record(card.word, ok);
+    next();
   };
 
   const insertChar = (ch: string) => {
@@ -186,6 +224,11 @@ export default function QuizPage() {
       e.preventDefault();
       insertChar(config.altKeyMap[e.key]);
     }
+  };
+
+  // Enter를 누른 채로 두면 오토리핏이 버튼 화면을 연달아 넘긴다 — keydown을 취소하면 keypress 자체가 생기지 않는다
+  const noRepeat = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "Enter" && e.repeat) e.preventDefault();
   };
 
   const progress = t.lang.quiz.seen(seen);
@@ -215,10 +258,13 @@ export default function QuizPage() {
     return (
       <main className="p-4 text-center">
         <p className="mt-16 font-display text-2xl font-bold">{t.lang.quiz.done}</p>
-        {summary && summary.count > 0 && (
-          <p className="mt-3 font-dot text-dot text-faint">
-            {t.lang.todaySummary(summary.count, Math.round((summary.correct / summary.count) * 100))}
-          </p>
+        {wrap && (
+          <div className="mt-3 space-y-1 font-dot text-dot text-faint">
+            {wrap.answered > 0 && <p>{t.lang.quiz.sessionResult(wrap.correct, wrap.answered)}</p>}
+            <p>
+              {t.lang.quiz.newLearned(wrap.newCount)} · {t.lang.quiz.dueTomorrow(wrap.tomorrow)}
+            </p>
+          </div>
         )}
         {failed && <p className="mt-3 font-dot text-dot text-err">{failed}</p>}
         <Link
@@ -230,25 +276,65 @@ export default function QuizPage() {
       </main>
     );
 
-  if (!q) return null;
+  if (!card) return null;
+
+  const header = (
+    <header className="mb-6 flex items-center justify-between text-sm text-faint">
+      <button type="button" onClick={finish} className={pill("lang")}>
+        {t.lang.quiz.quit}
+      </button>
+      <span className="font-dot text-dot">
+        {failed && <span className="mr-2 text-err">{failed}</span>}
+        {progress}
+      </span>
+    </header>
+  );
+
+  const headword = (word: Word) => (
+    <>
+      {articleFor(word.gender) && <span className="mr-2 text-faint">{articleFor(word.gender)}</span>}
+      {word.word}
+    </>
+  );
+
+  if (card.kind === "intro")
+    return (
+      <main className="p-4">
+        {header}
+        <div className="rounded-lg border border-lang/40 bg-card p-6 text-center">
+          <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">{t.lang.quiz.newWord}</p>
+          <p className="mt-3 font-display text-3xl font-bold">{headword(card.word)}</p>
+          <p className="mt-2 text-lg">{card.word.meaning}</p>
+          {introSentence && (
+            <div className="mt-5 text-left">
+              <p className="font-display leading-relaxed">{introSentence.text}</p>
+              {(introSentence.ko_text || introSentence.en_text) && (
+                <p className="mt-1 text-sm text-faint">{introSentence.ko_text ?? introSentence.en_text}</p>
+              )}
+            </div>
+          )}
+          <button
+            onClick={() => {
+              if (canAdvance.current) next();
+            }}
+            onKeyDown={noRepeat}
+            autoFocus
+            className="mt-6 w-full rounded-md bg-lang py-3 font-medium text-white"
+          >
+            {t.lang.quiz.gotIt}
+          </button>
+        </div>
+      </main>
+    );
+
+  const q = card;
   const answered = phase === "answered";
-  const showTargetInput = q.dir !== "sk"; // 대상 언어를 입력하는 방향
+  const revealed = phase === "revealed";
+  const flip = q.dir === "sk"; // 단어→뜻은 뒤집기 + 자기 채점 (Q9)
 
   return (
     <main className="p-4">
-      <header className="mb-6 flex items-center justify-between text-sm text-faint">
-        <button
-          type="button"
-          onClick={finish}
-          className={pill("lang")}
-        >
-          {t.lang.quiz.quit}
-        </button>
-        <span className="font-dot text-dot">
-          {failed && <span className="mr-2 text-err">{failed}</span>}
-          {progress}
-        </span>
-      </header>
+      {header}
 
       <div
         className={`rounded-lg border bg-card p-6 ${
@@ -274,21 +360,45 @@ export default function QuizPage() {
           </div>
         ) : (
           <p className="mb-4 text-center font-display text-3xl font-bold">
-            {q.dir === "sk" ? (
-              <>
-                {articleFor(q.word.gender) && (
-                  <span className="mr-2 text-faint">{articleFor(q.word.gender)}</span>
-                )}
-                {q.word.word}
-              </>
-            ) : (
-              `"${promptMeaning(q.word.meaning)}"`
-            )}
+            {flip ? headword(q.word) : `"${promptMeaning(q.word.meaning)}"`}
           </p>
         )}
 
-        {/* 입력 영역 */}
-        {!answered ? (
+        {/* 뒤집기: 뜻 보기 → 틀림/맞음 */}
+        {flip && !revealed && (
+          <button
+            onClick={reveal}
+            autoFocus
+            className="mt-2 w-full rounded-md bg-lang py-3 font-medium text-white"
+          >
+            {t.lang.quiz.reveal}
+          </button>
+        )}
+        {flip && revealed && (
+          <div className="text-center">
+            <p className="text-lg">{q.word.meaning}</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => selfGrade(false)}
+                onKeyDown={noRepeat}
+                className="rounded-md border border-err py-3 font-medium text-err"
+              >
+                {t.lang.quiz.selfWrong}
+              </button>
+              <button
+                onClick={() => selfGrade(true)}
+                onKeyDown={noRepeat}
+                autoFocus
+                className="rounded-md bg-lang py-3 font-medium text-white"
+              >
+                {t.lang.quiz.selfRight}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 타이핑: 입력 → 채점 → 다음 */}
+        {!flip && !answered && (
           <>
             <input
               ref={inputRef}
@@ -304,13 +414,13 @@ export default function QuizPage() {
                   submit();
                 }
               }}
-              placeholder={showTargetInput ? config.inputPlaceholder : t.lang.meaningPlaceholder}
+              placeholder={config.inputPlaceholder}
               className="w-full rounded-md border border-line bg-card px-4 py-3"
-              lang={showTargetInput ? config.code : "ko"}
+              lang={config.code}
               autoCapitalize="off"
               autoComplete="off"
             />
-            {showTargetInput && config.accentChars.length > 0 && (
+            {config.accentChars.length > 0 && (
               <div className="mt-2 flex items-center gap-1.5">
                 {config.accentChars.map((c) => (
                   <button
@@ -333,7 +443,8 @@ export default function QuizPage() {
               {t.lang.quiz.check}
             </button>
           </>
-        ) : (
+        )}
+        {!flip && answered && (
           <div className="text-center">
             <p className={`font-semibold ${result?.ok ? "text-ok" : "text-err"}`}>
               {result?.accentCorrected
@@ -342,22 +453,13 @@ export default function QuizPage() {
                   ? t.lang.quiz.correct
                   : t.lang.quiz.wrong}
             </p>
-            <p className="mt-3 font-display text-2xl font-bold">
-              {articleFor(q.word.gender) && (
-                <span className="mr-2 text-faint">{articleFor(q.word.gender)}</span>
-              )}
-              {q.word.word}
-            </p>
+            <p className="mt-3 font-display text-2xl font-bold">{headword(q.word)}</p>
             <p className="mt-1 text-faint">{q.word.meaning}</p>
             <button
               onClick={() => {
                 if (canAdvance.current) next();
               }}
-              onKeyDown={(e) => {
-                // Enter를 누른 채로 두면 오토리핏이 채점 화면을 연달아 넘긴다.
-                // keydown을 취소하면 버튼을 누르는 keypress 자체가 생기지 않는다
-                if (e.key === "Enter" && e.repeat) e.preventDefault();
-              }}
+              onKeyDown={noRepeat}
               autoFocus
               className="mt-5 w-full rounded-md bg-lang py-3 font-medium text-white"
             >

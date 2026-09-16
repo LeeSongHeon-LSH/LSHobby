@@ -69,6 +69,14 @@ export const en: Dict = {
       correctAccent: (spelled) => `✓ Correct — with accents: ${spelled}`,
       wrong: "✗ Wrong",
       next: "Next",
+      newWord: "New word",
+      gotIt: "Got it",
+      reveal: "Show meaning",
+      selfWrong: "Missed",
+      selfRight: "Knew it",
+      sessionResult: (correct, total) => `${correct} of ${total} correct`,
+      newLearned: (n) => `${n} new words`,
+      dueTomorrow: (n) => `${n} due tomorrow`,
     },
 
     words: {
