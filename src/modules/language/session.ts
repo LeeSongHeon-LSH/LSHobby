@@ -101,6 +101,14 @@ export class StudySession {
   }
 
   /**
+   * 오늘 소개될 수 있는 신규 단어 — 상한만큼 앞에서부터. 예문을 미리 데우는 데 쓴다:
+   * 소개 카드는 예문 캐시가 없는 첫 등장이라, 화면이 뜬 뒤에 Tatoeba를 처음 물으면 늦는다
+   */
+  upcomingFresh(): Word[] {
+    return this.fresh.slice(0, NEW_CAP - this.newCount);
+  }
+
+  /**
    * 채점 결과 반영 — FSRS 필드가 이미 갱신된 단어를 받는다.
    * Learning·Relearning으로 남았으면 그 due에 맞춰 세션 안에서 다시 낸다
    */

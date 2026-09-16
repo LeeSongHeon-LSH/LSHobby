@@ -165,6 +165,13 @@ export default function QuizPage() {
       session.current = new StudySession(words, stats, now, seededRandom(`${localDate(now)}:${config.code}`));
       if (words.length === 0) setPhase("empty");
       else next();
+      // 오늘 소개될 신규 단어의 예문을 순서대로 미리 데운다 — 소개 카드는 첫 등장이라 캐시가 없고,
+      // 화면이 뜬 뒤 처음 Tatoeba를 물으면 2.5초 안에 못 돌아와 예문이 빈 채 지나간다.
+      // 한 번에 하나씩: Tatoeba에 열두 요청을 동시에 던지지 않게
+      for (const word of session.current.upcomingFresh()) {
+        if (stale) break;
+        await ensureSentences(config, word.id).catch(() => {});
+      }
     })();
     return () => {
       stale = true;
@@ -225,6 +232,16 @@ export default function QuizPage() {
       e.preventDefault();
       insertChar(config.altKeyMap[e.key]);
     }
+  };
+
+  // 틀림·맞음은 ←→로 오간다 — 컴퓨터에서 마우스 없이 채점하려면 Tab보다 화살표가 손에 맞는다
+  const arrowSwitch = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    const buttons = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
+    const i = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const j = e.key === "ArrowLeft" ? Math.max(0, i - 1) : Math.min(buttons.length - 1, i + 1);
+    buttons[j]?.focus();
+    e.preventDefault();
   };
 
   // Enter를 누른 채로 두면 오토리핏이 버튼 화면을 연달아 넘긴다 — keydown을 취소하면 keypress 자체가 생기지 않는다
@@ -306,14 +323,17 @@ export default function QuizPage() {
           <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">{t.lang.quiz.newWord}</p>
           <p className="mt-3 font-display text-3xl font-bold">{headword(card.word)}</p>
           <p className="mt-2 text-lg">{card.word.meaning}</p>
-          {introSentence && (
-            <div className="mt-5 text-left">
-              <p className="font-display leading-relaxed">{introSentence.text}</p>
-              {(introSentence.ko_text || introSentence.en_text) && (
-                <p className="mt-1 text-sm text-faint">{introSentence.ko_text ?? introSentence.en_text}</p>
-              )}
-            </div>
-          )}
+          {/* 예문은 한 박자 뒤에 도착한다 — 자리를 먼저 잡아 두어 "알겠음"이 밀려 내려가지 않게 */}
+          <div className="mt-5 min-h-14 text-left">
+            {introSentence && (
+              <>
+                <p className="font-display leading-relaxed">{introSentence.text}</p>
+                {(introSentence.ko_text || introSentence.en_text) && (
+                  <p className="mt-1 text-sm text-faint">{introSentence.ko_text ?? introSentence.en_text}</p>
+                )}
+              </>
+            )}
+          </div>
           <button
             onClick={() => {
               if (canAdvance.current) next();
@@ -378,7 +398,7 @@ export default function QuizPage() {
         {flip && revealed && (
           <div className="text-center">
             <p className="text-lg">{q.word.meaning}</p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="mt-5 grid grid-cols-2 gap-3" onKeyDown={arrowSwitch}>
               <button
                 onClick={() => selfGrade(false)}
                 onKeyDown={noRepeat}

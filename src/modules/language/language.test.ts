@@ -287,6 +287,15 @@ describe("StudySession (세션 구성 — 소개·재출제·복습 우선, 2026
     expect(order("2026-09-16:es")).not.toEqual(order("2026-09-17:es"));
     expect(order("2026-09-16:es")).not.toEqual(words().map((x) => `intro:${x.id}`)); // id 순이 아니다
   });
+  it("upcomingFresh는 신규 순서대로 상한까지 — 소개 뒤엔 그만큼 줄어든다", () => {
+    const words = Array.from({ length: 30 }, (_, i) => w(i + 1));
+    const s = new StudySession(words, stat([]), NOW, seededRandom("2026-09-16:es"));
+    const ahead = s.upcomingFresh().map((x) => x.id);
+    expect(ahead).toHaveLength(12);
+    const intros = drain(s).filter((c) => c.startsWith("intro")).map((c) => Number(c.slice(6)));
+    expect(intros).toEqual(ahead);
+    expect(s.upcomingFresh()).toHaveLength(0);
+  });
   it("신규는 세션당 12개까지", () => {
     const words = Array.from({ length: 30 }, (_, i) => w(i + 1));
     const s = new StudySession(words, stat([]), NOW, fixed);
