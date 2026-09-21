@@ -78,10 +78,10 @@ export default function StatsPage() {
           { v: stats.streak, l: t.lang.stats.streak },
           { v: stats.todayTotal, l: t.lang.stats.today },
           { v: acc === null ? "–" : `${acc}%`, l: t.lang.stats.accuracy },
-        ].map((t) => (
-          <div key={t.l} className="rounded-md border border-line bg-card p-4 text-center">
-            <p className="font-dot text-dot-lg tabular-nums">{t.v}</p>
-            <p className="mt-1 text-xs text-faint">{t.l}</p>
+        ].map((tile) => (
+          <div key={tile.l} className="rounded-md border border-line bg-card p-4 text-center">
+            <p className="font-dot text-dot-lg tabular-nums">{tile.v}</p>
+            <p className="mt-1 text-xs text-faint">{tile.l}</p>
           </div>
         ))}
       </div>

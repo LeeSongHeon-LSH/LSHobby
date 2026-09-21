@@ -78,6 +78,10 @@ export default function QuizPage() {
   const advancing = useRef(false); // next() 진행 중 — 중복 호출이 문제를 건너뛰지 못하게
   // 버튼 화면이 실제로 그려진 뒤에만 진행을 받는다 — 제출 제스처의 꼬리가 화면을 건너뛰지 못하게 (#76)
   const canAdvance = useRef(false);
+  // 저장은 한 줄로 — saveAnswer는 "오늘 요약"을 읽어서 다시 쓰는데, 두 답이 겹치면 늦게 도착한
+  // 옛 요약이 새 요약을 덮는다(#96이 막은 건 행 중복이고 순서는 아니다). 앞 저장이 끝난 뒤에
+  // 다음을 보내면 뒤의 읽기가 앞의 쓰기를 본다. UI는 기다리지 않는다 — 체인만 이어진다
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
   const buildCard = async (): Promise<Card | null> => {
     const item = session.current?.next();
@@ -186,7 +190,9 @@ export default function QuizPage() {
     Object.assign(word, applied.fields);
     session.current?.graded(word, ok, now);
     setSeen(session.current?.answered ?? 0);
-    saveAnswer(config, word.id, applied, now).catch(() => setSaveFailures((n) => n + 1));
+    saveQueue.current = saveQueue.current.then(() =>
+      saveAnswer(config, word.id, applied, now).catch(() => setSaveFailures((n) => n + 1)),
+    );
   };
 
   const submit = () => {

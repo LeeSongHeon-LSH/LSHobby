@@ -24,7 +24,15 @@ export async function GET(
     .select("word_id")
     .eq("word_id", id)
     .maybeSingle();
-  if (fErr) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  // 토큰 문제(PGRST30x — 만료·서명 불량)만 401. 그 외 DB 오류를 401로 덮으면 클라이언트는
+  // 조용히 []로 넘어가고 원인은 어디에도 안 남는다
+  if (fErr) {
+    const unauthorized = fErr.code?.startsWith("PGRST30");
+    return NextResponse.json(
+      { error: unauthorized ? "unauthorized" : "db error" },
+      { status: unauthorized ? 401 : 500 },
+    );
+  }
 
   if (!fetched) {
     const { data: word, error: wErr } = await db
@@ -51,6 +59,8 @@ export async function GET(
     }
   }
 
-  const { data } = await db.from(config.sentenceTable).select("*").eq("word_id", id);
-  return NextResponse.json(data ?? []);
+  const { data, error } = await db.from(config.sentenceTable).select("*").eq("word_id", id);
+  // 실패를 []로 바꾸면 예문 있는 단어가 "없음"으로 보인다 — 200 대신 500으로 말한다
+  if (error) return NextResponse.json({ error: "db error" }, { status: 500 });
+  return NextResponse.json(data);
 }

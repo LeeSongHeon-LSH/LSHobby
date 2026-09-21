@@ -9,14 +9,26 @@ import type { Tables } from "../shared/db";
  */
 export type Word = Omit<Tables<"es_words">, "gender"> & { gender?: Gender };
 
-/** 전체 단어 (출제 풀·단어장 공용) */
+/** PostgREST max_rows (supabase/config.toml:18) — review-stats.ts와 같은 상한 */
+const PAGE = 1000;
+
+/**
+ * 전체 단어 (출제 풀·단어장 공용) — 단어 표를 통째로 읽는 유일한 자리다.
+ * max_rows에 잘리면 에러가 아니라 성공으로 돌아오므로, id 오름차순이라 **최근에 넣은 단어부터**
+ * 출제 풀·단어장·통계에서 조용히 사라진다. 페이지로 끝까지 읽는다 (reviewStats와 같은 모양)
+ */
 export async function listWords(config: LanguageConfig): Promise<Word[]> {
-  const { data, error } = await supabase
-    .from(config.wordTable)
-    .select("*")
-    .order("id", { ascending: true });
-  if (error) throw error;
-  return data as Word[];
+  const out: Word[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from(config.wordTable)
+      .select("*")
+      .order("id", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    out.push(...(data as Word[]));
+    if (data.length < PAGE) return out;
+  }
 }
 
 /** 보유 단어 수 (허브 카드용) */

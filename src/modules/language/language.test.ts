@@ -516,33 +516,36 @@ type RpcRow = Record<string, unknown>;
 let rpcRows: RpcRow[] = [];
 const rpcCalls: { fn: string; orders: [string, boolean][]; range: [number, number] | null }[] = [];
 
-vi.mock("../shared/auth", () => ({
-  supabase: {
-    rpc(fn: string) {
-      const call = { fn, orders: [] as [string, boolean][], range: null as [number, number] | null };
-      rpcCalls.push(call);
-      const builder = {
-        order(col: string, opts?: { ascending?: boolean }) {
-          call.orders.push([col, opts?.ascending ?? true]);
-          return builder;
-        },
-        range(from: number, to: number) {
-          call.range = [from, to];
-          return builder;
-        },
-        then(resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) {
-          let rows = [...rpcRows];
-          for (const [col, asc] of call.orders) {
-            rows.sort((a, b) => ((a[col] as never) < (b[col] as never) ? -1 : (a[col] as never) > (b[col] as never) ? 1 : 0) * (asc ? 1 : -1));
-          }
-          if (call.range) rows = rows.slice(call.range[0], call.range[1] + 1);
-          return Promise.resolve({ data: rows.slice(0, MAX_ROWS), error: null }).then(resolve, reject);
-        },
-      };
-      return builder;
-    },
-  },
-}));
+vi.mock("../shared/auth", () => {
+  // RPC와 표 조회가 같은 상한을 받는다 — from(table).select()도 같은 빌더로
+  const builder = (fn: string) => {
+    const call = { fn, orders: [] as [string, boolean][], range: null as [number, number] | null };
+    rpcCalls.push(call);
+    const b = {
+      select() {
+        return b;
+      },
+      order(col: string, opts?: { ascending?: boolean }) {
+        call.orders.push([col, opts?.ascending ?? true]);
+        return b;
+      },
+      range(from: number, to: number) {
+        call.range = [from, to];
+        return b;
+      },
+      then(resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) {
+        let rows = [...rpcRows];
+        for (const [col, asc] of call.orders) {
+          rows.sort((a, b) => ((a[col] as never) < (b[col] as never) ? -1 : (a[col] as never) > (b[col] as never) ? 1 : 0) * (asc ? 1 : -1));
+        }
+        if (call.range) rows = rows.slice(call.range[0], call.range[1] + 1);
+        return Promise.resolve({ data: rows.slice(0, MAX_ROWS), error: null }).then(resolve, reject);
+      },
+    };
+    return b;
+  };
+  return { supabase: { rpc: builder, from: builder } };
+});
 
 describe("PostgREST 1000행 상한 (max_rows는 집합 반환 함수에도 걸린다)", () => {
   beforeEach(() => {
@@ -582,6 +585,19 @@ describe("PostgREST 1000행 상한 (max_rows는 집합 반환 함수에도 걸�
     if (n > 0) expect(stats.get(n)).toEqual({ reviews: 2, correct: 1, firstReviewedAt: null });
     // 정확히 배수면 빈 페이지를 한 번 더 읽어야 끝인 줄 안다
     expect(rpcCalls).toHaveLength(Math.floor(n / MAX_ROWS) + 1);
+  });
+
+  // 단어 표를 통째로 읽는 유일한 자리 — 잘리면 id 오름차순이라 최근 단어부터 조용히 사라진다
+  it.each([0, 999, 1000, 2000, 2237])("listWords는 %i행을 끝까지 읽는다", async (n) => {
+    const { listWords } = await import("./words");
+    rpcRows = Array.from({ length: n }, (_, i) => ({ id: i + 1, word: `w${i + 1}`, state: 0 }));
+
+    const words = await listWords(esConfig);
+
+    expect(words).toHaveLength(n);
+    if (n > 0) expect(words[n - 1].id).toBe(n);
+    expect(rpcCalls).toHaveLength(Math.floor(n / MAX_ROWS) + 1);
+    for (const call of rpcCalls) expect(call.orders).toEqual([["id", true]]);
   });
 
   it("reviewStats는 페이지 경계가 흔들리지 않게 word_id로 정렬한다", async () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   VOL_CAP,
   bookNav,
@@ -102,34 +102,38 @@ export default function LibraryJourneyPage() {
   // 조회 실패를 빈 배열로 바꾸면 "빈 서재"로 그려져 책이 사라진 줄 안다 — 실패는 실패로 말한다
   const [loadFailed, setLoadFailed] = useState(false);
 
-  const reload = () =>
-    listBooks()
-      .then((bs) => {
-        setBooks(bs);
-        setLoadFailed(false);
-      })
-      .catch(() => setLoadFailed(true))
-      .finally(() => setLoaded(true));
+  // 조회는 한 벌 — 초기 로드와 시트 갱신(onChanged)이 같은 함수를 쓴다. 실패는 null(화면은 loadFailed가 말한다)
+  const reload = useCallback(
+    () =>
+      listBooks()
+        .then((bs) => {
+          setBooks(bs);
+          setLoadFailed(false);
+          return bs;
+        })
+        .catch(() => {
+          setLoadFailed(true);
+          return null;
+        })
+        .finally(() => setLoaded(true)),
+    [],
+  );
 
   // 초기 로드 + 완독 기록 직후 딥링크(/library?open={bookId} → 해당 여정 자세히보기)
   useEffect(() => {
-    listBooks()
-      .then((bs) => {
-        setBooks(bs);
-        const id = Number(new URLSearchParams(window.location.search).get("open"));
-        if (id) {
-          const j = sortJourney(bs);
-          const idx = j.findIndex((b) => b.id === id);
-          if (idx >= 0) {
-            window.history.replaceState(null, "", "/library");
-            setView({ t: "book", vol: Math.floor(idx / VOL_CAP), p: (idx % VOL_CAP) + 2, dir: null });
-            setSheet({ item: j[idx], no: (idx % VOL_CAP) + 1 });
-          }
-        }
-      })
-      .catch(() => setLoadFailed(true))
-      .finally(() => setLoaded(true));
-  }, []);
+    reload().then((bs) => {
+      if (!bs) return;
+      const id = Number(new URLSearchParams(window.location.search).get("open"));
+      if (!id) return;
+      const j = sortJourney(bs);
+      const idx = j.findIndex((b) => b.id === id);
+      if (idx >= 0) {
+        window.history.replaceState(null, "", "/library");
+        setView({ t: "book", vol: Math.floor(idx / VOL_CAP), p: (idx % VOL_CAP) + 2, dir: null });
+        setSheet({ item: j[idx], no: (idx % VOL_CAP) + 1 });
+      }
+    });
+  }, [reload]);
 
   // 여정 순서·보 분할 규칙은 modules/library/journey.ts가 원본
   const journey = useMemo(() => sortJourney(books), [books]);
