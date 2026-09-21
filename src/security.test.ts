@@ -57,4 +57,21 @@ describe("최소 보안 헤더 (SEC-06 · 결정 #56·#72)", () => {
     });
     expect(all!.headers).toContainEqual({ key: "X-Frame-Options", value: "DENY" });
   });
+
+  it("느슨한 CSP — connect-src는 self(+Supabase)만, 인라인을 건드리는 지시어는 두지 않는다", async () => {
+    const rules = await nextConfig.headers!();
+    const csp = rules.find((r) => r.source === "/(.*)")!.headers.find((h) => h.key === "Content-Security-Policy");
+    expect(csp).toBeDefined();
+    const directives = new Map(csp!.value.split(";").map((d) => d.trim().split(/\s+/)).map(([k, ...v]) => [k, v]));
+    expect(directives.get("connect-src")).toContain("'self'");
+    for (const src of directives.get("connect-src")!) {
+      expect(src === "'self'" || /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(src)).toBe(true);
+    }
+    expect(directives.get("frame-ancestors")).toEqual(["'none'"]);
+    expect(directives.get("base-uri")).toEqual(["'self'"]);
+    expect(directives.get("form-action")).toEqual(["'self'"]);
+    // 이 둘을 넣으려면 nonce 미들웨어부터 — 'unsafe-inline'을 붙인 채로 넣는 건 없는 것보다 나쁘다(가짜 안심)
+    expect(directives.has("script-src")).toBe(false);
+    expect(directives.has("style-src")).toBe(false);
+  });
 });
