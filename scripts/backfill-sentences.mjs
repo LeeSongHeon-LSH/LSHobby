@@ -9,6 +9,7 @@
 // - ko_text 없는 예문만 Gemini 번역, Tatoeba에 아예 없는 단어만 Gemini 예문 생성
 // - 무료 한도가 짜서(실측 일 ~20회) 호출을 묶는다: 번역은 16단어 1호출, 생성은 8단어 1호출
 // - 429는 1분 대기 후 1회 재시도로 분당/일일 한도를 구분, 일일 한도면 중단 후 다음 날 재개
+// - 5xx·연결 실패는 30초 간격 2회 재시도 후 Gemini만 끈다 — Tatoeba 원문으로 되는 단어는 계속 채운다
 // - 성공(예문 1개 이상 확보)한 단어만 *_sentence_fetch에 마킹 → 퀴즈 lazy 경로는 캐시 히트
 import { createClient } from "@supabase/supabase-js";
 
@@ -140,10 +141,11 @@ async function fetchTatoeba(word, cfg) {
 
 // ---------- Gemini (무료 등급, REST 직접 호출) ----------
 let geminiCalls = 0;
-let budgetExhausted = false;
+let budgetExhausted = false; // 429/예산 소진 — 오늘은 더 못 부른다, 배치 전체 중단
+let geminiDown = false; // 5xx·연결 실패 — Gemini만 끈다, Tatoeba 경로는 계속
 
 async function gemini(prompt) {
-  if (budgetExhausted) return null;
+  if (budgetExhausted || geminiDown) return null;
   if (geminiCalls >= BUDGET) {
     budgetExhausted = true;
     return null;
@@ -152,18 +154,32 @@ async function gemini(prompt) {
   geminiCalls++;
   let res;
   for (let attempt = 0; ; attempt++) {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.4 },
-        }),
-        signal: AbortSignal.timeout(120000),
-      },
-    );
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json", temperature: 0.4 },
+          }),
+          signal: AbortSignal.timeout(120000),
+        },
+      );
+    } catch (e) {
+      // 전송 계층 실패(ETIMEDOUT·ENETUNREACH 등)는 상태 코드가 없어 아래 5xx 분기에 닿지 못한다
+      // — 잡지 않으면 프로세스가 죽고 그 그룹이 Tatoeba에서 모아둔 예문까지 저장 전에 날아간다
+      if (attempt < 2) {
+        await sleep(30000);
+        continue;
+      }
+      geminiDown = true;
+      console.log(
+        `\nGemini 연결 실패(${e.cause?.code ?? e.message}) 지속 — 이후 Gemini는 건너뛰고 Tatoeba 원문만으로 계속합니다.`,
+      );
+      return null;
+    }
     if (res.status === 429 && attempt < 1) {
       console.log("  … 429 — 분당 한도일 수 있어 65초 대기 후 재시도");
       await sleep(65000);
@@ -181,8 +197,10 @@ async function gemini(prompt) {
     return null;
   }
   if (res.status >= 500) {
-    budgetExhausted = true;
-    console.log(`\nGemini 서버 오류(${res.status}) 지속 — 여기서 중단, 나중에 재실행하면 이어서 진행됩니다.`);
+    geminiDown = true;
+    console.log(
+      `\nGemini 서버 오류(${res.status}) 지속 — 이후 Gemini는 건너뛰고 Tatoeba 원문만으로 계속합니다.`,
+    );
     return null;
   }
   if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
@@ -330,7 +348,7 @@ async function backfillLang(code) {
     // 1d. 단어별 저장 + 마킹
     for (const f of fetched) {
       if (f.drafts.length === 0) {
-        if (!budgetExhausted) {
+        if (!budgetExhausted && !geminiDown) {
           stat.failed++;
           console.log(`  ✗ ${f.w.word} — 예문 확보 실패`);
         }
@@ -361,3 +379,5 @@ for (const code of langFilter ? [langFilter] : Object.keys(LANGS)) {
 }
 console.log(`\nGemini 호출 ${geminiCalls}/${BUDGET}회 사용.`);
 if (budgetExhausted) console.log("한도로 중단됨 — 내일 같은 명령으로 재실행하면 이어서 진행됩니다.");
+else if (geminiDown)
+  console.log("Gemini 장애로 번역·생성이 필요한 단어는 건너뛰었습니다 — 재실행하면 그 단어부터 이어서 진행됩니다.");

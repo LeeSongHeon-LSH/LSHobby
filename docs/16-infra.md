@@ -263,7 +263,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 | 스크립트 | 하는 일 | 비밀 | 재실행 안전 |
 |---|---|---|---|
-| `backfill-sentences.mjs [es\|en] [--budget N]` | 예문 0개인 단어에 Tatoeba 원문(단어당 최대 3개)을 채우고, 번역·부족분만 **Gemini** | `GEMINI_API_KEY` | 예문 있는 단어 건너뜀. 429는 1분 후 1회 재시도, 일일 한도면 중단(실측 ~20회/일) |
+| `backfill-sentences.mjs [es\|en] [--budget N]` | 예문 0개인 단어에 Tatoeba 원문(단어당 최대 3개)을 채우고, 번역·부족분만 **Gemini** | `GEMINI_API_KEY` | 예문 있는 단어 건너뜀. 429는 1분 후 1회 재시도, 일일 한도면 **배치 중단**(실측 ~20회/일). 5xx·연결 실패는 30초 간격 2회 재시도 후 **Gemini만 끄고 Tatoeba 원문으로 계속** — 중단 사유가 로그 마지막 줄에 구분되어 찍힌다 |
 | `backfill-meanings.mjs [es\|en] [--budget N] [--apply]` | 뜻에 동의어 덧붙이기(#79). **2단계**: 플래그 없이 → Gemini 제안을 `meaning-proposals.<code>.json`에 기록(DB 안 건드림) → 파일을 **사람이 검수** → `--apply`로 반영(Gemini 호출 없음) | `GEMINI_API_KEY`(1단계만) | 제안 파일이 기록 — 이미 있는 단어(동의어 없음 판정 포함)·이미 콤마 있는 뜻은 건너뜀. 파일은 gitignore |
 | `seed-es-words.mjs` · `seed-en-words.mjs` | 시드 218·300단어 — **빈 테이블일 때만** | — | 행이 하나라도 있으면 종료 |
 | `generate-icons.mjs` | `src/app/ui/pixel.tsx`의 마스코트 그리드에서 PWA 아이콘 4종 + favicon 생성(#60) | — (`sharp` 필요 — package.json 직접 의존이 아니라 전이 의존) | 덮어쓰기 |
