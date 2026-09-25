@@ -19,7 +19,7 @@ flowchart LR
     subgraph home["집 PC (호스팅, 이 서버)"]
         BUILD["lshobby-deploy.timer<br/>.next-staging 빌드 → mv 교체"]
         PROD["systemd --user lshobby<br/>next start :3000"]
-        TS["tailscale serve :8443"]
+        TS["lshobby-tailscale 컨테이너<br/>tailscale serve :443 → 127.0.0.1:3000"]
     end
     subgraph pages["GitHub Pages"]
         CV["leesongheon-lsh.github.io<br/>공개 CV (별도 리포, §17)"]
@@ -51,7 +51,7 @@ flowchart LR
 |---|---|---|
 | **GitHub** | 소스 저장 + CI | `main`·PR 푸시에 `npm run lint` + `npm test`. 푸시가 배포를 **시작시키지는 않지만**(2026-08-30 Vercel 연동 해제), 배포 타이머가 이 CI 결과를 **게이트**로 읽는다(§16.5) |
 | **집 PC** | 빌드·호스팅 | `systemd --user lshobby` = `next start :3000`. 배포는 `lshobby-deploy.timer`가 **2분 주기 자동**(§16.5, 수동 실행도 같은 스크립트) |
-| **Tailscale** | 외부 접근 | `tailscale serve :8443` — **테일넷 안에서만** 열린다. 인터넷 공개(funnel) 아님 |
+| **Tailscale** | 외부 접근 | 앱 전용 장치 `lshobby`(tailscaled 사이드카 컨테이너, `ops/tailscale-lshobby/`)의 `serve :443` — **테일넷 안에서만** 열린다. 인터넷 공개(funnel) 아님 |
 | **Next.js** | 화면 + (필요 시) 서버 코드 | 16.x, App Router, `src/` 구조 — 모듈 경계는 §3 |
 | **Supabase Auth** | 로그인·세션(JWT) | 이메일 로그인, **가입 서버 차단**(SEC-01), 계정 1개 |
 | **PostgREST** | 테이블 → REST API 자동화 | supabase-js가 클라이언트. 모든 요청에 RLS 적용 |
@@ -111,8 +111,8 @@ flowchart LR
     B -- 성공 --> S["mv .next-staging .next<br/>+ restart + 헬스체크"]
     S -. 헬스체크 실패 .-> R["직전 .next로 롤백"]
     S -- 통과 --> D["next start :3000"]
-    D --> E["tailscale serve :8443"]
-    E --> F["테일넷 주소 :8443<br/>(테일넷 기기에서만)"]
+    D --> E["lshobby-tailscale 컨테이너<br/>tailscale serve :443"]
+    E --> F["https://lshobby.<테일넷>.ts.net<br/>(테일넷 기기에서만)"]
 ```
 
 - **배포 = `main` 푸시** (2026-08-30 자동화). `systemd --user` 타이머 `lshobby-deploy.timer`가 **2분마다** `scripts/deploy-local.sh`를 돌린다. 판정 기준은 **"지금 서빙 중인 빌드가 어느 커밋인가"** — `.next/DEPLOYED_SHA`와 origin/main이 다를 때만 받아서 빌드·교체한다(#77, 2026-08-31). HEAD와 origin을 비교하면 이 PC에서 직접 커밋·푸시할 때 둘이 함께 올라가 "받을 것 없음"이 되어 영영 배포되지 않는다. `DEPLOYED_SHA`는 빌드 성공 시 스테이징에 쓰고 `mv`와 함께 옮기므로 롤백하면 기록도 같이 되돌아간다. 손으로 하려면 **같은 스크립트**를 부른다(아래 계약을 전부 태우기 위해 — 맨손 `npm run build`는 `.next`를 먼저 비우고 `DEPLOYED_SHA`도 안 남긴다):
@@ -142,8 +142,12 @@ flowchart LR
   로그는 `journalctl --user -u lshobby-deploy`. 잠깐 끄려면 `systemctl --user stop lshobby-deploy.timer`.
 - **상시 구동**: `~/.config/systemd/user/lshobby.service` (`Restart=always`) + 배포 타이머 `lshobby-deploy.{service,timer}`, 그리고 `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**를 쓴다(노드를 올리면 유닛도 고쳐야 한다).
 - **외부 접근 = Tailscale `serve`**: 테일넷에 들어온 기기만 닿는다. `funnel`이 아니므로 인터넷에는 열리지 않는다. TLS는 tailscaled가 테일넷 도메인 인증서로 종단한다 — `next.config.ts`의 헤더 3종(SEC-06)은 그대로 살아서 나간다.
-- **포트가 443이 아니라 8443인 이유**: 이 PC의 kind 클러스터(다른 프로젝트) 컨테이너가 `0.0.0.0:80`·`0.0.0.0:443`을 이미 점유하고 있어 tailscaled가 IPv4 443을 잡지 못한다. 443을 비우면 `tailscale serve --bg 3000`으로 되돌려 주소에서 포트를 뗄 수 있다.
-- **끄고 켜기**: `tailscale serve --https=8443 off` / `tailscale serve --bg --https=8443 3000`, 상태는 `tailscale serve status`.
+- **앱마다 tailnet 장치 하나** (2026-09-25, #100): 처음엔 이 PC의 tailscaled가 `<호스트>.ts.net:8443`으로 서빙했다. 가계부가 같은 호스트의 `:8444`로 붙자 **폰이 같은 호스트 이름의 홈 화면 앱을 하나로 취급해 둘 다 설치할 수 없었다**(PWA 정체성은 오리진인데, 안드로이드 홈 화면은 포트를 구분하지 않았다). 그래서 앱은 그대로 호스트의 systemd에 두고, **tailscaled만** 컨테이너(`ops/tailscale-lshobby/compose.yml`, `tailscale/tailscale` 이미지, 호스트 네트워크 + `--tun=userspace-networking`)로 하나 더 띄워 tailnet에 `lshobby` 장치로 붙인다. 이 컨테이너의 `serve --https=443`이 호스트의 `127.0.0.1:3000`으로 넘긴다. 가계부의 `lshab` 장치와 같은 구성이다.
+  - **포트가 443인 이유**: 예전에 8443이었던 것은 이 PC의 kind 클러스터(다른 프로젝트)가 `0.0.0.0:443`을 점유해 호스트 tailscaled가 잡지 못해서였다. userspace 넷스택은 호스트 소켓을 열지 않고 WireGuard(UDP 41643)로 들어온 패킷을 컨테이너 안에서 풀어 처리하므로 그 충돌이 없다 — 주소에서 포트가 떨어진다.
+  - **처음 한 번**: `docker compose -f ops/tailscale-lshobby/compose.yml up -d` → 컨테이너 안에서 `tailscale up --hostname=lshobby`(로그인 URL을 브라우저로) → `serve --bg --https=443 http://127.0.0.1:3000`. 정확한 명령은 compose 파일 주석. 상태는 볼륨 `tailscale-lshobby_state`에 남아 재부팅 뒤에도 유지된다(`restart: unless-stopped`).
+  - **키 만료를 꺼야 한다**: 관리 콘솔 Machines → 장치 → *Disable key expiry*. 기본 180일이라 안 끄면 반년 뒤 조용히 떨어져 나가고, 컨테이너라 재로그인해 줄 사람이 없다. 2026-09-25 확인 시 `lshab`도 켜져 있었다(만료 2027-03-24) — 둘 다 끌 것.
+  - **상태·끄고 켜기**: `docker exec lshobby-tailscale tailscale --socket=/tmp/tailscaled.sock serve status` / `... serve --https=443 off`. 호스트 tailscaled의 옛 `:8443`은 폰이 새 주소로 재설치를 마친 뒤 `tailscale serve --https=8443 off`로 내린다(옛 설치본은 옛 오리진에 묶여 있어 그대로 못 쓴다 — 재설치·재로그인).
+  - **앱·배포 스크립트는 무관하다**: 헬스체크(`deploy-local.sh`)는 `127.0.0.1:3000`을 직접 보고, 코드와 Supabase 설정에 주소를 참조하는 곳이 없다(로그인은 리다이렉트 기반이 아니다).
 - **DB는 그대로 원격 Supabase**다. 호스팅만 내려왔을 뿐이라 PC가 꺼져도 데이터는 안전하고, 대신 PC가 꺼져 있으면 앱에 접속할 수 없다 — 가용성은 NFR-03의 best-effort에서 한 단계 더 내려간 셈(수용).
 
 **공개 CV는 다른 경로다**: 별도 리포 `LeeSongHeon-LSH.github.io`의 `main` 푸시 → GitHub Actions → Pages (§17.4). 이쪽만 인터넷에 있다.
@@ -164,7 +168,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 | | 개발 (`npm run dev`) | 프로덕션 |
 |---|---|---|
-| 화면 | localhost:3000 | `https://<호스트>.ts.net:8443` (같은 PC의 :3000을 프록시) |
+| 화면 | localhost:3000 | `https://lshobby.<테일넷>.ts.net` (사이드카 컨테이너가 같은 PC의 :3000을 프록시) |
 | 실행 | 터미널에서 직접 | `systemd --user lshobby` (`next start`) |
 | 환경변수 | `.env` 파일 | 같은 `.env` 파일 |
 | DB | **같은 Supabase를 바라봄** | 같음 |
@@ -213,7 +217,8 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 |---|---|
 | Supabase 프로젝트 | `pxozfdypiexwakocfofs` (서울 ap-northeast-2) |
 | Supabase URL | `https://pxozfdypiexwakocfofs.supabase.co` |
-| 프로덕션 URL | `https://<호스트>.ts.net:8443` (테일넷 전용) — 실제 값은 `tailscale serve status` |
+| 프로덕션 URL | `https://lshobby.<테일넷>.ts.net` (테일넷 전용) — 실제 값은 `docker exec lshobby-tailscale tailscale --socket=/tmp/tailscaled.sock serve status` |
+| tailnet 사이드카 | `ops/tailscale-lshobby/compose.yml` → 컨테이너 `lshobby-tailscale`, 장치 `lshobby`, WireGuard UDP 41643, 볼륨 `tailscale-lshobby_state` (§16.5) |
 | 서비스 유닛 | `~/.config/systemd/user/lshobby.service` |
 | 공개 CV | https://leesongheon-lsh.github.io (리포 `LeeSongHeon-LSH.github.io`, §17) |
 | 구 Vercel 프로젝트 | `lshobby` (팀 `lsh12`) — GitHub 연동 해제됨 (2026-08-30) |
