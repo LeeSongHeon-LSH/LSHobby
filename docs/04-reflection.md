@@ -75,9 +75,9 @@ reflection_entry (
 |---|---|---|
 | 대상 | 엔티티에 붙음 — `reflection_thread(subject_type, subject_id)` 다형 참조 | **대상 없음** — 하루의 생각 스트림 |
 | 테이블 | `reflection_thread` · `reflection_entry` (shared) | `thought` · `thought_digest` (thought 모듈, FK 없음) |
-| 수정·삭제 | 없음 (thread는 엔티티 삭제 시 앱 레이어가 정리) | 없음 — 삭제 API 자체가 없다 |
+| 수정·삭제 | 없음 (thread는 엔티티 삭제 시 앱 레이어가 정리) | 없음 — 삭제 API 자체가 없다. 예외: 기계 주석 `topics`만 다이제스트 배치가 사후에 갱신 |
 | 요약 | 없음 | 집 PC 로컬 LLM 배치(`scripts/digest-thoughts.mjs`)가 하루 1건 `thought_digest`로 |
-| 화면 | 책 자세히보기 시트의 생각 타임라인 | `/thoughts` — 날짜 그룹 스트림·검색·주제 궤적·"그때의 나" |
+| 화면 | 책 자세히보기 시트의 생각 타임라인 | `/thoughts` — 월 달력 + 하루 시트·검색·주제 궤적·"그때의 나" (#84) |
 
 날짜 축 주의: 배치의 하루 경계는 **KST 고정**(#78 — 서버가 UTC라 로컬 타임존을 믿지 않는다)인 반면, 앱의 `dayKey`(`thought/service.ts`)는 **브라우저 로컬 시간**으로 묶는다. 한국에서 쓰는 한 같은 축이지만, 다른 타임존의 브라우저에서 보면 요약과 그룹이 하루 어긋날 수 있다.
 

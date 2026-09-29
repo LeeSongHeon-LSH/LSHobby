@@ -1,0 +1,12 @@
+# main의 새 커밋을 받아 빌드·재시작 (docs/16 §16.5). 타이머가 호출한다.
+[Unit]
+Description=LSHobby 자동 배포 (git pull -> build -> restart)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# nvm은 로그인 셸에서만 PATH를 잡아 준다 — lshobby.service와 같은 절대 경로
+Environment=PATH=/home/leesongheon/.nvm/versions/node/v24.19.0/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/leesongheon/projects/LSHobby/scripts/deploy-local.sh
+TimeoutStartSec=900

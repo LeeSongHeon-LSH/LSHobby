@@ -48,11 +48,14 @@ activity_feed (
   domain,        -- 'library' | 'language' | 'thought'   (knowledge는 #57로 폐기)
   entity_type,   -- 'book' | '{lang}_word' | '{lang}_review_day' | 'thought'  (#35 — 테이블 특정 값)
   entity_id,
-  action,        -- 'created' | 'updated' | 'reflected' | 'completed'
+  action,        -- 'created' | 'completed' | 'noted' | 'reviewed'  (§9.2와 동일 — reflection은 발행 안 함)
   summary,       -- 타임라인 표시용 한 줄 (비정규화)
-  occurred_at
+  occurred_at,
+  occurred_on    -- 일별 요약만 채우는 로컬 날짜, 유니크 인덱스의 한 축 (#96)
 )
 ```
+
+정식 DDL은 §9.2 참조.
 
 **`summary` 비정규화가 핵심.** 정규화하면 타임라인 렌더링마다 세 모듈을
 모두 조회해야 하므로 홈이 느려지고 모듈 경계도 깨진다.

@@ -1,5 +1,6 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
+> **개정 (2026-09-29, 코드 대조)**: 삭제된 `shared/search`(#97) 제거, `shared/db`(#87)·`redirect-if-authed.tsx`·`library/book-sheet.tsx`·`ui/accent.ts`(#91) 추가.
 > **개정 (2026-09-02, 코드 대조)**: `thought` 도메인 모듈·`shared/markdown` 추가, `app/` 트리를 실제 라우트대로, `search/`는 빈 스텁 표시, §3.4 규칙의 알려진 예외 2건 기록(#83).
 > **개정 (2026-08-20, 결정 #57~61 반영 완료)**: CS 세션 제거 · 인용구 삭제가 코드(커밋 6246582~)와 DB(마이그레이션 20260820090000 · 20260820100000)에 모두 반영됐다. 본문은 현행 상태로 개정됨 — CS/quote 관련 폐기 항목은 사료 표시.
 
@@ -36,17 +37,18 @@ src/
 │       ├── tag/
 │       ├── markdown/     # 마크다운 렌더 (sanitize, SEC-05)
 │       ├── i18n/         # UI 고정 문구 사전 ko(원본)·en·es + 현재 언어 훅 (#89)
-│       ├── search/       # 빈 스텁 (export {}) — 검색은 도메인별 구현
+│       ├── db/           # Supabase 생성 타입(database.types.ts) — 행 타입의 원본 (#87)
 │       └── auth/         # 클라이언트 + AuthGuard + 서버 라우트용 client
 └── app/
     ├── page.tsx          # 입구(/) — 마스코트 → 로그인, 세션 있으면 /home
+    ├── redirect-if-authed.tsx  # 입구의 세션 리다이렉트 (저장된 세션 키만 확인)
     ├── login/
     ├── home/             # 통합 홈 (허브, 서랍 3개)
-    ├── library/          # 세션별 전용 공간 (+ record/)
+    ├── library/          # 세션별 전용 공간 (+ record/ · book-sheet.tsx)
     ├── language/         # (+ add/ quiz/ stats/ words/)
     ├── thoughts/
     ├── api/sentence/     # Tatoeba 수집 서버 라우트
-    ├── ui/               # 공용 UI — pixel(도트 스프라이트)·scene·tab-bar·home-button·icons
+    ├── ui/               # 공용 UI — pixel(도트 스프라이트)·scene·tab-bar·home-button·icons·accent(도메인색, #91)
     ├── manifest.ts · sw-register.tsx   # PWA
     └── layout.tsx
 ```
@@ -67,7 +69,7 @@ src/
         │  ├── reflection (생각 타임라인) │  ← 핵심
         │  ├── activity   (활동 피드)     │
         │  ├── tag / markdown / auth     │
-        │  └── search (빈 스텁)          │
+        │  └── i18n / db (생성 타입)     │
         └───────────────────────────────┘
 ```
 
@@ -76,7 +78,7 @@ src/
 1. **모듈 간 직접 import 금지** — 공개 인터페이스(`index.ts`)를 통해서만 접근
 2. **각 모듈은 자기 테이블만 소유** — 타 모듈 테이블 직접 쿼리 금지
 3. **모듈 간 통신은 이벤트 발행으로** — `shared/activity`가 수신
-4. 공통 관심사(reflection, tag, search)는 `shared`에 위치
+4. 공통 관심사(reflection, tag, activity, markdown, i18n)는 `shared`에 위치
 5. 도메인 모듈은 `shared`에 의존 가능, **역방향 의존 금지**
 
 > 이 규칙들은 향후 정적 검사(import 경로 lint 규칙 등)로 강제하는 것을 검토.

@@ -1,0 +1,10 @@
+[Unit]
+Description=LSHobby 자동 배포 2분 주기
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+Unit=lshobby-deploy.service
+
+[Install]
+WantedBy=timers.target

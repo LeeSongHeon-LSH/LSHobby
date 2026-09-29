@@ -49,7 +49,7 @@ flowchart LR
 
 | 구성요소 | 역할 | 우리 설정 |
 |---|---|---|
-| **GitHub** | 소스 저장 + CI | `main`·PR 푸시에 `npm run lint` + `npm test`. 푸시가 배포를 **시작시키지는 않지만**(2026-08-30 Vercel 연동 해제), 배포 타이머가 이 CI 결과를 **게이트**로 읽는다(§16.5) |
+| **GitHub** | 소스 저장 + CI | `main`·PR 푸시에 `npm run lint` + `npm run typecheck`(`next typegen && tsc --noEmit`) + `npm test` — pre-push 훅(`.githooks/pre-push`)과 같은 순서. 푸시가 배포를 **시작시키지는 않지만**(2026-08-30 Vercel 연동 해제), 배포 타이머가 이 CI 결과를 **게이트**로 읽는다(§16.5) |
 | **집 PC** | 빌드·호스팅 | `systemd --user lshobby` = `next start :3000`. 배포는 `lshobby-deploy.timer`가 **2분 주기 자동**(§16.5, 수동 실행도 같은 스크립트) |
 | **Tailscale** | 외부 접근 | 앱 전용 장치 `lshobby`(tailscaled 사이드카 컨테이너, `ops/tailscale-lshobby/`)의 `serve :443` — **테일넷 안에서만** 열린다. 인터넷 공개(funnel) 아님 |
 | **Next.js** | 화면 + (필요 시) 서버 코드 | 16.x, App Router, `src/` 구조 — 모듈 경계는 §3 |
@@ -85,15 +85,17 @@ sequenceDiagram
 
 | 비밀 | 성격 | 위치 | 용도 |
 |---|---|---|---|
-| anon key | **공개돼도 됨** (RLS가 방어) | `.env`, 브라우저 번들 | 클라이언트 접속 |
-| service_role key | **절대 비공개** — RLS를 통째로 우회 | `.env`(로컬), `~/.lshobby/api-keys.json` | 관리 작업(계정 생성·SEC-08 재설정), 추후 서버 코드 |
+| anon key — `NEXT_PUBLIC_SUPABASE_URL`·`NEXT_PUBLIC_SUPABASE_ANON_KEY` | **공개돼도 됨** (RLS가 방어) | `.env`, 브라우저 번들 | 클라이언트 접속. 앱 실행에 필요한 env는 이 둘뿐 |
+| service_role key — `SUPABASE_SERVICE_ROLE_KEY` | **절대 비공개** — RLS를 통째로 우회 | `.env`(로컬), `~/.lshobby/api-keys.json` | 관리 작업(계정 생성·SEC-08 재설정), 추후 서버 코드 |
 | DB 비밀번호 | 비공개 | `~/.lshobby/db-password` | `pg_dump` 백업(NFR-04), `supabase link` |
 | 앱 로그인 비밀번호 | 본인만 | `~/.lshobby/app-password` (+비밀번호 관리자) | 앱 로그인. 분실 시 SEC-08 런북 |
 | Supabase 대시보드 계정 | **최상위 복구 수단** | GitHub 로그인 | 모든 것의 마스터 키 |
 | `GEMINI_API_KEY` | 비공개 (외부 API 실비밀) | `.env` | 배치 전용 — 예문·뜻 동의어 백필(§16.13). 앱 코드는 안 읽는다 |
 | `NOTION_TOKEN` · `NOTION_BACKUP_DB_ID` | 비공개 | `.env` | Notion 백업 미러(§16.12). 구 `NOTION_DB_ID`·`NOTION_BOOK_DB_ID`·`NOTION_WORD_DB_ID`는 읽는 코드가 없다 |
 
-> **정리 대상 (2026-09-02 확인)**: `.env`에 Vercel CLI가 남긴 `VERCEL_OIDC_TOKEN`, 그리고 코드 참조가 없는 `SUPABASE_SECRET_KEY`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`가 남아 있다 — 제거해도 되는 잔여물. 반대로 `NOTION_BACKUP_DB_ID`는 **아직 `.env`에 없어** 백업 스크립트가 시작 즉시 종료한다(§16.12 참조).
+> **정리 대상 (2026-09-29 확인)**: 코드 참조가 없는 `SUPABASE_SECRET_KEY`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 두 개만 남았다 — 제거해도 되는 잔여물. (`VERCEL_OIDC_TOKEN`·구 Notion 3변수는 정리됐고 `NOTION_BACKUP_DB_ID`는 들어 있다.)
+
+비밀이 아닌 선택 env: `OLLAMA_URL`·`DIGEST_MODEL`(다이제스트 오버라이드, §16.11), `NEXT_DIST_DIR`·`DEPLOY_SKIP_CI`(배포 스크립트용, §16.5). `.env.example`은 두지 않았다 — 둔다면 `.gitignore`의 `.env.*`에 `!.env.example` 예외가 필요하다.
 
 규칙(SEC-03): 비밀은 `.env`(gitignore)로만 — 코드·리포에 하드코딩 금지. 호스팅이 집 PC로 내려오면서 원격 환경변수 저장소는 아예 없어졌다. **`NEXT_PUBLIC_` 접두사가 붙은 변수만 브라우저 번들에 들어간다**는 Next.js 규칙이 anon(공개)과 service_role(서버 전용)의 경계를 코드 레벨에서 지켜준다.
 
@@ -140,8 +142,9 @@ flowchart LR
   - **빌드 캐시**: `.next/cache`를 스테이징에 복사해 물려준다. 원래는 `next/font/google`의 `fonts.gstatic.com` 접속을 피하려던 것인데, #90·#92부터 글꼴이 npm 패키지(`pretendard`·`galmuri`)라 빌드가 외부에 닿지 않는다 — 복사는 컴파일 캐시 재사용 목적으로 남긴다. 글꼴을 바꾸면 `public/sw.js`의 `CACHE` 이름을 올린다(#92).
 
   로그는 `journalctl --user -u lshobby-deploy`. 잠깐 끄려면 `systemctl --user stop lshobby-deploy.timer`.
-- **상시 구동**: `~/.config/systemd/user/lshobby.service` (`Restart=always`) + 배포 타이머 `lshobby-deploy.{service,timer}`, 그리고 `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**를 쓴다(노드를 올리면 유닛도 고쳐야 한다).
-- **외부 접근 = Tailscale `serve`**: 테일넷에 들어온 기기만 닿는다. `funnel`이 아니므로 인터넷에는 열리지 않는다. TLS는 tailscaled가 테일넷 도메인 인증서로 종단한다 — `next.config.ts`의 헤더 3종(SEC-06)은 그대로 살아서 나간다.
+- **상시 구동**: `lshobby.service` (`Restart=always`) + 배포 타이머 `lshobby-deploy.{service,timer}` — 원본은 리포 `scripts/systemd/`, `scripts/install-timers.sh`가 `~/.config/systemd/user/`로 복사한다(2026-09-29, #102), 그리고 `loginctl enable-linger` — 로그아웃·재부팅 뒤에도 자동으로 뜬다. nvm은 로그인 셸에서만 PATH를 잡아 주므로 유닛은 **node 절대 경로**(현재 `~/.nvm/versions/node/v24.19.0`)를 쓴다(노드를 올리면 유닛도 고쳐야 한다). CI는 `node-version: 22`(`ci.yml`)라 **운영(24)과 CI(22)의 Node 메이저가 다르다** — `package.json`에 `engines`도 없다. `lshobby.service`는 `next start --hostname 127.0.0.1 --port 3000` — **루프백에만 바인드**한다(#102). 밖에서는 tailscale 사이드카로만 들어오고, 헬스체크(`deploy-local.sh`)와 `serve`의 프록시 대상도 `127.0.0.1:3000`이다.
+- **외부 접근 = Tailscale `serve`**: 테일넷에 들어온 기기만 닿는다. `funnel`이 아니므로 인터넷에는 열리지 않는다. TLS는 tailscaled가 테일넷 도메인 인증서로 종단한다 — `next.config.ts`의 보안 헤더(3종 + CSP, SEC-06·#101)는 그대로 살아서 나간다.
+- **빌드는 `.env`가 있는 이 PC에서만**: CSP의 `connect-src`는 **빌드 시점의** `NEXT_PUBLIC_SUPABASE_URL`로 만들어진다(#101). env 없이 빌드한 산출물은 `connect-src 'self'`만 남아 브라우저가 Supabase 호출을 막고 앱 전체가 멈춘다.
 - **앱마다 tailnet 장치 하나** (2026-09-25, #100): 처음엔 이 PC의 tailscaled가 `<호스트>.ts.net:8443`으로 서빙했다. 가계부가 같은 호스트의 `:8444`로 붙자 **폰이 같은 호스트 이름의 홈 화면 앱을 하나로 취급해 둘 다 설치할 수 없었다**(PWA 정체성은 오리진인데, 안드로이드 홈 화면은 포트를 구분하지 않았다). 그래서 앱은 그대로 호스트의 systemd에 두고, **tailscaled만** 컨테이너(`ops/tailscale-lshobby/compose.yml`, `tailscale/tailscale` 이미지, 호스트 네트워크 + `--tun=userspace-networking`)로 하나 더 띄워 tailnet에 `lshobby` 장치로 붙인다. 이 컨테이너의 `serve --https=443`이 호스트의 `127.0.0.1:3000`으로 넘긴다. 가계부의 `lshab` 장치와 같은 구성이다.
   - **포트가 443인 이유**: 예전에 8443이었던 것은 이 PC의 kind 클러스터(다른 프로젝트)가 `0.0.0.0:443`을 점유해 호스트 tailscaled가 잡지 못해서였다. userspace 넷스택은 호스트 소켓을 열지 않고 WireGuard(UDP 41643)로 들어온 패킷을 컨테이너 안에서 풀어 처리하므로 그 충돌이 없다 — 주소에서 포트가 떨어진다.
   - **처음 한 번**: `docker compose -f ops/tailscale-lshobby/compose.yml up -d` → 컨테이너 안에서 `tailscale up --hostname=lshobby`(로그인 URL을 브라우저로) → `serve --bg --https=443 http://127.0.0.1:3000`. 정확한 명령은 compose 파일 주석. 상태는 볼륨 `tailscale-lshobby_state`에 남아 재부팅 뒤에도 유지된다(`restart: unless-stopped`).
@@ -162,7 +165,7 @@ DB 스키마의 진실은 대시보드가 아니라 **리포의 마이그레이�
 supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 ```
 
-변경 순서: ① 새 마이그레이션 파일 작성(`supabase migration new 이름`) → ② `supabase db push`로 원격 적용 → ③ 커밋. 대시보드에서 손으로 고치면 리포와 어긋나므로 금지. 영어 확장(`en_*` 4테이블)도 이 절차로 파일 하나 추가하면 된다(§6.2).
+변경 순서: ① 새 마이그레이션 파일 작성(`supabase migration new 이름`) → ② `supabase db push`로 원격 적용 → ③ **`npm run db:types`**(생성 타입 갱신 — 빠뜨리면 `schema.test.ts`의 표 목록 대조가 실패) → ④ `npm test` → ⑤ 커밋. 새 표를 만들면 RLS `do $$` 블록이 필수다(`schema.test.ts`의 RLS 커버리지가 검사). 대시보드에서 손으로 고치면 리포와 어긋나므로 금지. 영어 확장(`en_*` 4테이블)도 이 절차로 파일 하나 추가하면 된다(§6.2).
 
 ### 16.7 로컬 개발 ↔ 프로덕션
 
@@ -219,7 +222,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 | Supabase URL | `https://pxozfdypiexwakocfofs.supabase.co` |
 | 프로덕션 URL | `https://lshobby.<테일넷>.ts.net` (테일넷 전용) — 실제 값은 `docker exec lshobby-tailscale tailscale --socket=/tmp/tailscaled.sock serve status` |
 | tailnet 사이드카 | `ops/tailscale-lshobby/compose.yml` → 컨테이너 `lshobby-tailscale`, 장치 `lshobby`, WireGuard UDP 41643, 볼륨 `tailscale-lshobby_state` (§16.5) |
-| 서비스 유닛 | `~/.config/systemd/user/lshobby.service` |
+| 서비스 유닛 | `scripts/systemd/lshobby.service` → `~/.config/systemd/user/` (`scripts/install-timers.sh`) |
 | 공개 CV | https://leesongheon-lsh.github.io (리포 `LeeSongHeon-LSH.github.io`, §17) |
 | 구 Vercel 프로젝트 | `lshobby` (팀 `lsh12`) — GitHub 연동 해제됨 (2026-08-30) |
 | 앱 계정 | leesongheon1209@gmail.com (1계정, 가입 차단) |
@@ -260,7 +263,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 구 활동 미러의 행들은 Notion에 그대로 남아 있다(삭제는 수동). 백업 DB를 Notion에서 다른 위치로 옮기면 integration 공유가 끊길 수 있다 — 옮긴 뒤에는 해당 페이지에 integration을 다시 연결해야 한다.
 
-> **2026-09-02 확인**: 개발 체크아웃의 `.env`에는 `NOTION_BACKUP_DB_ID`가 아직 없고 구 3변수만 남아 있다(§16.4). 이 상태로는 스크립트가 시작 즉시 종료한다 — 서버 체크아웃의 `.env`도 같은지 확인할 것.
+> ~~**2026-09-02 확인**: 개발 체크아웃의 `.env`에는 `NOTION_BACKUP_DB_ID`가 아직 없고 구 3변수만 남아 있다~~ → **2026-09-29: 해소** — `NOTION_BACKUP_DB_ID` 있음, 구 3변수 정리됨(§16.4).
 
 ### 16.13 수동·반자동 배치 (`scripts/`)
 
@@ -279,7 +282,7 @@ supabase/migrations/20260814224424_initial_schema.sql   ← §9 DDL 원본
 
 ### 16.14 정기 배치 = systemd 사용자 타이머 + 실패 알림 + DB 백업 (2026-09-06)
 
-cron 두 줄(다이제스트 00:30·Notion 백업 00:40)을 **`systemd --user` 타이머**로 옮기고, DB 백업 타이머를 새로 달았다. 유닛은 리포 `scripts/systemd/`에 있고 `scripts/install-timers.sh`가 `~/.config/systemd/user/`로 복사해 켠다(재실행 안전). 배포 타이머 `lshobby-deploy.*`는 2026-08-30에 손으로 만든 그대로라 여기 없다.
+cron 두 줄(다이제스트 00:30·Notion 백업 00:40)을 **`systemd --user` 타이머**로 옮기고, DB 백업 타이머를 새로 달았다. 유닛은 리포 `scripts/systemd/`에 있고 `scripts/install-timers.sh`가 `~/.config/systemd/user/`로 복사해 켠다(재실행 안전). 2026-09-29(#102)부터 앱 유닛 `lshobby.service`와 배포 타이머 `lshobby-deploy.*`도 여기 있다 — 스크립트는 앱을 켜 두기만 하고 재시작하지 않으므로, 앱 유닛을 바꿨으면 `systemctl --user restart lshobby`.
 
 | 타이머 | 시각 (UTC) | 하는 일 |
 |---|---|---|

@@ -52,20 +52,29 @@ sequenceDiagram
 
     U->>Q: 시작하기
     Q->>DB: 덱 전체 + 단어별 집계 조회 (loadDeck)
-    Q->>Q: practiceOrder — due 복습·신규 1:1 교대 → 아직 due 아닌 것 (#82, 하루 할당 없음)
-    loop 카드마다 (한 바퀴 소진 시 세션 정답률로 재정렬 후 새 바퀴 — 종료는 사용자가 [종료])
-        Q->>Q: 출제 방향 결정 (sk/ks 50:50, 30% 확률로 예문 cloze 시도)
-        U->>Q: 타이핑 답안
-        Q->>C: 채점 (악센트 관대 · ñ 엄격)
-        Q->>E: 정답=Good / 오답=Again
-        E->>DB: es_words FSRS 상태 갱신 (due·stability·…)
-        E->>DB: es_review_log 1행 insert
-        Q-->>U: 정답·뜻 표시(+cloze면 예문·번역) · 단어 TTS 1회 → 다음
+    Q->>Q: new StudySession(words, stats, now, seededRandom(날짜:언어)) — §6.3 #99
+    Q->>DB: 오늘 소개될 신규의 예문 미리 받기 (upcomingFresh → ensureSentences)
+    loop next()가 카드를 내는 동안 (due 재도래 Learning → 소개 뒤 첫 인출 → due 복습 → 신규 12개·75% 가드 → 대기 카드)
+        alt 소개 카드 (kind = intro)
+            Q-->>U: 단어·뜻·예문·TTS
+            U->>Q: [알겠음] (채점 없음, FSRS 미기록)
+        else 퀴즈 카드 (kind = quiz)
+            Q->>Q: pickDirection — New·Learning은 뒤집기만, Review는 sk/ks 반반 + 30% 빈칸 시도
+            alt 뒤집기 (단어→뜻)
+                U->>Q: [뜻 보기] → [틀림]/[맞음] 자기 채점
+            else 타이핑 (뜻→단어, 예문 빈칸)
+                U->>Q: 타이핑 답안
+                Q->>C: 채점 (악센트 관대 · ñ 엄격)
+            end
+            Q->>E: applyAnswer — 정답=Good / 오답=Again
+            Q->>Q: graded — Learning으로 남으면 그 due에 세션 안 재출제
+            Q->>DB: saveAnswer (한 줄로 직렬화): es_words FSRS 갱신 → es_review_log 1행 → activity_feed 일별 요약 upsert ("단어 N개 복습, 정답률 M%")
+        end
     end
-    Q->>DB: activity_feed 일별 요약 upsert<br/>("단어 N개 복습, 정답률 M%")
+    Q-->>U: 끝 화면 (맞힌 수 · 새 단어 수 · 내일 복습 dueByTomorrow) — [종료]로 먼저 끝낼 수도 있다
 ```
 
-- **복습 1회 = `es_review_log` 1행**이 유일한 이력 원본 — 통계·스트릭·어려운 단어·신규 한도 전부 여기서 파생(#36)
+- **복습 1회 = `es_review_log` 1행**이 유일한 이력 원본 — 통계·스트릭·정답률 오름차순 출제 순서 전부 여기서 파생(#36)
 - activity는 당일 재학습 시 같은 행을 **갱신**(건별 발행 아님, §6.4)
 
 ### 14.4 단어 추가

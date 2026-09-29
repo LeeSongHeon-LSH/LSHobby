@@ -1,5 +1,6 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
+> **개정 (2026-09-29, 코드 대조)**: §15.3 Session을 `StudySession`(#99)·`saveAnswer` 기준으로, 삭제된 `getFeed`·`aggregate`·`stateLabel`·`shared/search`(#89·#97) 제거, §15.1에 `db`·`i18n` 추가, activity_feed 소비자 정정(다이제스트 배치뿐).
 > **개정 (2026-09-02, 코드 대조)**: 클래스 블록을 각 모듈 `index.ts`의 실제 export대로 전면 갱신(함수명·시그니처), thought 모듈·독서 여정·markdown 추가, Concept/WikiLink는 사료, 신규 한도 삭제(#81), 불변식 4 개정(홈은 count API), 알려진 예외 기록(#83).
 > **개정 (2026-08-20, 결정 #57~61 반영 완료)**: CS 세션 제거 · 인용구 삭제가 코드(커밋 6246582~)와 DB(마이그레이션 20260820090000 · 20260820100000)에 모두 반영됐다. 본문은 현행 상태로 개정됨 — CS/quote 관련 폐기 항목은 사료 표시.
 
@@ -22,16 +23,19 @@ flowchart TD
         TAG[tag]
         MD[markdown]
         AUTH[auth]
+        DB[db 생성 타입]
+        I18N[i18n]
     end
     LIB --> REF & ACT & TAG
-    LANG --> ACT & REF
+    LANG --> ACT
+    LANG -.->|예외: 테이블 직접| REF
     THO --> ACT
-    domain --> AUTH
-    APP[app 화면] --> MD
+    domain --> AUTH & DB
+    APP[app 화면] --> MD & I18N
 ```
 
 - 화살표 = 허용된 의존. **역방향(shared → 도메인)·도메인 간 직접 의존은 금지**(§3.4)
-- 도메인 간 정보 전달은 `activity` 이벤트 발행이 유일한 통로. ~~홈은 activity만 읽는다~~ → 홈은 각 모듈의 **count 공개 API**(`countBooks`·`countWords`·`countThoughts`)로 서랍 숫자를 만든다(#69). `activity_feed`는 앱 화면 소비처가 없다 — 배치(§16.11·16.12)가 읽는다
+- 도메인 간 정보 전달은 `activity` 이벤트 발행이 유일한 통로. ~~홈은 activity만 읽는다~~ → 홈은 각 모듈의 **count 공개 API**(`countBooks`·`countWords`·`countThoughts`)로 서랍 숫자를 만든다(#69). `activity_feed`는 앱 화면 소비처가 없다 — 다이제스트 배치(§16.11)만 읽는다
 - language → reflection은 삭제 정리(`deleteWord`) 용도뿐 — 단어 화면에 reflection 블록은 아직 없다(§11.7). **현재는 공개 API 대신 테이블을 직접 다룬다(알려진 예외, §3.4·#83)**
 
 ### 15.2 shared 모듈
@@ -47,7 +51,6 @@ classDiagram
     class ActivityService {
         +publish(domain, entityType, entityId, action, summary) void
         +upsertDaily(domain, entityType, entityId, action, summary, now?) void
-        +getFeed(limit=30, before?) FeedItem[]
     }
     class TagService {
         +tagsOf(subjectType, subjectId) string[]
@@ -73,12 +76,12 @@ classDiagram
         +LocaleSync 컴포넌트 — html lang 동기화
     }
     note for ReflectionService "addEntry: 스레드 없으면 자동 생성 (엔티티당 1개)\nentry 수정·삭제 API 없음 — append-only (§4.2)\nremoveThread: 엔티티 삭제 시 앱 레이어 정리용(§14.7) — entry는 DB cascade"
-    note for ActivityService "upsertDaily: 언어 학습 일별 요약용 — 당일 같은 키면 갱신 (§6.4)\ngetFeed: 노출만 — 앱 화면 호출처 없음(#53 이후)"
+    note for ActivityService "upsertDaily: 언어 학습 일별 요약용 — 당일 같은 키면 갱신 (§6.4)\ngetFeed는 #97로 삭제 — 홈 타임라인 재도입 시 #97부터 읽는다"
 ```
 
 - reflection 블록의 **렌더링도 shared 소유**(§11.7) — 도메인 화면은 subject만 넘긴다
 - `i18n`은 **화면 고정 문구만** 다룬다(#89) — 사용자 콘텐츠·활동 피드 summary·메타데이터는 대상 아님. `Dict`는 `typeof ko`라 다른 언어 파일의 키 누락이 컴파일 오류
-- `search/`는 `export {}` 빈 스텁 — 검색은 도메인별(단어장 클라이언트 필터, `searchThoughts`)
+- 검색은 도메인별(단어장 클라이언트 필터, `searchThoughts`) — `shared/search` 스텁은 #97로 삭제
 - 다형 참조(subjectType+subjectId)의 무결성 책임은 이 서비스들을 호출하는 앱 레이어에 있음(§4.5, 삭제는 §14.7)
 
 ### 15.3 language 모듈 — config 주입 구조 (§6.2)
@@ -121,19 +124,22 @@ classDiagram
         +addWord(config, …) · updateWord(config, id, …) · deleteWord(config, id)
     }
     class Session {
-        +loadDeck(config, now) {words, due, stats}
-        +practiceOrder(words, stats, now, rand) Word[] — §6.3 #82
-        +answerWord(…) — FSRS 반영 + review_log + activity 일별 upsert
+        +loadDeck(config) {words, stats}
+        +StudySession(words, stats, now, rand) — next() · graded(word, ok, now) · upcomingFresh() §6.3 #99
+        +pickDirection(word, rand) {dir, tryCloze}
+        +dueByTomorrow(words, now) number
+        +seededRandom(seed) — 하루 고정 신규 순서
+        +saveAnswer(config, wordId, {fields, rating}, now?) — words 갱신 + review_log + activity upsertDaily
         +reviewStats(config) Map~id, WordStat~ — RPC
     }
     class Srs {
-        +isNew(row) · isDue(row, now)
+        +isNew(row) · isLearning(row) · isDue(row, now)
         +ratingFor(correct) Grade — Good/Again
         +applyAnswer(row, correct, now) {fields, rating}
     }
     class Stats {
         +fetchStats(config, words) LangStats — 스트릭·정답률·stateCounts·14일
-        +aggregate · aggregateDaily · computeStreak · localDate
+        +aggregateDaily · computeStreak · localDate
         +todayReviewSummary(config, now)
         +buildCsv(words, perWord) string
     }
@@ -143,7 +149,7 @@ classDiagram
     class Display {
         +promptMeaning(meaning) — 앞 두 뜻 (#79)
         +clozeIndex(text, word) — 유니코드 단어 경계 (#76)
-        +articleFor(gender) · stateLabel(state)
+        +articleFor(gender) — FSRS 상태 라벨은 i18n 사전 `lang.states`(#89)
     }
 
     LanguageConfig <|.. EsConfig
@@ -159,8 +165,19 @@ classDiagram
 ```
 
 - **언어 추가 = config 구현 1개 + 테이블 복제 + RPC 2종** — 서비스 코드는 전 언어 공용 한 벌(FR-18의 구현 형태). 모든 서비스 함수는 첫 인자로 `config`를 받는다
-- 출제 순서(정답률 오름차순)·복습 통계는 전부 `*_review_log` 파생(RPC) — 카운터 상태 없음(#36). ~~신규 한도·어려운 단어 판정~~은 #81로 폐기
+- 출제 순서(정답률 오름차순)·복습 통계는 전부 `*_review_log` 파생(RPC) — 카운터 상태 없음(#36). ~~신규 한도·어려운 단어 판정~~은 #81로 폐기 (#99로 세션당 12개 상한 재도입 — 코드 상수 `NEW_CAP`, DB 칼럼 아님)
 - 예문 수집의 Tatoeba 실호출은 서버 라우트(`app/api/sentence`)와 `tatoeba.ts`에 있다 — 서비스 키 미노출. 라우트가 내부 파일을 직접 import하는 것은 알려진 예외(§3.4·#83)
+
+**API 라우트 계약** — 앱의 서버 라우트는 이것 하나다(나머지는 브라우저 → Supabase 직행, §16.3).
+
+| 항목 | 내용 |
+|---|---|
+| 경로 | `GET /api/sentence/[lang]/[wordId]` (`app/api/sentence/[lang]/[wordId]/route.ts`) |
+| 호출자 | `ensureSentences(config, wordId)` — `Authorization: Bearer <세션 access_token>`, 2.5초에 끊고 실패·비2xx는 `[]`로 넘긴다(예문 없이도 카드는 선다) |
+| 입력 검사 | `lang`은 `configFor` 허용목록(`Object.hasOwn` 가드), `wordId`는 정수 — 어긋나면 **400**. 그다음 Bearer 없으면 **401** |
+| DB 접근 | `serverClientWithToken(token)` = anon key + 호출자 JWT → RLS가 호출자 권한으로 평가. `service_role` 미사용 |
+| 처리 순서 | ① `*_sentence_fetch`에 그 단어가 있으면(수집 끝) 바로 ④ ② 없으면 단어를 읽어(없으면 **404**) Tatoeba에 언어별 5초 제한으로 묻는다 ③ **`complete`일 때만** 예문 insert + fetch 마커 insert — 일시 장애면 아무것도 남기지 않고 다음 호출에 다시 묻는다(#94) ④ `*_sentences` 전부를 **200** JSON 배열로 |
+| 오류 | 첫 조회 오류 중 PGRST30x(토큰 만료·서명 불량)만 **401**, 그 밖의 DB 오류는 전부 **500** — `[]`+200으로 삼키지 않는다(2026-09-21 리뷰) |
 
 ### 15.4 library 모듈
 
@@ -233,6 +250,6 @@ rename은 참조 본문 일괄 치환 후 재저장, remove는 §14.7 두 갈래
 1. `reflection_entry`는 UPDATE/DELETE 경로가 코드에 존재하지 않는다 — append-only (§4.2)
 2. 엔티티 삭제는 항상 두 갈래: DB cascade + 앱 레이어 다형 행 정리 (§14.7)
 3. `activity_feed`는 어떤 삭제에도 휩쓸리지 않는다 — 영구 보존 (§9.3)
-4. ~~홈은 `activity_feed` 외의 도메인 테이블을 읽지 않는다~~ → 홈은 각 모듈의 **count 공개 API만** 호출한다(테이블 직접 접근 금지). `activity_feed`는 앱 화면에서 읽지 않는다 — Notion 백업·다이제스트 배치 전용(#69 이후, 2026-09-02 개정)
+4. ~~홈은 `activity_feed` 외의 도메인 테이블을 읽지 않는다~~ → 홈은 각 모듈의 **count 공개 API만** 호출한다(테이블 직접 접근 금지). `activity_feed`는 앱 화면에서 읽지 않는다 — 다이제스트 배치(`digest-thoughts.mjs`의 activity 한 줄) 전용(#69 이후, 2026-09-02 개정)
 5. 학습 수치는 전부 `*_review_log` 파생 — 카운터 컬럼을 새로 만들지 않는다 (#36)
 6. 언어별 분기는 `LanguageConfig` 안에만 존재한다 — 서비스 코드에 `if (lang === 'es')` 금지 (§6.2)

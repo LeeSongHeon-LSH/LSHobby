@@ -1,5 +1,6 @@
 > LSHobby 설계 문서 — 목차·로드맵·§번호↔파일 매핑은 [README](README.md) 참조
 
+> **개정 (2026-09-29, 코드 대조)**: `activity_feed.occurred_on` 칸과 유니크 인덱스 `idx_activity_feed_daily` 반영(2026-09-12 #96, 마이그레이션 20260912090000).
 > **개정 (2026-09-02, 코드 대조)**: 생각 세션의 `thought`·`thought_digest`(마이그레이션 20260821120000) DDL·ERD 추가, `activity_feed` 주석을 실제 발행값으로, `reflection_thread.subject_type`에 `'en_word'`, §9.3의 "하루 신규 20개 한도" 삭제(#81).
 > **개정 (2026-08-20, 결정 #57~61 반영 완료)**: CS 세션 제거 · 인용구 삭제가 코드(커밋 6246582~)와 DB(마이그레이션 20260820090000 · 20260820100000)에 모두 반영됐다. 본문은 현행 상태로 개정됨 — CS/quote 관련 폐기 항목은 사료 표시.
 
@@ -84,9 +85,12 @@ create table activity_feed (
   entity_id   bigint not null,     -- FK 없음: 엔티티 삭제 후에도 이벤트는 남는다 (§9.3). 일별 요약은 0
   action      text not null,       -- 'created' | 'completed' | 'noted' | 'reviewed'  (실제 발행값 전부)
   summary     text not null,       -- 타임라인 한 줄 (비정규화 — 홈은 이 테이블만 읽음)
-  occurred_at timestamptz not null default now()
+  occurred_at timestamptz not null default now(),
+  occurred_on date                 -- 일별 요약만 채움(클라이언트 로컬 날짜), 건별 이벤트는 NULL (#96)
 );
 create index idx_activity_feed_occurred on activity_feed (occurred_at desc);
+create unique index idx_activity_feed_daily on activity_feed (domain, entity_type, entity_id, action, occurred_on);
+  -- 마이그레이션 20260912090000 — upsertDaily의 onConflict 대상. NULL끼리는 충돌하지 않아 건별 이벤트는 제약 밖
 
 -- ============ library ============
 
@@ -165,7 +169,7 @@ create table es_sentence_fetch (
 -- 위 es_* 4테이블과 동일 구조·인덱스·RLS. 차이는 en_words에 gender 컬럼이 없는 것뿐 (§6.2)
 
 -- ============ thought (생각 세션, 2026-08-21 — 마이그레이션 20260821120000) ============
--- append-only: 수정·삭제 없음(reflection과 같은 원칙). topics는 로컬 워커가 채우는 기계 주석.
+-- append-only: 수정·삭제 없음(reflection과 같은 원칙). 예외: topics는 로컬 워커가 사후에 update로 채우는 기계 주석(digest-thoughts.mjs).
 
 create table thought (
   id         bigint generated always as identity primary key,
@@ -207,7 +211,7 @@ end $$;
 - **PK**: 전 테이블 `bigint generated always as identity`. uuid 기각 — 분산·오프라인 생성이 없는 1인 서버 생성 구조에서 정수가 모든 면에서 가벼움
 - **RLS**: 켜되 정책은 "authenticated 전부 허용", **`user_id` 컬럼 없음** — 계정이 본인 하나뿐이라 "로그인함 = 본인". 다중 사용자로 확장하면 그때 컬럼 추가 마이그레이션. Storage는 미사용(CS 이미지용 attachments 버킷은 #57로 삭제). **예외 없음** — 유일한 anon SELECT였던 `cv_document`가 #73으로 사라지면서 anon은 전 테이블 거부로 돌아왔다 (§17)
 - **다형 참조 값 규칙**: `subject_type`/`entity_type`은 테이블을 특정하는 값(`'es_word'`, 영어 추가 시 `'en_word'`) — §4.4 초안의 `'vocab'` 정정. 컬럼 하나로 대상 테이블까지 식별
-- **학습 카운터 컬럼 없음**: 현행 앱의 `test_count`/`correct_count` 이중 저장을 제거 — 통계·스트릭·정답률 기반 출제 순서(§6.3) 전부 `*_review_log`에서 파생 집계(RPC `*_word_stats`·`*_daily_stats`, #62). ~~하루 신규 20개 한도·어려운 단어 판정~~은 #81로 폐기
+- **학습 카운터 컬럼 없음**: 현행 앱의 `test_count`/`correct_count` 이중 저장을 제거 — 통계·스트릭·정답률 기반 출제 순서(§6.3) 전부 `*_review_log`에서 파생 집계(RPC `*_word_stats`·`*_daily_stats`, #62). ~~하루 신규 20개 한도·어려운 단어 판정~~은 #81로 폐기 (#99로 세션당 12개 상한 재도입 — 코드 상수 `NEW_CAP`, DB 칼럼 아님)
 - **cascade 이원화**: 진짜 FK는 DB `on delete cascade`, 다형 참조 행(reflection·tagging)은 앱 레이어가 삭제 (§4.5 "무결성은 앱 레이어" 결정의 귀결. 트리거는 숨은 로직이 되기 쉬워 배제)
 - **activity_feed 영구 보존**: 엔티티를 삭제해도 과거 이벤트는 타임라인에 남김 — 일어난 역사이고 `summary` 비정규화라 표시에 원본이 필요 없음. 원본 없는 이벤트는 UI에서 링크 비활성 처리
 - **시간 타입**: 시각은 `timestamptz`, 하루 단위 사실(완독일)은 `date`

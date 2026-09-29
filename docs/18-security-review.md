@@ -17,22 +17,22 @@
 
 ### 18.2 체크리스트
 
-자동 항목은 `npm test`의 `src/security.test.ts`가 CI에서 매 푸시 검사한다. 나머지는 손으로 — 명령은 리포 루트 기준.
+자동 항목은 `npm test`의 `src/security.test.ts`·`src/schema.test.ts`가 CI에서 매 푸시 검사한다. 나머지는 손으로 — 명령은 리포 루트 기준.
 
 | # | 항목 | 확인 방법 | 기대 결과 | 자동 |
 |---|---|---|---|---|
 | A | **가입 차단 (SEC-01)** — 호스티드 프로젝트 | Supabase 대시보드 → Authentication → Sign In / Providers → "Allow new users to sign up" | **off**. `supabase/config.toml`의 `enable_signup = false`는 **로컬 스택에만** 적용되므로 리포로는 검증 불가 | ✗ |
 | B | **anon 전부 거부 (SEC-02)** — 실동작 | `curl -s "$URL/rest/v1/thought?select=id&limit=1" -H "apikey: $ANON" -H "Authorization: Bearer $ANON"` (`$URL`·`$ANON`은 `.env`의 `NEXT_PUBLIC_*`). RPC도 하나: `curl -s -X POST "$URL/rest/v1/rpc/es_word_stats" -H "apikey: $ANON" -H "Authorization: Bearer $ANON"` | 표는 `[]`, RPC도 빈 결과 — 행이 하나라도 오면 정책 누락 | ✗ |
-| C | **RLS 형상 (SEC-02)** — 마이그레이션 | `grep -nE "create table\|enable row level security\|create policy\|to anon\|security definer\|^grant" supabase/migrations/*.sql` | 살아 있는 표마다 RLS enable + `authenticated_all`. `to anon`·`security definer`·`grant`는 **0건**(2026-09-08 기준 anon 정책은 drop된 `cv_document` 것뿐). 새 표는 §9 DDL 규약대로 `do $$ ... loop` 블록에 넣는다 | ✗ |
+| C | **RLS 형상 (SEC-02)** — 마이그레이션 | `grep -nE "create table\|enable row level security\|create policy\|to anon\|security definer\|^grant" supabase/migrations/*.sql` | 살아 있는 표마다 RLS enable + `authenticated_all`. `to anon`·`security definer`·`grant`는 **0건**(2026-09-08 기준 anon 정책은 drop된 `cv_document` 것뿐). 새 표는 §9 DDL 규약대로 `do $$ ... loop` 블록에 넣는다 | 부분(`schema.test.ts` — RLS enable·정책 존재. `to anon`·`security definer` 부재는 수동 grep) |
 | D | **API 라우트 인증** | `ls src/app/api/**/route.ts` 후 각 파일 | ① `Authorization: Bearer` 없으면 401 ② DB는 `serverClientWithToken(token)`(anon key + 호출자 JWT → RLS가 호출자 권한으로 평가) ③ 경로 파라미터는 허용목록(`configFor`)·정수 검사 ④ `service_role` 사용 없음 ⑤ 표 이름은 config 객체에서만 | 부분(④는 테스트) |
 | E | **XSS 표면 (SEC-05)** | `grep -rnE "dangerouslySetInnerHTML\|innerHTML\|eval\(\|javascript:" src/` · `src/modules/shared/markdown/index.tsx`가 `rehype-sanitize`를 유지하는지 · `href`에 데이터가 들어가는 곳이 없는지 | grep 0건. 마크다운 렌더는 그 파일 하나뿐(`book.note`). LLM 출력·Tatoeba 응답·사용자 입력은 전부 React 텍스트 노드 | 부분(`shared.test.tsx`가 sanitize 검증) |
 | F | **외부 호출 호스트 고정 (SSRF)** | `grep -rn "fetch(" src/ scripts/` | 호스트는 상수(Tatoeba `tatoeba.ts`, Ollama `localhost:11434`, Gemini·Notion SDK). 사용자·DB 데이터는 쿼리 파라미터·본문에만 | ✗ |
-| G | **필터 문자열 조립 (PostgREST 주입)** | `grep -rnE "\.or\(\|\.filter\([\"'\]\|ilike\|\.contains\(\|\.containedBy\(" src/` | `.or()`/`.filter()`에 문자열 조립 없음. `ilike`는 `thought/service.ts`뿐이고 `\ % _`를 먼저 이스케이프. `.contains()`도 같은 파일 1곳 — supabase-js는 `cs.{a,b}`로 **이스케이프 없이** 이어 붙이므로(postgrest-js) `arrayLiteralElement`로 원소를 인용해 넘긴다. `.in()`은 라이브러리가 예약문자를 인용하므로 제외. DOM `Node.contains`도 같이 걸리니 눈으로 거른다. **`.contains(`는 2026-09-11에 이 grep에 들어왔다** — 그전 패턴은 이 경로를 안 봐서 09-08 회차의 G 통과는 인용 없는 `.contains("topics", [query])`를 지나쳤다(쉼표가 원소 경계를 바꾸고 `}`는 400) | ✗ |
+| G | **필터 문자열 조립 (PostgREST 주입)** | `grep -rnE "\.or\(\|\.filter\([\"'\]\|ilike\|\.contains\(\|\.containedBy\(" src/` | `.or()`/`.filter()`에 문자열 조립 없음. `ilike`는 `thought/service.ts`뿐이고 `\ % _ *`를 `ilikePattern`으로 먼저 이스케이프(`*`는 PostgREST가 `%` 별칭으로 받음). `.contains()`도 같은 파일 1곳 — supabase-js는 `cs.{a,b}`로 **이스케이프 없이** 이어 붙이므로(postgrest-js) `arrayLiteralElement`로 원소를 인용해 넘긴다. `.in()`은 라이브러리가 예약문자를 인용하므로 제외. DOM `Node.contains`도 같이 걸리니 눈으로 거른다. **`.contains(`는 2026-09-11에 이 grep에 들어왔다** — 그전 패턴은 이 경로를 안 봐서 09-08 회차의 G 통과는 인용 없는 `.contains("topics", [query])`를 지나쳤다(쉼표가 원소 경계를 바꾸고 `}`는 400) | ✗ |
 | H | **키·비밀 (SEC-03)** | `git ls-files \| grep -E '^\.env'` · `grep -rnE "SERVICE_ROLE\|GEMINI_API_KEY\|NOTION_TOKEN" src/ scripts/` | 추적 파일 0건. 세 비밀은 `scripts/*.mjs`에서만, systemd 유닛 `--env-file=.env`로 주입. `src/`에는 `NEXT_PUBLIC_SUPABASE_URL/ANON_KEY`만 | ✓ (`src/` 한정) |
 | I | **서비스 워커 캐시** | `public/sw.js` | 동일 출처 `/_next/static/`·`/icons/` GET만. API·페이지 응답 캐시 없음 | ✗ |
 | J | **배치·셸 입력원** (`scripts/`, `scripts/systemd/`) | 각 스크립트의 변수가 어디서 오는지 | `backup-db.sh`의 동적 SQL은 `format('%L','%I')`, 접속 정보는 `.env`·`~/.lshobby/db-password`. `deploy-local.sh` 변수는 git SHA·`gh api`. `lshobby-alert@.service`의 `%i`는 systemd가 넣는 유닛명. 외부 데이터(Notion·Gemini·Ollama 응답)가 셸·SQL 문자열로 들어가는 자리 없음 | ✗ |
 | K | **의존성 취약점** | `npm audit --audit-level=high` | high 이상 0건. 있으면 업그레이드 후 E·D 재확인 | ✗ |
-| L | **보안 헤더 (SEC-06)** | `next.config.ts headers()` | nosniff · Referrer-Policy · X-Frame-Options DENY | ✓ |
+| L | **보안 헤더 (SEC-06)** | `next.config.ts headers()` | nosniff · Referrer-Policy · X-Frame-Options DENY · CSP 4지시어(`connect-src`·`frame-ancestors`·`base-uri`·`form-action`), script-src/style-src 없음(#101) | ✓ |
 
 ### 18.3 잔여 관찰 사항 (취약점 아님 — 추적만)
 
@@ -43,7 +43,7 @@
 | R1 | **SEC-01은 코드가 아니라 호스티드 설정** — 리포·CI로 검증 불가. 이 스위치 하나가 켜지면 "authenticated 전부 허용" RLS 모델이 통째로 무너진다 | 열림 (매회) | 체크리스트 A를 절대 건너뛰지 않는다. 대시보드를 만진 날은 그 자리에서 재확인 |
 | R2 | **로컬 config의 약한 비밀번호 정책** — `supabase/config.toml` `minimum_password_length = 6`, `password_requirements = ""`. Auth 엔드포인트는 인터넷 노출이라 단일 계정 무차별 대입이 남는 위험 | 보류 | 레이트리밋·2FA는 SEC-07 비채택. 대신 **호스티드 계정 비밀번호를 길게** 유지(config는 로컬 전용이라 프로덕션과 무관) |
 | R3 | **`scripts/gen-db-types.sh`가 DB 비밀번호를 `postgresql://` URL로 CLI 인자에 넘김** — 실행 중 `ps`에 노출 | 보류 | 1인 PC·수 초 실행이라 실익 낮음. `supabase gen types --db-url`이 URL 전체를 요구해 우회 수단도 마땅치 않음 |
-| R4 | **`.env` 잔여 키** — `VERCEL_OIDC_TOKEN`·`SUPABASE_SECRET_KEY`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (§16.4 정리 대상) | 열림 | 코드 참조 없음 확인 후 제거. `SUPABASE_SECRET_KEY`는 이름상 service_role급이라 우선 정리 |
+| R4 | **`.env` 잔여 키** — `SUPABASE_SECRET_KEY`·`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (§16.4 정리 대상, `VERCEL_OIDC_TOKEN`은 정리됨) | 열림 | 코드 참조 없음 확인 후 제거. `SUPABASE_SECRET_KEY`는 이름상 service_role급이라 우선 정리 |
 
 ### 18.4 점검 기록
 
