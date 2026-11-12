@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HomeButton } from "../../ui/home-button";
 import { AlertIcon, SearchIcon } from "../../ui/icons";
 import { PixelPenguinBubble } from "../../ui/pixel";
@@ -15,8 +15,9 @@ import {
 import type { Gender } from "@/modules/language";
 import { useT } from "@/modules/shared/i18n";
 
-// 검색용: 모든 악센트 무시 (구 index.html deaccent — 검색은 ñ도 관대)
-const deaccent = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+// 검색용: 모든 악센트 무시 (구 index.html deaccent — 검색은 ñ도 관대).
+// NFD로 끝내면 한글도 자모로 풀린 채 비교돼 "사"가 "산"에 들어맞는다 — 결합 부호만 떼고 다시 합친다
+const deaccent = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").normalize("NFC");
 
 const GENDERS: Gender[] = ["none", "m", "f", "n"];
 
@@ -24,24 +25,41 @@ const GENDERS: Gender[] = ["none", "m", "f", "n"];
 export default function WordsPage() {
   const config = useCurrentConfig();
   const t = useT();
-  const [words, setWords] = useState<Word[]>([]);
+  // 어느 언어의 목록인지 함께 담는다 — config가 바뀌면(하이드레이션 직후·다른 탭 전환) 앞 언어의
+  // 목록을 새 언어 화면에 그리지 않는다. 그 목록에서 편집·삭제하면 새 언어 표의 같은 id가 지워진다
+  const [loaded, setLoaded] = useState<{ code: string; words: Word[] } | null>(null);
+  // 조회 실패를 빈 목록으로 바꾸면 "단어가 없습니다"로 그려져 없는 줄 안다 — 실패는 실패로 말한다
+  const [loadFailed, setLoadFailed] = useState(false);
+  const loadSeq = useRef(0); // 늦게 도착한 앞 요청이 뒤 요청의 결과를 덮지 못하게
   const [query, setQuery] = useState("");
-  const [editing, setEditing] = useState<Word | null>(null);
+  const [editing, setEditing] = useState<{ code: string; word: Word } | null>(null);
   const [form, setForm] = useState({ word: "", meaning: "", gender: "none" as Gender });
   // 어느 입력(query)에 대한 결과인지 함께 담는다 — 입력이 바뀌면 렌더에서 무효화 (add 화면과 같은 방식)
   const [dupEdit, setDupEdit] = useState<{ query: string; word: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const reload = useCallback(
-    () => listWords(config).then(setWords).catch(() => setWords([])),
-    [config],
-  );
+  const words = loaded?.code === config.code ? loaded.words : null;
+  const editingWord = editing?.code === config.code ? editing.word : null;
+
+  const reload = useCallback(() => {
+    const seq = ++loadSeq.current;
+    return listWords(config)
+      .then((ws) => {
+        if (seq !== loadSeq.current) return;
+        setLoaded({ code: config.code, words: ws });
+        setLoadFailed(false);
+      })
+      .catch(() => {
+        if (seq === loadSeq.current) setLoadFailed(true);
+      });
+  }, [config]);
   useEffect(() => {
     reload();
   }, [reload]);
 
   const filtered = useMemo(() => {
     const q = deaccent(query.trim().toLowerCase());
+    if (!words) return [];
     if (!q) return words;
     return words.filter(
       (w) =>
@@ -53,16 +71,16 @@ export default function WordsPage() {
   const dupEditWord = dupEdit && dupEdit.query === form.word.trim() ? dupEdit.word : null;
 
   const openEdit = (w: Word) => {
-    setEditing(w);
+    setEditing({ code: config.code, word: w });
     setDupEdit(null);
     setForm({ word: w.word, meaning: w.meaning, gender: w.gender ?? "none" });
   };
 
   const saveEdit = async () => {
-    if (!editing) return;
+    if (!editingWord) return;
     setBusy(true);
     try {
-      const { duplicate } = await updateWord(config, editing.id, form);
+      const { duplicate } = await updateWord(config, editingWord.id, form);
       if (duplicate) {
         setDupEdit({ query: form.word.trim(), word: duplicate.word });
         return;
@@ -77,10 +95,10 @@ export default function WordsPage() {
   };
 
   const removeEditing = async () => {
-    if (!editing || !confirm(t.lang.words.confirmDelete(editing.word))) return;
+    if (!editingWord || !confirm(t.lang.words.confirmDelete(editingWord.word))) return;
     setBusy(true);
     try {
-      await deleteWord(config, editing.id);
+      await deleteWord(config, editingWord.id);
       setEditing(null);
       await reload();
     } catch {
@@ -111,7 +129,13 @@ export default function WordsPage() {
       </div>
       <p className="mb-3 flex items-center gap-1.5 font-dot text-dot text-faint">
         <PixelPenguinBubble size={20} />
-        {query ? t.lang.words.countFiltered(filtered.length, words.length) : t.lang.words.count(words.length)}
+        {!words
+          ? loadFailed
+            ? t.lang.words.loadFailed
+            : t.common.loading
+          : query
+            ? t.lang.words.countFiltered(filtered.length, words.length)
+            : t.lang.words.count(words.length)}
       </p>
       <ul className="divide-y divide-line rounded-md border border-line bg-card">
         {filtered.map((w) => (
@@ -133,12 +157,12 @@ export default function WordsPage() {
             </button>
           </li>
         ))}
-        {filtered.length === 0 && (
+        {words && filtered.length === 0 && (
           <li className="px-4 py-8 text-center text-sm text-faint">{t.lang.words.empty}</li>
         )}
       </ul>
 
-      {editing && (
+      {editingWord && (
         <div className="fixed inset-0 z-10 flex items-end bg-black/30" onClick={() => setEditing(null)}>
           <div
             className="mx-auto w-full max-w-md space-y-3 rounded-t-xl bg-card p-5 pb-8"

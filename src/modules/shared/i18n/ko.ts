@@ -16,6 +16,7 @@ export const ko = {
     back: "뒤로",
     loading: "불러오는 중…",
     failed: "처리 실패 — 잠시 후 다시 시도하세요",
+    discardConfirm: "쓰던 내용이 저장되지 않았습니다. 닫을까요?",
   },
 
   home: {
@@ -80,6 +81,8 @@ export const ko = {
       sessionResult: (correct: number, total: number) => `${total}문제 중 ${correct} 맞힘`,
       newLearned: (n: number) => `새 단어 ${n}개`,
       dueTomorrow: (n: number) => `내일 복습 ${n}개`,
+      saving: "답안 저장 중…",
+      loadFailed: "덱을 불러오지 못했습니다 — 잠시 후 다시 시도하세요",
     },
 
     words: {
@@ -91,6 +94,7 @@ export const ko = {
       word: "단어",
       meaning: "뜻",
       confirmDelete: (word: string) => `"${word}"를 삭제할까요?`,
+      loadFailed: "단어장을 불러오지 못했습니다 — 잠시 후 다시 시도하세요",
     },
 
     stats: {
@@ -102,6 +106,7 @@ export const ko = {
       dayTitle: (date: string, n: number) => `${date}: ${n}회`,
       stateDist: "FSRS 상태 분포",
       exportCsv: "CSV 내보내기",
+      loadFailed: "통계를 불러오지 못했습니다 — 잠시 후 다시 시도하세요",
     },
 
     add: {
@@ -191,6 +196,7 @@ export const ko = {
     contextPlaceholder: "계기 (선택 — 예: 재독, 3개월 후)",
     add: "추가",
     addPrompt: "＋ 지금 생각 추가",
+    loadFailed: "타임라인을 불러오지 못했습니다 — 잠시 후 다시 시도하세요",
   },
 
   thoughts: {
@@ -217,6 +223,7 @@ export const ko = {
     nextMonth: "다음 달",
     dayAria: (label: string, n: number) => `${label} 생각 ${n}개`,
     saveFailed: "저장 실패 — 잠시 후 다시 시도하세요",
+    loadFailed: "달력을 불러오지 못했습니다 — 기록은 남아 있을 수 있으니 새로고침해 보세요",
   },
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { AuthGuard } from "@/modules/shared/auth";
 import {
   addThought,
@@ -9,7 +9,7 @@ import {
   groupByDay,
   recentTopics,
   searchThoughts,
-  thoughtsDaysAgo,
+  thoughtsOnDay,
   thoughtsInMonth,
   topTopics,
   type Thought,
@@ -20,12 +20,20 @@ import { PixelPenguinTiny } from "../ui/pixel";
 import { NightScene } from "../ui/scene";
 import { useT, type Dict } from "@/modules/shared/i18n";
 
-// 과거의 오늘 되짚기 — 고치지 않고 남긴 생각을 다시 만나는 자리 (append-only의 보상)
+// 과거의 오늘 되짚기 — 고치지 않고 남긴 생각을 다시 만나는 자리 (append-only의 보상).
+// "1년 전 오늘"은 365일이 아니라 같은 달·같은 날이다 (윤년·달 길이로 어긋나지 않게 달력으로 센다)
 const ECHOES = [
-  { key: "year", days: 365 },
-  { key: "month", days: 30 },
-  { key: "week", days: 7 },
+  { key: "year", ago: (d: Date) => new Date(d.getFullYear() - 1, d.getMonth(), d.getDate()) },
+  { key: "month", ago: (d: Date) => new Date(d.getFullYear(), d.getMonth() - 1, d.getDate()) },
+  { key: "week", ago: (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7) },
 ] as const;
+
+// "오늘"은 브라우저에서만 안다 — 이 화면은 정적으로 프리렌더되어 빌드한 날의 날짜가 HTML에 굳고,
+// 하이드레이션은 className 불일치를 고치지 않아 달력의 오늘 테두리가 빌드일에 남는다.
+// 서버 스냅샷은 빈 값: 서버 HTML엔 오늘이 없고, 하이드레이션 뒤 브라우저 값으로 다시 그린다
+const noSubscribe = () => () => {};
+const useTodayKey = () =>
+  useSyncExternalStore(noSubscribe, () => dayKey(new Date().toISOString()), () => "");
 
 const dayLabel = (day: string, t: Dict): string => {
   const today = dayKey(new Date().toISOString());
@@ -162,6 +170,8 @@ type MonthData = {
   key: string; // YYYY-MM
   days: Map<string, Thought[]>; // 날짜 키 → 그날의 메모 (시간순)
   digests: Map<string, ThoughtDigest>;
+  // 조회 실패를 빈 달력으로 그리면 방금 쓴 생각이 안 보여 또 쓴다(append-only 중복) — 실패는 실패로 말한다
+  failed?: boolean;
 };
 
 // 생각 세션 — 달력에 앉은 펭귄이 그날 생각의 표시. 누르면 시트로 읽는다 (append-only)
@@ -176,11 +186,11 @@ function ThoughtStream() {
   const [results, setResults] = useState<{ q: string; list: Thought[]; failed?: boolean } | null>(null);
   const [echoes, setEchoes] = useState<{ key: (typeof ECHOES)[number]["key"]; items: Thought[] }[]>([]);
   const [trajectory, setTrajectory] = useState<[string, number][]>([]);
-  // 보고 있는 달 — 기본은 이번 달. tick은 기록 직후 같은 달을 다시 불러오는 손잡이
-  const [cursor, setCursor] = useState(() => {
-    const now = new Date();
-    return { y: now.getFullYear(), m: now.getMonth() + 1 };
-  });
+  // 보고 있는 달 — null이면 이번 달(브라우저가 아는 오늘 기준). tick은 기록 직후 같은 달을 다시 불러오는 손잡이
+  const [cursor, setCursor] = useState<{ y: number; m: number } | null>(null);
+  const todayKey = useTodayKey();
+  const cur =
+    cursor ?? (todayKey ? { y: Number(todayKey.slice(0, 4)), m: Number(todayKey.slice(5, 7)) } : null);
   const [tick, setTick] = useState(0);
   const [month, setMonth] = useState<MonthData | null>(null);
   const [sheet, setSheet] = useState<{ title: string; items: Thought[]; digest?: ThoughtDigest } | null>(
@@ -190,9 +200,10 @@ function ThoughtStream() {
   useEffect(() => {
     (async () => {
       try {
+        const now = new Date();
         const [topics, ...pasts] = await Promise.all([
           recentTopics(),
-          ...ECHOES.map((e) => thoughtsDaysAgo(e.days)),
+          ...ECHOES.map((e) => thoughtsOnDay(e.ago(now))),
         ]);
         setTrajectory(topTopics(topics));
         setEchoes(
@@ -207,15 +218,15 @@ function ThoughtStream() {
   }, []);
 
   // 달 단위 로드 — 늦게 온 응답은 버린다. 다른 달의 데이터는 그리는 쪽에서 key로 거른다
+  const curY = cur?.y;
+  const curM = cur?.m;
   useEffect(() => {
-    const key = monthKeyOf(cursor.y, cursor.m);
+    if (curY === undefined || curM === undefined) return;
+    const key = monthKeyOf(curY, curM);
     let cancelled = false;
     (async () => {
       try {
-        const [list, digs] = await Promise.all([
-          thoughtsInMonth(cursor.y, cursor.m),
-          digestsInMonth(cursor.y, cursor.m),
-        ]);
+        const [list, digs] = await Promise.all([thoughtsInMonth(curY, curM), digestsInMonth(curY, curM)]);
         if (cancelled) return;
         setMonth({
           key,
@@ -223,13 +234,13 @@ function ThoughtStream() {
           digests: new Map(digs.map((d) => [d.day, d])),
         });
       } catch {
-        if (!cancelled) setMonth({ key, days: new Map(), digests: new Map() });
+        if (!cancelled) setMonth({ key, days: new Map(), digests: new Map(), failed: true });
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [cursor.y, cursor.m, tick]);
+  }, [curY, curM, tick]);
 
   // 검색 — 입력 후 300ms 디바운스, 비우면 달력으로 복귀
   useEffect(() => {
@@ -274,15 +285,14 @@ function ThoughtStream() {
     setQuery(topic);
   };
 
-  const now = new Date();
-  const todayKey = dayKey(now.toISOString());
-  const monthKey = monthKeyOf(cursor.y, cursor.m);
+  const monthKey = cur ? monthKeyOf(cur.y, cur.m) : "";
   const isThisMonth = monthKey === todayKey.slice(0, 7);
   const shown = month?.key === monthKey ? month : null;
-  const lead = new Date(cursor.y, cursor.m - 1, 1).getDay();
-  const daysIn = new Date(cursor.y, cursor.m, 0).getDate();
+  const lead = cur ? new Date(cur.y, cur.m - 1, 1).getDay() : 0;
+  const daysIn = cur ? new Date(cur.y, cur.m, 0).getDate() : 0;
   const shift = (by: number) => {
-    const d = new Date(cursor.y, cursor.m - 1 + by, 1);
+    if (!cur) return;
+    const d = new Date(cur.y, cur.m - 1 + by, 1);
     setCursor({ y: d.getFullYear(), m: d.getMonth() + 1 });
   };
 
@@ -400,7 +410,7 @@ function ThoughtStream() {
               <Triangle flip />
             </button>
             <h2 className="font-display font-bold">
-              {t.thoughts.monthTitle(cursor.y, cursor.m)}
+              {cur ? t.thoughts.monthTitle(cur.y, cur.m) : ""}
             </h2>
             <button
               type="button"
@@ -413,6 +423,9 @@ function ThoughtStream() {
             </button>
           </div>
 
+          {shown?.failed && (
+            <p className="mt-3 text-center text-sm text-err">{t.thoughts.loadFailed}</p>
+          )}
           <div className="mt-2 grid grid-cols-7 gap-1">
             {t.thoughts.weekdays.map((w) => (
               <div key={w} className="py-1 text-center font-dot text-dot text-faint">

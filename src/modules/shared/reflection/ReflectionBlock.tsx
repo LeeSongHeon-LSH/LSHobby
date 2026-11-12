@@ -17,19 +17,27 @@ export function ReflectionBlock({
   subjectType,
   subjectId,
   defaultContext,
-  onAdded,
+  onDirtyChange,
 }: {
   subjectType: string;
   subjectId: number;
   /** 입력 폼 context 기본값 — 책 완독 플로우의 "N회독" 자동 기입 (§7.2) */
   defaultContext?: string;
-  onAdded?: () => void;
+  /** 입력 폼에 저장 안 된 글이 있는지 — 감싼 시트가 닫기 전에 물어볼 수 있게 */
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const t = useT();
   const [entries, setEntries] = useState<ReflectionEntry[]>([]);
+  // 조회 실패를 빈 타임라인으로 그리면 남긴 적 없는 줄 알고 같은 생각을 또 쓴다 — 실패는 실패로 말한다
+  const [loadFailed, setLoadFailed] = useState(false);
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const dirty = open && content.trim() !== "";
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   // defaultContext는 부모가 **비동기로** 불러온 readings에서 만들어져 첫 렌더 뒤에 도착한다.
   // useState 초기값으로 한 번만 읽으면 §7.2의 "N회독" 자동 기입이 영영 빈 칸이다.
@@ -39,8 +47,11 @@ export function ReflectionBlock({
 
   const reload = () =>
     getTimeline(subjectType, subjectId)
-      .then(setEntries)
-      .catch(() => setEntries([]));
+      .then((list) => {
+        setEntries(list);
+        setLoadFailed(false);
+      })
+      .catch(() => setLoadFailed(true));
   useEffect(() => {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -55,7 +66,6 @@ export function ReflectionBlock({
       setContextEdit(null);
       setOpen(false);
       await reload();
-      onAdded?.();
     } catch {
       // 입력은 그대로 두고 알린다 — 조용히 실패하면 남긴 줄 알고 화면을 떠난다
       alert(t.common.failed);
@@ -67,6 +77,7 @@ export function ReflectionBlock({
   return (
     <section>
       <h2 className="mb-2 text-sm font-medium text-faint">{t.reflection.heading}</h2>
+      {loadFailed && <p className="mb-3 text-sm text-err">{t.reflection.loadFailed}</p>}
       {entries.length > 0 && (
         <ul className="mb-3 divide-y divide-line rounded-md border border-line bg-card">
           {entries.map((e) => (

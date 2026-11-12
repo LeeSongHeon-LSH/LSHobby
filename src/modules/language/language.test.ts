@@ -266,9 +266,10 @@ describe("StudySession (세션 구성 — 소개·재출제·복습 우선, 2026
   it("신규가 여럿이면 소개들 사이에 첫 인출이 끼어 든다", () => {
     const s = new StudySession([w(1), w(2), w(3), w(4), w(5)], stat([]), NOW, () => 0.5);
     const order = drain(s);
-    // 소개 셋 뒤(카드 4장째)에 첫 소개 단어의 인출이 온다
+    // 다른 카드 셋을 지나서(카드 5장째) 첫 소개 단어의 인출이 온다 (docs/06 "소개 뒤 세 장 지난")
     const firstIntro = order[0].replace("intro:", "");
-    expect(order[3]).toBe(`quiz:${firstIntro}`);
+    expect(order.slice(1, 4)).not.toContain(`quiz:${firstIntro}`);
+    expect(order[4]).toBe(`quiz:${firstIntro}`);
     expect(order).toHaveLength(20); // 소개 5 + 인출 3회씩
   });
   it("정답 기록이 0회인 Learning 단어도 소개를 먼저 받는다 — 맞힌 적 있는 단어는 받지 않는다", () => {
@@ -582,7 +583,7 @@ describe("PostgREST 1000행 상한 (max_rows는 집합 반환 함수에도 걸�
     const stats = await reviewStats(esConfig);
 
     expect(stats.size).toBe(n);
-    if (n > 0) expect(stats.get(n)).toEqual({ reviews: 2, correct: 1, firstReviewedAt: null });
+    if (n > 0) expect(stats.get(n)).toEqual({ reviews: 2, correct: 1 });
     // 정확히 배수면 빈 페이지를 한 번 더 읽어야 끝인 줄 안다
     expect(rpcCalls).toHaveLength(Math.floor(n / MAX_ROWS) + 1);
   });

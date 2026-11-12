@@ -6,7 +6,9 @@ import { supabase } from "./client";
 
 /**
  * 로그인 세션 없으면 /login으로 — 보호가 목적이 아니라 UX (실제 접근 통제는 RLS, docs/16 §16.1).
- * 낙관적 렌더: 화면·데이터 페치를 먼저 시작하고, 세션이 없을 때만 되돌린다 (비로그인은 RLS가 빈 결과)
+ * 낙관적 렌더: 화면·데이터 페치를 먼저 시작하고, 세션이 없을 때만 되돌린다 (비로그인은 RLS가 빈 결과).
+ * 마운트 뒤의 로그아웃(다른 탭)도 구독한다 — 안 하면 이 탭의 수정은 anon 키로 나가 0행에 맞고
+ * 오류 없이 사라진다
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -14,6 +16,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) router.replace("/login");
     });
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") router.replace("/login");
+    });
+    return () => sub.subscription.unsubscribe();
   }, [router]);
   return <>{children}</>;
 }

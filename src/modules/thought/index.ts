@@ -8,7 +8,7 @@ export {
   mergeThoughts,
   recentTopics,
   searchThoughts,
-  thoughtsDaysAgo,
+  thoughtsOnDay,
   thoughtsInMonth,
   topTopics,
   type Thought,

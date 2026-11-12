@@ -47,15 +47,21 @@ export async function GET(
     // 그 단어의 예문이 영구히 비고 cloze가 안 나온다. 저장도 같이 미룬다(마커 없이 넣으면
     // 다음 호출이 같은 문장을 또 넣는다 — 유일 키가 없다). 다음 호출에서 다시 묻는다 (#94)
     if (complete) {
-      if (drafts.length > 0) {
+      // 마커(PK)를 먼저 넣어 잠근다 — 퀴즈의 예열과 소개 카드가 같은 단어를 동시에 물으면 둘 다
+      // 마커를 못 보고 각자 저장해 예문이 두 벌 남고 늦은 쪽은 500이었다. 충돌(23505)한 쪽은
+      // 이긴 쪽이 저장한 것을 아래에서 읽어 간다. 빈 결과도 기록해 재시도 방지 (구 ensure_sentences)
+      const { error: markErr } = await db.from(config.sentenceFetchTable).insert({ word_id: id });
+      if (markErr && markErr.code !== "23505") return NextResponse.json({ error: "db error" }, { status: 500 });
+      if (!markErr && drafts.length > 0) {
         const { error } = await db
           .from(config.sentenceTable)
           .insert(drafts.map((d) => ({ ...d, word_id: id })));
-        if (error) return NextResponse.json({ error: "db error" }, { status: 500 });
+        if (error) {
+          // 마커만 남으면 그 단어는 영영 예문 없음 — 잠금을 풀어 다음 호출이 다시 묻게
+          await db.from(config.sentenceFetchTable).delete().eq("word_id", id);
+          return NextResponse.json({ error: "db error" }, { status: 500 });
+        }
       }
-      // 빈 결과도 기록해 재시도 방지 (구 ensure_sentences)
-      const { error: markErr } = await db.from(config.sentenceFetchTable).insert({ word_id: id });
-      if (markErr) return NextResponse.json({ error: "db error" }, { status: 500 });
     }
   }
 

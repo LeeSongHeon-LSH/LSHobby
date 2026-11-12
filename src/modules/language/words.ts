@@ -86,12 +86,27 @@ export async function updateWord(
   // (자기 자신은 제외: 뜻만 고칠 때 norm은 그대로다)
   const dup = await findByNorm(config, word);
   if (dup && dup.id !== id) return { duplicate: dup };
+  const { data: before, error: bErr } = await supabase
+    .from(config.wordTable)
+    .select("word")
+    .eq("id", id)
+    .maybeSingle();
+  if (bErr) throw bErr;
   const row = { word, meaning: input.meaning.trim(), norm: config.normalize(word) };
   const update = config.hasGender
     ? supabase.from(config.wordTable).update({ ...row, gender: input.gender ?? "none" })
     : supabase.from(config.wordTable).update(row);
   const { error } = await update.eq("id", id);
   if (error) throw error;
+  // 철자가 달라졌으면(papa → papá처럼 norm이 같아도) 옛 철자로 모은 예문과 수집 마커는 버린다 —
+  // 두면 소개 카드가 옛 철자의 예문을 보여 주고, 빈칸은 새 철자를 못 찾아 영영 안 나오며,
+  // 옛 철자가 0건이었다면 빈 마커 때문에 새 철자로 다시 묻지도 않는다. 다음 출제가 다시 모은다
+  if (before && before.word !== word) {
+    const { error: sErr } = await supabase.from(config.sentenceTable).delete().eq("word_id", id);
+    if (sErr) throw sErr;
+    const { error: fErr } = await supabase.from(config.sentenceFetchTable).delete().eq("word_id", id);
+    if (fErr) throw fErr;
+  }
   return { duplicate: null };
 }
 

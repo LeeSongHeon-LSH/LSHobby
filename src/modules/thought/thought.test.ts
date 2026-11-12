@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   arrayLiteralElement,
-  ilikePattern,
+  searchPattern,
   dayKey,
   groupByDay,
   mergeThoughts,
@@ -83,18 +83,24 @@ describe("arrayLiteralElement (PostgREST 배열 리터럴 인용 — docs/18 §1
   });
 });
 
-describe("ilikePattern (내용 검색 — 와일드카드 이스케이프)", () => {
-  it("평범한 질의는 앞뒤에 % 하나씩만 붙인다", () => {
-    expect(ilikePattern("설계")).toBe("%설계%");
+describe("searchPattern (내용 검색 — imatch 정규식, 메타문자 이스케이프)", () => {
+  it("평범한 질의는 그대로", () => {
+    expect(searchPattern("설계")).toBe("설계");
+    expect(searchPattern("50%")).toBe("50%"); // 정규식엔 %·_가 특수하지 않다
   });
 
-  it("PostgREST가 %로 별칭 처리하는 *도 막는다", () => {
-    expect(ilikePattern("a*b")).toBe("%a\\*b%");
+  it("정규식 메타문자를 전부 이스케이프한다 — *는 ilike였다면 PostgREST가 %로 바꿨을 글자", () => {
+    expect(searchPattern("a*b")).toBe("a\\*b");
+    expect(searchPattern("c\\d")).toBe("c\\\\d");
+    expect(searchPattern("(1+1)?")).toBe("\\(1\\+1\\)\\?");
+    expect(searchPattern("a.b|c^$")).toBe("a\\.b\\|c\\^\\$");
   });
 
-  it("%·_·역슬래시를 이스케이프한다", () => {
-    expect(ilikePattern("50%")).toBe("%50\\%%");
-    expect(ilikePattern("a_b")).toBe("%a\\_b%");
-    expect(ilikePattern("c\\d")).toBe("%c\\\\d%");
+  it("이스케이프된 패턴은 원문에만 맞는다", () => {
+    const re = (q: string) => new RegExp(searchPattern(q), "i");
+    expect(re("a*b").test("a*b")).toBe(true);
+    expect(re("a*b").test("aaab")).toBe(false);
+    expect(re("1+1").test("1+1")).toBe(true);
+    expect(re("1+1").test("11")).toBe(false);
   });
 });

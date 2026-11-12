@@ -87,8 +87,11 @@ const wordPattern = (word) => {
 };
 
 // ---------- Tatoeba (tatoeba.ts 이식 + raw 패스 추가) ----------
+/** complete = 물어보려던 만큼 실제로 답을 받았는지 — 타임아웃·비2xx가 한 번이라도 있으면 false.
+ *  없으면 Tatoeba 장애 중에 그 단어가 Gemini 생성문 + 마커로 굳는다 (src/modules/language/tatoeba.ts #94와 같은 구분) */
 async function fetchTatoeba(word, cfg) {
   const found = [];
+  let complete = true;
   for (const pass of cfg.passes) {
     if (found.length >= MAX_SENTENCES) break;
     const params = new URLSearchParams({
@@ -107,7 +110,10 @@ async function fetchTatoeba(word, cfg) {
         headers: { "User-Agent": "LSHobby (personal study app)" },
         signal: AbortSignal.timeout(5000),
       });
-      if (!res.ok) continue;
+      if (!res.ok) {
+        complete = false;
+        continue;
+      }
       const data = await res.json();
       const pattern = wordPattern(word);
       for (const r of data.results ?? []) {
@@ -132,11 +138,12 @@ async function fetchTatoeba(word, cfg) {
         if (found.length >= MAX_SENTENCES) break;
       }
     } catch {
+      complete = false;
       continue;
     }
     await sleep(TATOEBA_INTERVAL_MS);
   }
-  return found;
+  return { drafts: found, complete };
 }
 
 // ---------- Gemini (무료 등급, REST 직접 호출) ----------
@@ -307,14 +314,22 @@ async function backfillLang(code) {
   const targets = words.filter((w) => !have.has(w.id));
   console.log(`대상: ${targets.length}단어 (전체 ${words.length}, 예문 보유 ${have.size})`);
 
-  const stat = { tatoeba: 0, generated: 0, failed: 0, done: 0 };
+  const stat = { tatoeba: 0, generated: 0, failed: 0, unreached: 0, done: 0 };
   for (let g = 0; g < targets.length; g += GROUP) {
     if (budgetExhausted) break;
     const group = targets.slice(g, g + GROUP);
 
-    // 1a. 그룹 전체 Tatoeba 수집
+    // 1a. 그룹 전체 Tatoeba 수집 — 못 물어본 단어는 이번 실행에서 빼고(생성·마킹 없음) 다음에 다시
     const fetched = [];
-    for (const w of group) fetched.push({ w, drafts: await fetchTatoeba(w.word, cfg) });
+    for (const w of group) {
+      const { drafts, complete } = await fetchTatoeba(w.word, cfg);
+      if (!complete && drafts.length < MAX_SENTENCES) {
+        stat.unreached++;
+        console.log(`  … ${w.word} — Tatoeba 미응답, 다음 실행에서 재시도`);
+        continue;
+      }
+      fetched.push({ w, drafts });
+    }
 
     // 1b. ko_text 없는 문장 전부 모아 한 호출로 번역
     const needT = [];
@@ -368,7 +383,7 @@ async function backfillLang(code) {
   }
 
   console.log(
-    `${cfg.label} 완료: tatoeba ${stat.tatoeba} · 생성 ${stat.generated} · 실패 ${stat.failed} · 잔여 ${targets.length - stat.done - stat.failed}` +
+    `${cfg.label} 완료: tatoeba ${stat.tatoeba} · 생성 ${stat.generated} · 실패 ${stat.failed} · Tatoeba 미응답 ${stat.unreached} · 잔여 ${targets.length - stat.done - stat.failed}` +
       (translatedExisting ? ` · 기존 예문 번역 ${translatedExisting}` : ""),
   );
 }

@@ -30,7 +30,7 @@ import { pill } from "../../ui/accent";
 // 받아쓰기(listen)·관사(gender) 문제는 이식 제외 (#41 범위, 2026-08-15 확정)
 
 type Dir = "sk" | "ks" | "cloze";
-type Phase = "loading" | "intro" | "question" | "revealed" | "answered" | "done" | "empty";
+type Phase = "loading" | "failed" | "intro" | "question" | "revealed" | "answered" | "done" | "empty";
 
 interface Question {
   word: Word;
@@ -76,12 +76,16 @@ export default function QuizPage() {
   // 정답 화면에 머무는 동안 다음 문제(예문 페치 포함)를 미리 준비 — "다음" 탭이 즉시가 되게
   const upcoming = useRef<Promise<Card | null> | null>(null);
   const advancing = useRef(false); // next() 진행 중 — 중복 호출이 문제를 건너뛰지 못하게
+  const finished = useRef(false); // 종료를 눌렀다 — 진행 중이던 next()가 끝 화면 위에 문제를 다시 올리지 못하게
   // 버튼 화면이 실제로 그려진 뒤에만 진행을 받는다 — 제출 제스처의 꼬리가 화면을 건너뛰지 못하게 (#76)
   const canAdvance = useRef(false);
   // 저장은 한 줄로 — saveAnswer는 "오늘 요약"을 읽어서 다시 쓰는데, 두 답이 겹치면 늦게 도착한
   // 옛 요약이 새 요약을 덮는다(#96이 막은 건 행 중복이고 순서는 아니다). 앞 저장이 끝난 뒤에
   // 다음을 보내면 뒤의 읽기가 앞의 쓰기를 본다. UI는 기다리지 않는다 — 체인만 이어진다
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
+  const [pendingSaves, setPendingSaves] = useState(0); // 아직 DB에 가는 중인 답안 — 끝 화면에서 닫기 전에 보이게
+  // 어느 언어의 덱이 올라와 있는가 — config가 바뀌면(다른 탭에서 전환) 새 덱이 올 때까지 로딩으로 그린다
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
 
   const buildCard = async (): Promise<Card | null> => {
     const item = session.current?.next();
@@ -104,6 +108,7 @@ export default function QuizPage() {
   };
 
   const finish = () => {
+    finished.current = true;
     const s = session.current;
     setWrap({
       answered: s?.answered ?? 0,
@@ -119,8 +124,11 @@ export default function QuizPage() {
     if (advancing.current) return;
     advancing.current = true;
     canAdvance.current = false;
+    const s = session.current;
     try {
       const built = await (upcoming.current ?? buildCard());
+      // 기다리는 사이 종료했거나 다른 언어의 세션으로 바뀌었으면 이 카드는 버린다
+      if (finished.current || session.current !== s) return;
       upcoming.current = null;
       if (!built) {
         finish();
@@ -158,15 +166,26 @@ export default function QuizPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, card]);
 
-  // config는 하이드레이션 직후 저장값으로 한 번 바뀐다 ([]로 두면 덱은 es, 채점은 저장값으로 갈린다)
+  // config는 하이드레이션 직후 저장값으로 한 번 바뀌고, 다른 탭에서 언어를 전환해도 바뀐다
+  // ([]로 두면 덱은 es, 채점은 저장값으로 갈린다). 앞 언어의 세션·미리 뽑은 카드는 여기서 버린다 —
+  // 남겨 두면 다음 카드가 앞 언어 단어인데 새 config의 표에 같은 id로 저장된다
   useEffect(() => {
     let stale = false;
+    session.current = null;
+    upcoming.current = null;
+    finished.current = false;
     (async () => {
-      const { words, stats } = await loadDeck(config);
+      const { words, stats } = await loadDeck(config).catch(() => ({ words: null, stats: null }));
       if (stale) return; // 앞 config의 덱이 늦게 도착해 덮어쓰지 못하게
+      if (!words || !stats) {
+        setPhase("failed");
+        setLoadedFor(config.code);
+        return;
+      }
       deck.current = words;
       const now = new Date();
       session.current = new StudySession(words, stats, now, seededRandom(`${localDate(now)}:${config.code}`));
+      setLoadedFor(config.code);
       if (words.length === 0) setPhase("empty");
       else next();
       // 오늘 소개될 신규 단어의 예문을 순서대로 미리 데운다 — 소개 카드는 첫 등장이라 캐시가 없고,
@@ -186,13 +205,17 @@ export default function QuizPage() {
   /** 채점 결과 1건 반영 — FSRS는 여기서 계산해 카드에 곧장 되먹이고(세션이 재출제 시각을 알게), 저장은 뒤따른다 */
   const record = (word: Word, ok: boolean) => {
     const now = new Date();
+    const prevLastReview = word.last_review; // 덱을 읽었을 때의 값 — 저장이 그 위에만 얹히게
     const applied = applyAnswer(word, ok, now);
     Object.assign(word, applied.fields);
     session.current?.graded(word, ok, now);
     setSeen(session.current?.answered ?? 0);
-    saveQueue.current = saveQueue.current.then(() =>
-      saveAnswer(config, word.id, applied, now).catch(() => setSaveFailures((n) => n + 1)),
-    );
+    setPendingSaves((n) => n + 1);
+    saveQueue.current = saveQueue.current
+      .then(() =>
+        saveAnswer(config, word.id, applied, prevLastReview, now).catch(() => setSaveFailures((n) => n + 1)),
+      )
+      .finally(() => setPendingSaves((n) => n - 1));
   };
 
   const submit = () => {
@@ -258,10 +281,24 @@ export default function QuizPage() {
   const progress = t.lang.quiz.seen(seen);
   const failed = saveFailures > 0 ? t.lang.quiz.saveFailed(saveFailures) : null;
 
-  if (phase === "loading")
+  if (phase === "loading" || loadedFor !== config.code)
     return (
       <main className="p-4">
         <p className="mt-16 text-center text-sm text-faint">{t.common.loading}</p>
+      </main>
+    );
+
+  // 덱을 못 읽었으면 로딩에 영원히 머무는 대신 말한다 — 새로고침이 재시도다
+  if (phase === "failed")
+    return (
+      <main className="p-4 text-center">
+        <p className="mt-16 text-sm text-err">{t.lang.quiz.loadFailed}</p>
+        <Link
+          href="/language"
+          className="mt-4 inline-flex min-h-11 items-center rounded-md border border-lang/40 bg-lang-soft px-4 text-sm text-lang"
+        >
+          {t.lang.quiz.backToDeck}
+        </Link>
       </main>
     );
 
@@ -291,6 +328,8 @@ export default function QuizPage() {
           </div>
         )}
         {failed && <p className="mt-3 font-dot text-dot text-err">{failed}</p>}
+        {/* 저장은 UI를 기다리지 않는다 — 여기서 바로 닫으면 마지막 답안이 안 남을 수 있어 가는 중임을 보인다 */}
+        {pendingSaves > 0 && <p className="mt-3 font-dot text-dot text-faint">{t.lang.quiz.saving}</p>}
         <Link
           href="/language"
           className="mt-8 inline-block rounded-md bg-lang px-6 py-3 font-medium text-white"
@@ -395,6 +434,7 @@ export default function QuizPage() {
         {flip && !revealed && (
           <button
             onClick={reveal}
+            onKeyDown={noRepeat}
             autoFocus
             className="mt-2 w-full rounded-md bg-lang py-3 font-medium text-white"
           >

@@ -23,15 +23,37 @@ export interface BookFields {
   pub_year: string;
 }
 
+/** PostgREST max_rows (supabase/config.toml) — 잘리면 오류가 아니라 성공이라 끝까지 페이지로 읽는다 */
+const PAGE = 1000;
+
 /** 서재 목록 — 최근 완독순. 독서 여정 화면(#58)은 firstFinishedOn 오름차순으로 재정렬해 쓴다 */
 export async function listBooks(): Promise<BookListItem[]> {
-  const [{ data: books, error: bErr }, { data: readings, error: rErr }, tags] = await Promise.all([
-    supabase.from("book").select("*"),
-    supabase.from("reading").select("book_id, finished_on, rating").order("finished_on"),
+  const books: Book[] = [];
+  const readings: Pick<Reading, "book_id" | "finished_on" | "rating">[] = [];
+  const [, , tags] = await Promise.all([
+    (async () => {
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase.from("book").select("*").order("id").range(from, from + PAGE - 1);
+        if (error) throw error;
+        books.push(...data);
+        if (data.length < PAGE) return;
+      }
+    })(),
+    (async () => {
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from("reading")
+          .select("book_id, finished_on, rating")
+          .order("finished_on")
+          .order("id") // 같은 날 완독이 페이지 경계에 걸려도 순서가 흔들리지 않게
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        readings.push(...data);
+        if (data.length < PAGE) return;
+      }
+    })(),
     tagsByType("book"),
   ]);
-  if (bErr) throw bErr;
-  if (rErr) throw rErr;
   const byBook = new Map<number, { count: number; first: string; last: string; rating: number | null }>();
   for (const r of readings) {
     const e = byBook.get(r.book_id);
@@ -71,12 +93,22 @@ export async function countBooks(): Promise<number> {
   return count ?? 0;
 }
 
-// activity는 책 도메인 전부 건별 발행 (§7.2 — 저빈도 도메인)
+// activity는 책 도메인 전부 건별 발행 (§7.2 — 저빈도 도메인).
+// 본 insert가 커밋된 뒤의 후속 요청(publish·count)은 실패해도 던지지 않는다 — 던지면 화면이
+// "다시 시도"를 띄우고, 다시 누르면 책·회독이 한 번 더 생긴다(유일 키 없음, 회독 하나만 지우는 UI 없음)
+const publishQuietly = async (...args: Parameters<typeof publish>) => {
+  try {
+    await publish(...args);
+  } catch (e) {
+    console.warn("activity publish failed", args[1], args[2], e);
+  }
+};
+
 export async function createBook(fields: BookFields): Promise<Book> {
   const { data, error } = await supabase.from("book").insert(fields).select().single();
   if (error) throw error;
   const book = data;
-  await publish("library", "book", book.id, "created", `책 등록: 「${book.title}」`);
+  await publishQuietly("library", "book", book.id, "created", `책 등록: 「${book.title}」`);
   return book;
 }
 
@@ -99,9 +131,12 @@ export async function recordCompletion(
     .from("reading")
     .select("*", { count: "exact", head: true })
     .eq("book_id", book.id);
-  if (cErr) throw cErr;
+  if (cErr) {
+    console.warn("reading count failed after insert", book.id, cErr);
+    return 1;
+  }
   const n = count ?? 1;
-  await publish(
+  await publishQuietly(
     "library",
     "book",
     book.id,
@@ -120,10 +155,12 @@ export async function saveNote(book: Pick<Book, "id" | "title">, note: string): 
 /**
  * 책 삭제 — cascade 이원화 (§14.7):
  * reading은 DB cascade, reflection·tagging 다형 행은 여기서. activity는 보존.
+ * 본체를 먼저 지운다 — 감상을 먼저 지우다 본체 삭제가 실패하면 책은 남고 감상(원본은 여기뿐)만
+ * 사라진다. 반대 순서면 남는 것은 고아 행뿐이다
  */
 export async function deleteBook(id: number): Promise<void> {
-  await removeThread("book", id);
-  await removeTaggings("book", id);
   const { error } = await supabase.from("book").delete().eq("id", id);
   if (error) throw error;
+  await removeThread("book", id);
+  await removeTaggings("book", id);
 }

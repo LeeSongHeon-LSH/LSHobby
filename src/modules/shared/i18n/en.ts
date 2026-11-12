@@ -16,6 +16,7 @@ export const en: Dict = {
     back: "Back",
     loading: "Loading…",
     failed: "Action failed — try again in a moment",
+    discardConfirm: "You have unsaved text. Close anyway?",
   },
 
   home: {
@@ -77,6 +78,8 @@ export const en: Dict = {
       sessionResult: (correct, total) => `${correct} of ${total} correct`,
       newLearned: (n) => `${n} new words`,
       dueTomorrow: (n) => `${n} due tomorrow`,
+      saving: "Saving answers…",
+      loadFailed: "Could not load the deck — please try again shortly",
     },
 
     words: {
@@ -88,6 +91,7 @@ export const en: Dict = {
       word: "Word",
       meaning: "Meaning",
       confirmDelete: (word) => `Delete "${word}"?`,
+      loadFailed: "Could not load the word list — please try again shortly",
     },
 
     stats: {
@@ -99,6 +103,7 @@ export const en: Dict = {
       dayTitle: (date, n) => `${date}: ${n} reviews`,
       stateDist: "FSRS states",
       exportCsv: "Export CSV",
+      loadFailed: "Could not load the stats — please try again shortly",
     },
 
     add: {
@@ -187,6 +192,7 @@ export const en: Dict = {
     contextPlaceholder: "Occasion (optional — e.g. reread, 3 months later)",
     add: "Add",
     addPrompt: "＋ Add a thought",
+    loadFailed: "Could not load the timeline — please try again shortly",
   },
 
   thoughts: {
@@ -212,5 +218,6 @@ export const en: Dict = {
     nextMonth: "Next month",
     dayAria: (label, n) => `${label}, ${n} thoughts`,
     saveFailed: "Save failed — try again in a moment",
+    loadFailed: "Could not load the calendar — your note may be saved, try reloading",
   },
 };

@@ -71,24 +71,36 @@ async function summarizeDay(thoughts) {
   ].join("\n");
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(`${OLLAMA_URL}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: "user", content: prompt }],
-        stream: false,
-        format: RESPONSE_SCHEMA,
-        options: { temperature: 0.2 },
-      }),
-      signal: AbortSignal.timeout(300000),
-    });
-    if (!res.ok) throw new Error(`Ollama ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    // 한 날의 Ollama 오류(과부하·타임아웃·연결 거부)로 실행 전체를 세우지 않는다 — 그 날만 건너뛰고
+    // 다음 실행이 다시 시도한다. 전부 건너뛰면 아래에서 실패로 끝나 알림이 간다
+    let res;
+    try {
+      res = await fetch(`${OLLAMA_URL}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [{ role: "user", content: prompt }],
+          stream: false,
+          format: RESPONSE_SCHEMA,
+          options: { temperature: 0.2 },
+        }),
+        signal: AbortSignal.timeout(300000),
+      });
+    } catch (e) {
+      console.log(`  … Ollama 연결 실패(${e.cause?.code ?? e.message})`);
+      continue;
+    }
+    if (!res.ok) {
+      console.log(`  … Ollama ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      continue;
+    }
     try {
       const out = JSON.parse((await res.json()).message?.content ?? "");
       const summary = typeof out.summary === "string" ? out.summary.trim() : "";
       if (!summary || !Array.isArray(out.items)) continue;
-      if (/items|[{}[\]"]/.test(summary)) continue; // 요약에 구조 표기가 새면 재시도
+      // 요약에 구조 표기가 새면 재시도 — 따옴표는 인용("…라고 썼다")에 쓰이는 평범한 글자라 보지 않는다
+      if (/"(summary|items|topics)"|[{}[\]]/.test(summary)) continue;
       const topicsByIndex = new Map();
       for (const item of out.items) {
         if (!Number.isInteger(item.n) || !Array.isArray(item.topics)) continue;

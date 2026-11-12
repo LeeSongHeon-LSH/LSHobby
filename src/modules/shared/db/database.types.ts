@@ -578,6 +578,17 @@ export type Database = {
           word_id: number
         }[]
       }
+      record_answer: {
+        Args: {
+          lang: string
+          p_fields: Json
+          p_prev_last_review?: string
+          p_rating: number
+          p_reviewed_at: string
+          p_word_id: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

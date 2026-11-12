@@ -25,12 +25,28 @@ STATE="$HOME/.lshobby/deploy-state"   # "<sha> <사유>" — 같은 실패를 2�
 cd "$REPO"
 
 # 사람을 부른다. 타이머는 fire-and-forget이라 journald에만 쌓으면 아무도 안 본다.
+# 경로는 배치 알림과 같은 scripts/alert.sh (ntfy 푸시 — 이 PC엔 데스크톱 알림 서비스가 없다)
+alerted=0
 alert() {
   echo "★ 배포 경보: $*" >&2
-  notify-send -u critical "LSHobby 배포" "$*" 2>/dev/null || true
+  alerted=1
+  "$REPO/scripts/alert.sh" "LSHobby 배포" "$*"
 }
 
 mark() { mkdir -p "$(dirname "$STATE")"; printf '%s %s\n' "$1" "$2" > "$STATE"; }
+
+# set -e로 끝나는 실패(git fetch·npm ci·mv…)와 TimeoutStartSec의 SIGTERM도 침묵이 아니게 — 위에서
+# 이미 부른 경우(alerted)는 두 번 부르지 않는다. 빌드 도중 죽으면 tsconfig.json에 스테이징 경로가
+# 남아 다음 tick부터 "작업 트리 더러움"으로 배포가 영영 멈추므로 그것도 여기서 되돌린다
+restore_tsconfig=0
+on_exit() {
+  rc=$?
+  [ "$restore_tsconfig" = 1 ] && git checkout -- tsconfig.json
+  [ "$rc" -ne 0 ] && [ "$alerted" = 0 ] && alert "배포 스크립트가 예상 밖에 끝났다 (rc=$rc) — journalctl --user -u lshobby-deploy -n 50"
+  return 0
+}
+trap on_exit EXIT
+trap 'exit 143' TERM INT
 
 # --- 손대면 안 되는 상황들 -------------------------------------------------
 # 이 PC가 개발기이자 서버다 (docs/16 §16.7)
@@ -116,11 +132,43 @@ git rev-parse --quiet --verify "${base:-@invalid@}^{commit}" >/dev/null 2>&1 || 
 echo "배포 시작: $(git rev-parse --short "$base") → $(git rev-parse --short "$new")"
 git merge --ff-only origin/main
 
-# 의존성이 바뀐 커밋이면 먼저 설치 — 안 그러면 빌드가 엉뚱한 이유로 깨진다
+# 의존성이 바뀐 커밋이면 먼저 설치 — 안 그러면 빌드가 엉뚱한 이유로 깨진다.
+# 서빙 중인 체크아웃에 바로 npm ci를 하면 "직전 빌드가 계속 서빙" 계약이 깨진다: node_modules를 지우고
+# 다시 받는 사이(레지스트리·DNS 장애면 영영) 돌던 서버가 아직 안 읽은 모듈에서 500을 내고, 재시작하면
+# next 자체가 없어 내려간다. 딴 데서 완성본을 만들어 통째로 바꿔 넣고, 뒤 단계가 실패하면 되돌린다
+NM_STAGE="$HOME/.lshobby/node_modules.staging"   # 리포 밖 — 안에 두면 더티 트리 가드에 걸린다
+NM_PREV="$HOME/.lshobby/node_modules.prev"       # 같은 파일시스템(홈)이라 mv가 이름 바꾸기 한 번이다
+nm_swapped=0
 if ! git diff --quiet "$base" "$new" -- package-lock.json; then
-  echo "package-lock.json 변경 — npm ci"
-  npm ci
+  echo "package-lock.json 변경 — npm ci (스테이징)"
+  rm -rf "$NM_STAGE"
+  mkdir -p "$NM_STAGE"
+  cp package.json package-lock.json "$NM_STAGE"/
+  [ -f .npmrc ] && cp .npmrc "$NM_STAGE"/
+  git -C "$NM_STAGE" init -q   # prepare 스크립트(git config core.hooksPath)가 git 디렉토리를 요구한다
+  if ! (cd "$NM_STAGE" && npm ci); then
+    rm -rf "$NM_STAGE"
+    # 흔한 원인이 레지스트리·DNS 장애라 blocked로 박지 않는다 — 2분 뒤 다시 시도하되 경보는 sha당 한 번
+    if ! { [ "$state_sha" = "$new" ] && [ "$state_reason" = install ]; }; then
+      alert "의존성 설치 실패 ($(git rev-parse --short "$new")) — 직전 빌드가 계속 서빙 중. 2분마다 다시 시도한다"
+      mark "$new" install
+    fi
+    exit 1
+  fi
+  rm -rf "$NM_PREV"
+  mv node_modules "$NM_PREV"
+  mv "$NM_STAGE/node_modules" node_modules
+  rm -rf "$NM_STAGE"
+  nm_swapped=1
 fi
+restore_nm() {
+  [ "$nm_swapped" = 1 ] || return 0
+  rm -rf "$NM_STAGE"
+  mv node_modules "$NM_STAGE"
+  mv "$NM_PREV" node_modules
+  rm -rf "$NM_STAGE"
+  nm_swapped=0
+}
 
 # next build는 cleanDistDir 기본값 때문에 distDir을 먼저 비운다. 그러니 .next가 아닌 곳에 짓는다
 rm -rf .next-staging
@@ -128,14 +176,16 @@ mkdir -p .next-staging
 # 컴파일 캐시가 여기 산다 (글꼴은 #92부터 npm 패키지 — 빌드가 외부에 닿지 않는다).
 # cleanDistDir이 cache는 안 지우므로 원래 흐름에서는 저절로 유지되던 것이다
 [ -d .next/cache ] && cp -a .next/cache .next-staging/cache
-if NEXT_DIST_DIR=.next-staging npm run build; then build_ok=1; else build_ok=0; fi
-
 # next build가 tsconfig.json에 distDir 타입 경로를 써넣는다. 스테이징 경로가 남으면 다음 tick의
-# "작업 트리 더러움" 가드에 걸려 배포가 영영 멈춘다 — 생성물이므로 성공/실패 어느 쪽이든 되돌린다
+# "작업 트리 더러움" 가드에 걸려 배포가 영영 멈춘다 — 생성물이므로 성공/실패/중단 어느 쪽이든 되돌린다
+restore_tsconfig=1
+if NEXT_DIST_DIR=.next-staging npm run build; then build_ok=1; else build_ok=0; fi
 git checkout -- tsconfig.json
+restore_tsconfig=0
 
 if [ "$build_ok" = 0 ]; then
   rm -rf .next-staging
+  restore_nm
   mark "$new" blocked
   alert "빌드 실패 ($(git rev-parse --short "$new")) — 직전 빌드가 계속 서빙 중. 고쳐 푸시하면 다시 시도한다"
   exit 1
@@ -167,12 +217,13 @@ done
 if [ "$healthy" != 1 ]; then
   rm -rf .next
   mv .next-prev .next
+  restore_nm
   systemctl --user restart lshobby
   mark "$new" blocked
   alert "새 빌드가 30초 안에 응답하지 않아 직전 빌드로 되돌렸다 (HEAD는 $(git rev-parse --short "$new"))"
   exit 1
 fi
 
-rm -rf .next-prev
+rm -rf .next-prev "$NM_PREV"
 rm -f "$STATE"
 echo "배포 완료: $(git rev-parse --short HEAD)"

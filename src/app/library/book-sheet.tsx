@@ -47,6 +47,15 @@ export function BookSheet({
   const [editingMeta, setEditingMeta] = useState(false);
   const [meta, setMeta] = useState({ title: "", author: "", translator: "", publisher: "", pub_year: "", tags: "" });
   const [busy, setBusy] = useState(false);
+  const [reflectionDirty, setReflectionDirty] = useState(false);
+
+  // 노트·메타·감상 편집기에 글이 있는데 배경 탭(폰에서 키보드를 내리려다)이나 Esc(한글 조합 취소)로
+  // 시트가 닫히면 쓰던 글이 확인 없이 사라진다 — 편집 중이면 묻고 닫는다
+  const dirty = editingNote || editingMeta || reflectionDirty;
+  const requestClose = useCallback(() => {
+    if (dirty && !confirm(t.common.discardConfirm)) return;
+    onClose();
+  }, [dirty, onClose, t]);
 
   const reload = useCallback(async () => {
     const [data, t] = await Promise.all([
@@ -107,10 +116,9 @@ export function BookSheet({
       onChanged();
       onClose();
     } catch {
-      // deleteBook은 감상 → 태그 → 본체 순이라 중간에 끊기면 일부만 지워진 상태다.
-      // 조용히 닫으면 지워진 줄 알고 다시 안 본다 — 알리고, 시트는 닫아 목록이
-      // 실제 상태(책이 남아 있음)를 보이게 한다. 시트를 열어 두면 이미 지워진
-      // 감상이 그대로 보여 더 헷갈린다
+      // deleteBook은 본체 → 감상 → 태그 순이라 중간에 끊기면 책은 지워지고 고아 행이 남거나,
+      // 첫 삭제부터 실패해 그대로다. 조용히 닫으면 어느 쪽인지 모른다 — 알리고, 시트는 닫아
+      // 목록이 실제 상태를 보이게 한다
       alert(t.common.failed);
       onChanged();
       onClose();
@@ -135,20 +143,20 @@ export function BookSheet({
 
   const title = book?.title ?? item.title;
 
-  // DaySheet(thoughts)와 같은 모달 규약 — Esc로 닫는다
+  // DaySheet(thoughts)와 같은 모달 규약 — Esc로 닫는다. IME 조합을 취소하는 Esc는 닫기가 아니다
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !e.isComposing) requestClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [requestClose]);
 
   return (
     // 모바일 = 바텀시트 / 데스크톱(md~) = 중앙 종이 토스트 (테이프·살짝 기운 종이)
     <div
       className="fixed inset-0 z-10 flex items-end bg-black/30 md:items-center md:justify-center md:p-10"
-      onClick={onClose}
+      onClick={requestClose}
     >
       <div
         role="dialog"
@@ -176,7 +184,7 @@ export function BookSheet({
           </div>
           <div className="flex shrink-0 gap-1">
             <button onClick={openMetaEdit} aria-label={t.common.edit} className="p-2 text-faint">✎</button>
-            <button onClick={onClose} aria-label={t.common.close} className="p-2 text-faint">✕</button>
+            <button onClick={requestClose} aria-label={t.common.close} className="p-2 text-faint">✕</button>
           </div>
         </header>
 
@@ -272,6 +280,7 @@ export function BookSheet({
                 subjectType="book"
                 subjectId={item.id}
                 defaultContext={readings.length > 0 ? t.library.readCount(readings.length) : undefined}
+                onDirtyChange={setReflectionDirty}
               />
             </>
           )}

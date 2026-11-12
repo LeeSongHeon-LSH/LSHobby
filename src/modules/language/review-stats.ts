@@ -4,8 +4,6 @@ import type { LanguageConfig } from "./types";
 export interface WordStat {
   reviews: number;
   correct: number;
-  /** 최초 복습 시각 — "오늘 신규 시작" 판정용 (퀴즈의 로컬 갱신 객체엔 없음) */
-  firstReviewedAt?: string | null;
 }
 
 /** PostgREST max_rows (supabase/config.toml:18) */
@@ -28,7 +26,7 @@ export async function reviewStats(config: LanguageConfig): Promise<Map<number, W
       .range(from, from + PAGE - 1);
     if (error) throw error;
     for (const r of data) {
-      out.set(r.word_id, { reviews: r.reviews, correct: r.correct, firstReviewedAt: r.first_reviewed_at });
+      out.set(r.word_id, { reviews: r.reviews, correct: r.correct });
     }
     if (data.length < PAGE) return out;
   }

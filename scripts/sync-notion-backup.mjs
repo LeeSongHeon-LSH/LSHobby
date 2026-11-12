@@ -34,19 +34,28 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 const notion = async (path, body, method = "POST") => {
-  const res = await fetch(`https://api.notion.com/v1/${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${NOTION_TOKEN}`,
-      "Notion-Version": "2022-06-28",
-      ...(body ? { "Content-Type": "application/json" } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!res.ok) throw new Error(`Notion ${method} ${path} ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  return res.json();
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(`https://api.notion.com/v1/${path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${NOTION_TOKEN}`,
+        "Notion-Version": "2022-06-28",
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(15000),
+    });
+    // 429는 Retry-After만큼 쉬고 다시 — 책 한 권이 블록 삭제 수십 건이라 평균 3req/s를 넘긴다
+    if (res.status === 429 && attempt < 3) {
+      await sleep((Number(res.headers.get("retry-after")) || 2) * 1000);
+      continue;
+    }
+    if (!res.ok) throw new Error(`Notion ${method} ${path} ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    return res.json();
+  }
 };
 
 /** 한 유형의 페이지 전체 조회 (백업 규모 전제 — 수백 건) */
@@ -68,7 +77,13 @@ async function queryAll(type) {
 /** KST 기준 YYYY-MM-DD — PC 타임존과 무관하게 앱의 하루 경계를 따른다 */
 const kstDate = (d = new Date()) => new Date(d.getTime() + 9 * 3600e3).toISOString().slice(0, 10);
 
-const rt = (s) => (s ? [{ text: { content: String(s).slice(0, 1900) } }] : []);
+// rich_text 한 조각은 2000자까지 — 긴 감상은 조각을 이어 붙인다 (잘라 내면 사본이 원본보다 짧다)
+const rt = (s) => {
+  const text = s ? String(s) : "";
+  const out = [];
+  for (let i = 0; i < text.length; i += 2000) out.push({ text: { content: text.slice(i, i + 2000) } });
+  return out;
+};
 const para = (text) => ({ paragraph: { rich_text: rt(text) } });
 const heading = (text) => ({ heading_2: { rich_text: rt(text) } });
 const bullet = (text) => ({ bulleted_list_item: { rich_text: rt(text) } });
@@ -130,7 +145,7 @@ function bookBlocks(b) {
   if (b.reflections.length > 0) {
     blocks.push(heading("감상"));
     for (const e of b.reflections)
-      blocks.push(bullet(`[${e.created_at.slice(0, 10)}${e.context ? ` · ${e.context}` : ""}] ${e.content}`));
+      blocks.push(bullet(`[${kstDate(new Date(e.created_at))}${e.context ? ` · ${e.context}` : ""}] ${e.content}`));
   }
   return blocks;
 }
@@ -138,7 +153,7 @@ function bookBlocks(b) {
 function bookProps(b, no) {
   const last = b.readings[b.readings.length - 1];
   return {
-    제목: { title: rt(b.title) },
+    이름: { title: rt(b.title) }, // 통합 DB의 title 속성은 "이름" 하나 — 단어 행과 같은 칸
     저자: { rich_text: rt(b.author) },
     옮긴이: { rich_text: rt(b.translator) },
     출판사: { rich_text: rt(b.publisher) },
@@ -188,11 +203,17 @@ async function syncBooks() {
       await notion(`pages/${page.id}`, { properties: { ...bookProps(b, no), sync_hash: { rich_text: rt(hash) } } }, "PATCH");
       updated += 1;
     } else {
-      await notion("pages", {
+      // children은 생성 요청에도 100개까지 — 나머지는 갱신 경로와 같이 덧붙인다.
+      // hash는 본문이 다 들어간 뒤에 (위 갱신 경로와 같은 이유)
+      const blocks = bookBlocks(b);
+      const page = await notion("pages", {
         parent: { database_id: NOTION_BACKUP_DB_ID },
-        properties: { ...bookProps(b, no), ...typeProp(TYPE_BOOK), sync_hash: { rich_text: rt(hash) } },
-        children: bookBlocks(b),
+        properties: { ...bookProps(b, no), ...typeProp(TYPE_BOOK) },
+        children: blocks.slice(0, 100),
       });
+      for (let i = 100; i < blocks.length; i += 100)
+        await notion(`blocks/${page.id}/children`, { children: blocks.slice(i, i + 100) }, "PATCH");
+      await notion(`pages/${page.id}`, { properties: { sync_hash: { rich_text: rt(hash) } } }, "PATCH");
       created += 1;
     }
   }
@@ -210,8 +231,17 @@ async function syncWords() {
 
   let created = 0, updated = 0;
   for (const lang of LANGS) {
-    const { data, error } = await supabase.rpc(lang.dailyStatsFn, { tz: "Asia/Seoul" });
-    if (error) throw error;
+    // 집합 반환 RPC도 max_rows(1000)에 잘린다 — 학습일이 그만큼 쌓이면 최신 날이 조용히 빠지므로 끝까지 읽는다
+    const data = [];
+    for (let from = 0; ; from += 1000) {
+      const { data: page, error } = await supabase
+        .rpc(lang.dailyStatsFn, { tz: "Asia/Seoul" })
+        .order("day")
+        .range(from, from + 999);
+      if (error) throw error;
+      data.push(...page);
+      if (page.length < 1000) break;
+    }
     for (const row of data) {
       if (row.day >= today) continue; // 오늘(KST)은 아직 확정 전 — 내일 실행이 박제
       const props = {

@@ -51,6 +51,19 @@ const supabase = createClient(
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const proposalPath = (code) => `meaning-proposals.${code}.json`;
+
+// PostgREST는 한 응답을 max_rows(1000)로 자른다 — 잘린 줄 모르면 뒤쪽 단어는 영영 제안을 못 받고,
+// --apply는 "단어가 사라져 건너뜀"으로 잘못 판정한다 (backfill-sentences.mjs와 같은 모양)
+const PAGE = 1000;
+async function selectAll(build) {
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build().range(from, from + PAGE - 1);
+    if (error) throw error;
+    out.push(...data);
+    if (data.length < PAGE) return out;
+  }
+}
 // grading.ts의 answerAlternatives·collapse와 같은 규칙 — 여기서도 같은 기준으로 중복을 걸러야 한다
 const alternatives = (meaning) => meaning.split(",").map((s) => s.trim()).filter(Boolean);
 const collapse = (s) => s.toLowerCase().replace(/\s+/g, "");
@@ -69,18 +82,30 @@ async function gemini(prompt) {
   geminiCalls++;
   let res;
   for (let attempt = 0; ; attempt++) {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
-        }),
-        signal: AbortSignal.timeout(120000),
-      },
-    );
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
+          }),
+          signal: AbortSignal.timeout(120000),
+        },
+      );
+    } catch (e) {
+      // 전송 계층 실패(타임아웃·DNS 등)는 상태 코드가 없어 아래 분기에 닿지 못한다 — 잡지 않으면
+      // 프로세스가 죽고 이 묶음까지의 제안은 파일에 이미 적혔으니 괜찮지만, 죽을 이유는 없다
+      if (attempt < 2) {
+        await sleep(30000);
+        continue;
+      }
+      budgetExhausted = true;
+      console.log(`\nGemini 연결 실패(${e.cause?.code ?? e.message}) 지속 — 여기서 중단, 나중에 재실행하면 이어서 진행됩니다.`);
+      return null;
+    }
     if (res.status === 429 && attempt < 1) {
       console.log("  … 429 — 분당 한도일 수 있어 65초 대기 후 재시도");
       await sleep(65000);
@@ -157,11 +182,9 @@ async function propose(code) {
   const cfg = LANGS[code];
   console.log(`\n=== ${cfg.label} (${code}) — 제안 ===`);
 
-  const { data: words, error } = await supabase
-    .from(cfg.wordTable)
-    .select("id, word, meaning")
-    .order("id");
-  if (error) throw error;
+  const words = await selectAll(() =>
+    supabase.from(cfg.wordTable).select("id, word, meaning").order("id"),
+  );
 
   const path = proposalPath(code);
   const prior = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : [];
@@ -186,7 +209,9 @@ async function propose(code) {
     }
     for (let i = 0; i < group.length; i++) {
       const w = group[i];
-      const synonyms = syn.get(i) ?? [];
+      // 응답에 빠진 단어는 기록하지 않는다 — "동의어 없음"으로 적히면 다시 묻지 않아 영영 빈다
+      const synonyms = syn.get(i);
+      if (!synonyms) continue;
       fresh.push({ id: w.id, word: w.word, meaning: w.meaning, synonyms });
       console.log(
         synonyms.length > 0
@@ -215,8 +240,9 @@ async function apply(code) {
   console.log(`\n=== ${cfg.label} (${code}) — 반영 ===`);
 
   const proposals = JSON.parse(readFileSync(path, "utf8")).filter((p) => p.synonyms?.length > 0);
-  const { data: words, error } = await supabase.from(cfg.wordTable).select("id, word, meaning");
-  if (error) throw error;
+  const words = await selectAll(() =>
+    supabase.from(cfg.wordTable).select("id, word, meaning").order("id"),
+  );
   const byId = new Map(words.map((w) => [w.id, w]));
 
   const stat = { updated: 0, skipped: 0 };

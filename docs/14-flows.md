@@ -68,7 +68,7 @@ sequenceDiagram
             end
             Q->>E: applyAnswer — 정답=Good / 오답=Again
             Q->>Q: graded — Learning으로 남으면 그 due에 세션 안 재출제
-            Q->>DB: saveAnswer (한 줄로 직렬화): es_words FSRS 갱신 → es_review_log 1행 → activity_feed 일별 요약 upsert ("단어 N개 복습, 정답률 M%")
+            Q->>DB: saveAnswer (한 줄로 직렬화): RPC record_answer(es_words FSRS 갱신 + es_review_log 1행, 한 트랜잭션 — 덱을 읽은 뒤 last_review가 바뀌었으면 거부) → activity_feed 일별 요약 upsert ("단어 N개 복습, 정답률 M%")
         end
     end
     Q-->>U: 끝 화면 (맞힌 수 · 새 단어 수 · 내일 복습 dueByTomorrow) — [종료]로 먼저 끝낼 수도 있다

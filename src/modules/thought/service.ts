@@ -16,8 +16,16 @@ export async function addThought(content: string): Promise<Thought> {
     .single();
   if (error) throw error;
   const added = data;
-  const line = content.split("\n")[0].slice(0, 30);
-  await publish("thought", "thought", added.id, "created", `생각 기록: ${line}`);
+  // 코드 포인트 단위로 자른다 — UTF-16 slice는 이모지를 반으로 쪼개 lone surrogate를 남기고,
+  // Postgres는 그 JSON을 22P02로 거부해 publish가 매번 실패한다
+  const line = Array.from(content.split("\n")[0]).slice(0, 30).join("");
+  // 생각 행은 이미 저장됐다 — 여기서 던지면 화면이 "저장 실패"를 띄우고, 다시 누르면 append-only라
+  // 지울 수 없는 중복이 쌓인다. 활동 한 줄은 부차 기록이므로 실패를 삼키고 저장 성공으로 돌려준다
+  try {
+    await publish("thought", "thought", added.id, "created", `생각 기록: ${line}`);
+  } catch (e) {
+    console.warn("activity publish failed for thought", added.id, e);
+  }
   return added;
 }
 
@@ -62,21 +70,20 @@ export const arrayLiteralElement = (v: string): string =>
   `"${v.replace(/[\\"]/g, (c) => `\\${c}`)}"`;
 
 /**
- * 사용자 입력을 ilike 패턴 한가운데에 넣는다 — 와일드카드를 전부 이스케이프한다.
- * `%`·`_` 말고 **`*`도 막아야 한다**: PostgREST가 `*`를 `%`의 별칭으로 받으므로
- * 빠뜨리면 "a*b" 검색이 와일드카드가 된다.
+ * 사용자 입력을 내용 부분일치 패턴으로 — `imatch`(`~*`, 대소문자 무시 정규식)용, 메타문자 전부 이스케이프.
+ * ilike를 쓰지 않는 이유: PostgREST는 like·ilike 값의 `*`를 `%`로 바꾸는데 이스케이프해도 그렇다
+ * (`\*` → `\%` = 리터럴 `%`). 그래서 별표가 든 검색어는 어떤 행에도 맞지 않았다. 정규식 연산자엔 그 치환이 없다.
  */
-export const ilikePattern = (query: string): string =>
-  `%${query.replace(/[\\%_*]/g, (c) => `\\${c}`)}%`;
+export const searchPattern = (query: string): string => query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** 검색 — 내용 부분일치 또는 주제 키워드 정확 일치 (최신순) */
 export async function searchThoughts(query: string, limit = 80): Promise<Thought[]> {
-  const pattern = ilikePattern(query);
+  const pattern = searchPattern(query);
   const [byContent, byTopic] = await Promise.all([
     supabase
       .from("thought")
       .select("*")
-      .ilike("content", pattern)
+      .filter("content", "imatch", pattern)
       .order("created_at", { ascending: false })
       .limit(limit),
     supabase
@@ -91,10 +98,10 @@ export async function searchThoughts(query: string, limit = 80): Promise<Thought
   return mergeThoughts(byContent.data as Thought[], byTopic.data as Thought[], limit);
 }
 
-/** 과거의 오늘 — n일 전 그날 쓴 생각들 (되짚기, 시간순) */
-export async function thoughtsDaysAgo(days: number, now: Date = new Date()): Promise<Thought[]> {
-  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - days);
-  const to = new Date(from.getTime() + 24 * 60 * 60 * 1000);
+/** 과거의 오늘 — 그날(로컬 자정 start부터 하루) 쓴 생각들 (되짚기, 시간순) */
+export async function thoughtsOnDay(start: Date): Promise<Thought[]> {
+  const from = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const to = new Date(from.getFullYear(), from.getMonth(), from.getDate() + 1);
   const { data, error } = await supabase
     .from("thought")
     .select("*")

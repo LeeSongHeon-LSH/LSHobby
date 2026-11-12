@@ -214,7 +214,7 @@ classDiagram
         +thoughtsInMonth(year, month) — 달력 한 달치 · mergeThoughts(a, b, limit)
         +countThoughts() number
         +searchThoughts(query, limit) — 내용·주제
-        +thoughtsDaysAgo(days, now) — "그때의 나"
+        +thoughtsOnDay(start) — "그때의 나" (1년·한 달 전은 같은 달·날, 365·30일이 아님)
         +recentTopics(days=30) · topTopics(lists, limit)
         +digestsInMonth(year, month) ThoughtDigest[] — 읽기만(채우는 쪽은 §16.11 배치)
         +dayKey(iso) · groupByDay(thoughts) — 브라우저 로컬 시간 축(§4.6)

@@ -6,6 +6,8 @@
 # 매번 빈 postgres:17 컨테이너에 복원해 표별 행 수를 원본과 대조한다 — 복원 안 되는 백업은 백업이 아니다.
 # 덤프는 public 스키마만: 앱 데이터 전부가 거기 있고, auth·storage는 Supabase가 관리하는 영역이라
 # 새 프로젝트에 복원할 때 다시 만드는 쪽이다(계정 1개, Storage 미사용).
+# 권한(GRANT)은 덤프에 넣는다 — 2026-10-30부터 새 프로젝트는 public 객체를 Data API 역할에 자동
+# 노출하지 않으므로, --no-privileges로 복원한 스키마는 앱이 RLS에 닿기도 전에 42501로 전부 실패한다.
 set -eu
 
 REPO=/home/leesongheon/projects/LSHobby
@@ -47,7 +49,9 @@ union all select 'indexes', count(*) from pg_indexes where schemaname = 'public'
 union all select 'constraints', count(*) from pg_constraint c join pg_namespace n on n.oid = c.connamespace
   where n.nspname = 'public'
 union all select 'functions', count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'public' and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e');
+  where n.nspname = 'public' and not exists (select 1 from pg_depend d where d.objid = p.oid and d.deptype = 'e')
+union all select 'grants', count(*) from information_schema.role_table_grants
+  where table_schema = 'public' and grantee in ('anon', 'authenticated', 'service_role');
 SQL
 
 # --- 1. 덤프 -----------------------------------------------------------------
@@ -58,7 +62,7 @@ file="$DIR/lshobby-$(date +%Y%m%d-%H%M).dump"
 partial="$file.partial"
 echo "덤프: $file"
 docker run --rm -e PGPASSWORD "$DUMP_IMAGE" \
-  pg_dump "$CONN" --format=custom --schema=public --no-owner --no-privileges > "$partial"
+  pg_dump "$CONN" --format=custom --schema=public --no-owner > "$partial"
 [ -s "$partial" ] || { echo "덤프 파일이 비었음" >&2; exit 1; }
 mv "$partial" "$file"
 partial=""
@@ -76,11 +80,11 @@ while [ $ready -lt 2 ]; do
   else ready=0; sleep 1; fi
   i=$((i + 1)); [ $i -lt 60 ] || { echo "리허설 컨테이너가 60초 안에 안 뜸" >&2; exit 1; }
 done
-# 정책이 참조하는 Supabase 역할 셋 — 이것만 있으면 public 스키마는 맨 Postgres에 그대로 들어간다.
+# 정책과 GRANT가 참조하는 Supabase 역할 셋 — 이것만 있으면 public 스키마는 맨 Postgres에 그대로 들어간다.
 # 기본 public 스키마는 지운다(덤프가 CREATE SCHEMA public을 갖고 있어 남겨 두면 그 한 줄이 오류로 찍힌다)
 docker exec "$cid" psql -U postgres -q -c \
   "create role anon nologin; create role authenticated nologin; create role service_role nologin; drop schema public;"
-docker exec "$cid" pg_restore -U postgres -d postgres --no-owner --no-privileges \
+docker exec "$cid" pg_restore -U postgres -d postgres --no-owner \
   "/backups/$(basename "$file")" 2> "$work/restore.err" || true
 errors=$(grep -c "^pg_restore: error" "$work/restore.err" || true)
 
@@ -101,4 +105,5 @@ ls -1t "$DIR"/lshobby-*.dump | tail -n +$((KEEP + 1)) | xargs -r rm --
 policies=$(printf '%s\n' "$shape" | sed -n 's/^policies|//p')
 tables=$(printf '%s\n' "$live" | wc -l)
 rows=$(printf '%s\n' "$live" | awk -F'|' '{ s += $2 } END { print s }')
-echo "완료: 표 $tables개 · 행 $rows개 · $(du -h "$file" | cut -f1) · 복원 리허설 일치 (RLS 정책 $policies개 · pg_restore 오류 $errors건) · 보관 $(ls "$DIR"/lshobby-*.dump | wc -l)/$KEEP"
+grants=$(printf '%s\n' "$shape" | sed -n 's/^grants|//p')
+echo "완료: 표 $tables개 · 행 $rows개 · $(du -h "$file" | cut -f1) · 복원 리허설 일치 (RLS 정책 $policies개 · 권한 $grants건 · pg_restore 오류 $errors건) · 보관 $(ls "$DIR"/lshobby-*.dump | wc -l)/$KEEP"

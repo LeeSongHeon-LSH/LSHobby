@@ -46,6 +46,8 @@ export default function RecordPage() {
   const router = useRouter();
   const t = useT();
   const [books, setBooks] = useState<BookListItem[]>([]);
+  // 조회 실패를 빈 목록으로 바꾸면 "첫 여정을 시작해 보세요"가 떠서 이미 있는 책을 다시 등록한다 (유일 키 없음)
+  const [loadFailed, setLoadFailed] = useState(false);
   const [query, setQuery] = useState("");
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(EMPTY);
@@ -55,7 +57,9 @@ export default function RecordPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    listBooks().then(setBooks).catch(() => setBooks([]));
+    listBooks()
+      .then(setBooks)
+      .catch(() => setLoadFailed(true));
   }, []);
 
   // 여정 번호 규칙은 modules/library/journey.ts가 원본 (서재 책장과 동일)
@@ -70,20 +74,34 @@ export default function RecordPage() {
 
   const createAndPick = async () => {
     setBusy(true);
+    let book: Book;
     try {
-      const book = await createBook({
+      book = await createBook({
         title: form.title.trim(),
         author: form.author.trim(),
         translator: form.translator.trim() || null,
         publisher: form.publisher.trim(),
         pub_year: form.pub_year.trim(),
       });
-      if (form.tags.trim()) await setTags("book", book.id, form.tags.split(","));
-      setPicked(book);
     } catch {
       alert(t.common.failed);
-    } finally {
       setBusy(false);
+      return;
+    }
+    const tags = form.tags.split(",").map((s) => s.trim()).filter(Boolean);
+    // 책은 생겼다 — 여기서부터는 폼을 비우고 목록에 넣는다. "← 책 선택"으로 돌아가도 같은 책을 또
+    // 등록하지 않게(값이 남은 폼·마운트 때 읽은 목록이 그걸 부추겼다)
+    setBooks((bs) => [
+      ...bs,
+      { ...book, readCount: 0, firstFinishedOn: null, lastFinishedOn: null, lastRating: null, tags },
+    ]);
+    setCreating(false);
+    setForm(EMPTY);
+    setPicked(book);
+    setBusy(false);
+    if (tags.length > 0) {
+      // 태그는 책 뒤에 붙는 부차 요청 — 실패해도 책을 다시 만들지 않고 알리기만 (시트의 ✎에서 다시 달 수 있다)
+      await setTags("book", book.id, tags).catch(() => alert(t.common.failed));
     }
   };
 
@@ -92,10 +110,11 @@ export default function RecordPage() {
     setBusy(true);
     try {
       await recordCompletion(picked, finishedOn, rating);
+      // busy는 풀지 않는다 — router.replace는 transition이라 바로 돌아오고, 느린 화면 전환 사이에
+      // 두 번째 탭이 같은 회독을 한 번 더 기록한다
       router.replace(`/library?open=${picked.id}`); // #58 — 여정 자세히보기로
     } catch {
       alert(t.common.failed);
-    } finally {
       setBusy(false);
     }
   };
@@ -246,7 +265,8 @@ export default function RecordPage() {
                 </button>
               );
             })}
-            {matches.length === 0 && (
+            {loadFailed && <p className="py-6 text-center text-sm text-err">{t.library.loadFailed}</p>}
+            {!loadFailed && matches.length === 0 && (
               <p className="py-6 text-center text-sm text-faint">
                 {books.length === 0 ? t.library.record.firstJourney : t.library.record.noResults}
               </p>

@@ -16,6 +16,7 @@ export const es: Dict = {
     back: "Atrás",
     loading: "Cargando…",
     failed: "No se pudo completar — inténtalo de nuevo en un momento",
+    discardConfirm: "Hay texto sin guardar. ¿Cerrar de todos modos?",
   },
 
   home: {
@@ -77,6 +78,8 @@ export const es: Dict = {
       sessionResult: (correct, total) => `${correct} de ${total} correctas`,
       newLearned: (n) => `${n} palabras nuevas`,
       dueTomorrow: (n) => `${n} para mañana`,
+      saving: "Guardando respuestas…",
+      loadFailed: "No se pudo cargar el mazo — inténtalo de nuevo en un momento",
     },
 
     words: {
@@ -88,6 +91,7 @@ export const es: Dict = {
       word: "Palabra",
       meaning: "Significado",
       confirmDelete: (word) => `¿Eliminar "${word}"?`,
+      loadFailed: "No se pudo cargar el vocabulario — inténtalo de nuevo en un momento",
     },
 
     stats: {
@@ -99,6 +103,7 @@ export const es: Dict = {
       dayTitle: (date, n) => `${date}: ${n} repasos`,
       stateDist: "Estados FSRS",
       exportCsv: "Exportar CSV",
+      loadFailed: "No se pudieron cargar las estadísticas — inténtalo de nuevo en un momento",
     },
 
     add: {
@@ -187,6 +192,7 @@ export const es: Dict = {
     contextPlaceholder: "Motivo (opcional — p. ej. relectura, 3 meses después)",
     add: "Añadir",
     addPrompt: "＋ Añadir un pensamiento",
+    loadFailed: "No se pudo cargar la línea de tiempo — inténtalo de nuevo en un momento",
   },
 
   thoughts: {
@@ -212,5 +218,6 @@ export const es: Dict = {
     nextMonth: "Mes siguiente",
     dayAria: (label, n) => `${label}, ${n} pensamientos`,
     saveFailed: "No se pudo guardar — inténtalo de nuevo en un momento",
+    loadFailed: "No se pudo cargar el calendario — la nota puede estar guardada, recarga la página",
   },
 };

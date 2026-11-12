@@ -125,7 +125,8 @@ export class StudySession {
   private present(word: Word): SessionCard {
     if (!this.needsIntro(word)) return { kind: "quiz", word };
     this.introduced.add(word.id);
-    this.delayed.push({ word, after: this.shown + FIRST_RETRIEVAL_GAP });
+    // shown은 이 소개 카드까지 센 값 — 그 뒤로 GAP장이 지나간 다음 장이 첫 인출이다
+    this.delayed.push({ word, after: this.shown + FIRST_RETRIEVAL_GAP + 1 });
     return { kind: "intro", word };
   }
 

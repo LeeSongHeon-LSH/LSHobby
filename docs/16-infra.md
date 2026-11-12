@@ -128,15 +128,16 @@ flowchart LR
   | 작업 트리가 더럽거나 `main`이 아님 | 건너뜀 (개발 중일 수 있다 — 이 PC가 개발기이자 서버다) |
   | 이 체크아웃에서 `npm run dev`가 돌고 있음 | 건너뜀 — 교체·재시작이 dev 서버를 깬다 |
   | 로컬 `main`이 origin보다 앞섬(푸시 전) | 건너뜀 — 배포할 것이 없다 |
-  | 로컬 `main`이 origin과 **갈라짐** | 타이머를 **정지**시키고 `notify-send`로 부른다. 정리 후 `systemctl --user start lshobby-deploy.timer` |
+  | 로컬 `main`이 origin과 **갈라짐** | 타이머를 **정지**시키고 `scripts/alert.sh`로 부른다. 정리 후 `systemctl --user start lshobby-deploy.timer` |
   | CI가 아직 안 끝남 | 대기(2분 뒤 재시도). 30분을 넘기면 한 번 알린다 |
   | **CI 실패** | 배포하지 않고 해당 sha를 `blocked`로 기록 — 고친 커밋이 올라와야 다시 시도 |
-  | `package-lock.json`이 바뀐 커밋 | `npm ci` 먼저 — 비교 구간은 **직전 배포 커밋(`DEPLOYED_SHA`) → 새 커밋**(기록이 없거나 그 커밋이 사라졌으면 HEAD로 폴백, 최악이라도 `npm ci` 한 번 건너뛰는 정도) |
+  | `package-lock.json`이 바뀐 커밋 | `npm ci`를 **리포 밖(`~/.lshobby/node_modules.staging`)에서** 돌려 완성본을 `mv`로 바꿔 넣는다 — 서빙 중인 `node_modules`를 지우고 받는 사이에 돌던 서버가 500을 내지 않게. 설치 실패는 `install`로 기록해 경보 1회 후 2분마다 재시도(레지스트리·DNS 장애가 흔한 원인), 빌드·헬스체크 실패 시 `node_modules`도 함께 되돌린다. 비교 구간은 **직전 배포 커밋(`DEPLOYED_SHA`) → 새 커밋**(기록이 없거나 그 커밋이 사라졌으면 HEAD로 폴백, 최악이라도 `npm ci` 한 번 건너뛰는 정도) |
   | 빌드 실패 | `.next`를 건드린 적이 없다 → **직전 빌드가 계속 서빙** |
   | 새 빌드가 30초 안에 응답 못 함 | 직전 `.next`로 **롤백** 후 재시작 |
 
   - **CI 게이트**(NFR-06): `.githooks/pre-push`는 `--no-verify`와 GitHub UI 머지를 못 막는다. 그래서 스크립트가 `gh api .../check-runs`로 그 sha의 CI를 직접 확인하고 **초록일 때만** 올린다. CI를 못 쓸 때의 탈출구는 `DEPLOY_SKIP_CI=1 scripts/deploy-local.sh`.
-  - **상태 기록**: `~/.lshobby/deploy-state`에 `<sha> blocked|stalled` 한 줄. `blocked` = CI 실패·빌드 실패·헬스체크 실패(그 sha는 다시 시도하지 않음), `stalled` = CI 30분 정체 알림을 이미 보냈다는 표시(알림 1회만). 같은 실패를 2분마다 720번 반복하지 않기 위한 것으로, 새 커밋이 오면 sha가 달라져 저절로 풀리고 배포 성공 시 지운다.
+  - **상태 기록**: `~/.lshobby/deploy-state`에 `<sha> blocked|stalled|install` 한 줄. `blocked` = CI 실패·빌드 실패·헬스체크 실패(그 sha는 다시 시도하지 않음), `stalled` = CI 30분 정체 알림을 이미 보냈다는 표시(알림 1회만), `install` = 의존성 설치 실패 알림을 보냈다는 표시(계속 재시도).
+  - **침묵 없음**: `set -e`로 끝나는 실패(fetch·merge·mv…)와 `TimeoutStartSec`의 SIGTERM은 EXIT 트랩이 잡아 한 번 부르고, 빌드 도중 죽어 `tsconfig.json`에 남은 스테이징 경로도 거기서 되돌린다(남으면 다음 tick부터 "더티 트리"로 영영 멈춘다). 같은 실패를 2분마다 720번 반복하지 않기 위한 것으로, 새 커밋이 오면 sha가 달라져 저절로 풀리고 배포 성공 시 지운다.
   - **사본 re-exec**: 스크립트 자신이 배포 대상이라 `git merge`가 실행 중인 파일을 바꾸면 sh(dash)가 남은 구간을 새 파일의 같은 오프셋에서 읽어 조용히 건너뛴다 — `DEPLOY_REEXEC` 가드로 `mktemp` 사본에 붙어서 돈다.
   - **`tsconfig.json` 되돌리기**: `next build`가 distDir 타입 경로를 tsconfig에 써넣는다. 스테이징 경로가 남으면 다음 tick이 "작업 트리 더러움"으로 영영 건너뛰므로 빌드 직후 `git checkout`으로 되돌린다.
   - **빌드 캐시**: `.next/cache`를 스테이징에 복사해 물려준다. 원래는 `next/font/google`의 `fonts.gstatic.com` 접속을 피하려던 것인데, #90·#92부터 글꼴이 npm 패키지(`pretendard`·`galmuri`)라 빌드가 외부에 닿지 않는다 — 복사는 컴파일 캐시 재사용 목적으로 남긴다. 글꼴을 바꾸면 `public/sw.js`의 `CACHE` 이름을 올린다(#92).
@@ -291,12 +292,12 @@ cron 두 줄(다이제스트 00:30·Notion 백업 00:40)을 **`systemd --user` �
 | `lshobby-backup.timer` | 일요일 01:00 | `backup-db.sh` — pg_dump + 복원 리허설 (NFR-04) |
 
 **cron 대신 타이머인 이유** — 세 가지가 공짜로 따라온다.
-- **실패 알림**: 서비스마다 `OnFailure=lshobby-alert@%n.service`. 종료 코드가 0이 아니면 `notify-send` 데스크톱 알림 + `~/.lshobby/alerts.log` 한 줄(알림을 못 봐도 남는다). 다이제스트는 "전부 건너뜀"(Ollama 다운)을 실패로 끝내도록 고쳤다 — 일부 건너뜀은 다음 실행 재시도가 정상 경로라 조용히 0.
+- **실패 알림**: 서비스마다 `OnFailure=lshobby-alert@%n.service` → `scripts/alert.sh` (배포 스크립트도 같은 경로). **ntfy.sh 푸시** + `~/.lshobby/alerts.log` 한 줄. 토픽 이름은 `~/.lshobby/ntfy-topic` 한 줄, 폰의 ntfy 앱이 같은 토픽을 구독한다 — 파일이 없으면 기록만 남는다. 처음엔 `notify-send`였는데 이 PC엔 데스크톱 세션이 없어(`DISPLAY` 없음) 매번 `org.freedesktop.Notifications` 없음으로 실패했고, 그래서 Notion 백업이 2026-10-09부터 17일간 매일 실패해도 아무도 몰랐다(2026-10-25). 다이제스트는 "전부 건너뜀"(Ollama 다운)을 실패로 끝내도록 고쳤다 — 일부 건너뜀은 다음 실행 재시도가 정상 경로라 조용히 0.
 - **놓친 회차 보충**: `Persistent=true` — PC가 꺼져 있던 회차는 켜지면 바로 돈다.
 - **성공 도장**: `ExecStartPost`가 `~/.lshobby/last-ok/<유닛>`에 시각을 쓴다(성공했을 때만). 로그는 `journalctl --user -u <유닛>` — 옛 `~/.local/state/lshobby-*.log`는 더 안 쓴다.
 
 **DB 백업(`scripts/backup-db.sh`)** — NFR-04의 "pg_dump 주 1회 + 복원 리허설"을 그대로 코드로.
 - 이 PC엔 pg_dump가 없다 → `supabase start`가 받아 둔 **Supabase Postgres 17 이미지**로 서버와 같은 메이저의 `pg_dump`를 돌린다. 접속은 풀러 세션 모드(`aws-0-ap-northeast-2.pooler.supabase.com:5432`, `postgres.<ref>`) — 직접 접속 호스트는 IPv6 전용이라 이 PC(IPv4)에선 안 붙는다. 비밀번호는 `~/.lshobby/db-password`.
-- 덤프는 **public 스키마만**, custom 포맷(`pg_restore` 대상), `--no-owner --no-privileges`. auth·storage는 Supabase 관리 영역(계정 1개·Storage 미사용)이라 새 프로젝트 복원 시 다시 만드는 쪽.
-- **매회 복원 리허설**: 빈 `postgres:17-alpine` 컨테이너에 Supabase 역할 셋(`anon`·`authenticated`·`service_role`, 정책이 참조)만 만들고 `pg_restore` → **public 표 17개의 정확한 행 수 + 객체 개수(정책·RLS 표·인덱스·제약·함수)를 원본과 대조**해 다르면 실패(알림). "복원 안 되는 백업은 백업이 아니다"를 매주 자동으로 증명한다. 행 수만 보던 때는 정책이 통째로 빠진 덤프도 통과했다 — 개수 대조를 붙인 경위와 `pg_restore` 오류 건수를 굳이 게이트로 안 쓴 이유는 **#93**. 첫 실행 2026-09-06: 표 17 · 행 906 · 76K · 9초 · 일치. 2026-09-11(개수 대조 추가): 표 17 · 행 1645 · 96K · 정책 17 · 오류 0 · 일치.
-- 보관: `~/.lshobby/backups/lshobby-<날짜>.dump` 최근 8개(두 달치). 복원은 같은 이미지의 `pg_restore -d <대상> --no-owner --no-privileges <파일>`.
+- 덤프는 **public 스키마만**, custom 포맷(`pg_restore` 대상), `--no-owner`. **권한(GRANT)은 포함** — Supabase가 2026-10-30부터 public의 새 객체를 `anon`·`authenticated`·`service_role`에 자동 노출하지 않으므로, 권한 없는 복원본은 앱이 RLS에 닿기도 전에 42501로 전부 실패한다. 그래서 마이그레이션 `20261025100000_explicit_grants.sql`로 권한을 명시했고, **이 뒤로 표·시퀀스·함수를 만드는 마이그레이션은 GRANT를 함께 적는다**. auth·storage는 Supabase 관리 영역(계정 1개·Storage 미사용)이라 새 프로젝트 복원 시 다시 만드는 쪽.
+- **매회 복원 리허설**: 빈 `postgres:17-alpine` 컨테이너에 Supabase 역할 셋(`anon`·`authenticated`·`service_role`, 정책이 참조)만 만들고 `pg_restore` → **public 표 17개의 정확한 행 수 + 객체 개수(정책·RLS 표·인덱스·제약·함수·세 역할의 표 권한)를 원본과 대조**해 다르면 실패(알림). "복원 안 되는 백업은 백업이 아니다"를 매주 자동으로 증명한다. 행 수만 보던 때는 정책이 통째로 빠진 덤프도 통과했다 — 개수 대조를 붙인 경위와 `pg_restore` 오류 건수를 굳이 게이트로 안 쓴 이유는 **#93**. 첫 실행 2026-09-06: 표 17 · 행 906 · 76K · 9초 · 일치. 2026-09-11(개수 대조 추가): 표 17 · 행 1645 · 96K · 정책 17 · 오류 0 · 일치.
+- 보관: `~/.lshobby/backups/lshobby-<날짜>.dump` 최근 8개(두 달치). 복원은 같은 이미지의 `pg_restore -d <대상> --no-owner <파일>` (권한까지 들어간다 — 역할 `anon`·`authenticated`·`service_role`이 먼저 있어야 한다).

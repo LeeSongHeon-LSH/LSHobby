@@ -19,15 +19,29 @@ export default function StatsPage() {
   const config = useCurrentConfig();
   const t = useT();
   const langName = t.lang.languageNames[config.code] ?? config.label;
-  const [stats, setStats] = useState<LangStats | null>(null);
-  const [words, setWords] = useState<Word[]>([]);
+  // 어느 언어의 집계인지 함께 담는다 — 하이드레이션 스냅샷(es)으로 나간 요청이 늦게 오면 영어 헤더
+  // 아래 스페인어 통계가 들어가고 CSV는 두 언어를 id로 섞는다. 실패는 로딩에 머무는 대신 말한다
+  const [loaded, setLoaded] = useState<{ code: string; stats: LangStats; words: Word[] } | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const stats = loaded?.code === config.code ? loaded.stats : null;
+  const words = loaded?.code === config.code ? loaded.words : [];
 
   useEffect(() => {
+    let stale = false;
     (async () => {
-      const ws = await listWords(config);
-      setWords(ws);
-      setStats(await fetchStats(config, ws));
-    })().catch(() => {});
+      try {
+        const ws = await listWords(config);
+        const st = await fetchStats(config, ws);
+        if (stale) return;
+        setLoaded({ code: config.code, stats: st, words: ws });
+        setLoadFailed(false);
+      } catch {
+        if (!stale) setLoadFailed(true);
+      }
+    })();
+    return () => {
+      stale = true;
+    };
   }, [config]);
 
   const exportCsv = async () => {
@@ -54,7 +68,9 @@ export default function StatsPage() {
           <p className="font-dot text-dot uppercase tracking-dot-wide text-lang">{langName}</p>
           <h1 className="font-display text-2xl font-bold">{t.lang.stats.title}</h1>
         </header>
-        <p className="mt-16 text-center text-sm text-faint">{t.common.loading}</p>
+        <p className={`mt-16 text-center text-sm ${loadFailed ? "text-err" : "text-faint"}`}>
+          {loadFailed ? t.lang.stats.loadFailed : t.common.loading}
+        </p>
       </main>
     );
 

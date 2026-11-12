@@ -117,6 +117,8 @@ create index idx_reading_book on reading (book_id);
 -- quote는 #58(인용구 삭제), concept·concept_link는 #57(CS 제거)로 2026-08-20 drop —
 -- 마이그레이션 20260820090000_drop_knowledge · 20260820100000_drop_quote 참조
 -- 리뷰 집계 RPC 4종(es/en_word_stats · es/en_daily_stats)은 20260820120000 참조 (#62 — security invoker, RLS 적용)
+-- 답안 저장 RPC record_answer(lang, …)는 20261025100100 — FSRS 갱신 + review_log 1행을 한 트랜잭션으로 (#103)
+-- Data API 권한은 20261025100000에서 명시 — 이 뒤로 표·시퀀스·함수를 만드는 마이그레이션은 GRANT를 함께 적는다 (#103)
 
 -- ============ language (언어별 테이블 — es_* 원본, en_*은 동일 구조·gender 제외 #54) ============
 
